@@ -1,0 +1,8 @@
+{
+   Ignorer_XawPlus_Text_ClassInitialize
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XtMalloc
+   fun:ClassInitialize
+}
