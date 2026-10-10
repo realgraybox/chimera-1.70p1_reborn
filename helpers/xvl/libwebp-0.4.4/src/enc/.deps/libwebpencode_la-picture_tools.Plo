@@ -1,0 +1,71 @@
+libwebpencode_la-picture_tools.lo: picture_tools.c \
+ /usr/include/stdc-predef.h vp8enci.h /usr/include/string.h \
+ /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/xlocale.h \
+ /usr/include/bits/string3.h ../webp/encode.h ../webp/./types.h \
+ /usr/include/inttypes.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h ../dsp/dsp.h \
+ ../dsp/../webp/config.h ../dsp/../webp/types.h ../utils/bit_writer.h \
+ ../utils/../webp/types.h ../utils/thread.h ../utils/../webp/config.h \
+ ../dsp/yuv.h ../dsp/./dsp.h ../dsp/../dec/decode_vp8.h \
+ ../dsp/../dec/../webp/decode.h ../dsp/../dec/../webp/./types.h
+
+/usr/include/stdc-predef.h:
+
+vp8enci.h:
+
+/usr/include/string.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/bits/string3.h:
+
+../webp/encode.h:
+
+../webp/./types.h:
+
+/usr/include/inttypes.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+../dsp/dsp.h:
+
+../dsp/../webp/config.h:
+
+../dsp/../webp/types.h:
+
+../utils/bit_writer.h:
+
+../utils/../webp/types.h:
+
+../utils/thread.h:
+
+../utils/../webp/config.h:
+
+../dsp/yuv.h:
+
+../dsp/./dsp.h:
+
+../dsp/../dec/decode_vp8.h:
+
+../dsp/../dec/../webp/decode.h:
+
+../dsp/../dec/../webp/./types.h:

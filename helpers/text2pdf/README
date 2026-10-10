@@ -1,0 +1,13 @@
+Homepage: http://www.eprg.org/pdfcorner/text2pdf/
+
+text2pdf version 1.1
+
+This is the latest version of text2pdf, and offers a number of improvements over version 1.0. As you might be able to guess from the name, text2pdf converts text files to PDF. You can specify the font, number of lines and columns, paper size and various other options from the command line. By default, long lines will be wrapped, and a formfeed character (^L) will cause a page break. I've dumped the result of text2pdf -h in case you want to see all the options now.
+
+The program is actually very simple to use. All you normally do is
+text2pdf myfile > myfile.pdf.
+
+A nice little test on UNIX is to get the help in a PDF file:
+text2pdf -h | text2pdf > help.pdf 
+
+Compile by running "make" or gcc text2pdf.c -o text2pdf

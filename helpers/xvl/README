@@ -1,0 +1,44 @@
+xvl (xv-light)
+
+Overview
+
+xvl is a minimalist image viewer built using only libX11 and stb_image libraries.
+It supports displaying images with basic interactive controls and saving the displayed content.
+
+Features
+
+- Load and display images in formats supported by stb_image (JPEG, PNG, BMP, GIF).
+- Load and display XBM, XPM, and XWD images.
+- Zoom in and out using + and - keys (including numeric keypad).
+- Pan the image with arrow keys.
+- Mouse wheel zoom over the "[+/-]: Zoom" area.
+- Mouse wheel vertical pan over the "[Arrows]: Pan" area.
+- Left and right mouse clicks pan horizontally over the "[Arrows]: Pan" area.
+- Save the currently displayed view as a PNG file by pressing s or clicking the save text.
+- Quit the program by pressing q or clicking the quit text.
+- Resizable window with smooth redraw and double buffering to minimize flicker.
+- On-screen help text displaying controls.
+- Window title dynamically shows the current image filename.
+- Simple, dependency-light design, statically linkable for a small binary size.
+
+Controls
+
+Key         Action
+---------------------------
++ / KP+     Zoom in
+- / KP-     Zoom out
+Arrow keys  Pan image
+Mouse wheel over "[+/-]: Zoom"    Zoom in/out
+Mouse wheel over "[Arrows]: Pan"  Pan up/down
+Left click over "[Arrows]: Pan"   Pan left
+Right click over "[Arrows]: Pan"  Pan right
+s           Save current view to output.png
+q / Esc     Quit program
+
+Usage
+
+./viewer <imagefile>
+
+Example:
+
+./viewer test.png

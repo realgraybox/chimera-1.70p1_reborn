@@ -8,8 +8,8 @@ DISTDIR = $(PACKAGE)-$(VERSION)-20260626
 
 LDFLAGS ?=
 SUBDIRS = compat common lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src \
-			helpers/fits2gif helpers/img2gif helpers/svg2gif helpers/tif2gif helpers/curl \
-			helpers/menu helpers/text2pdf helpers/xvl helpers/xed
+			helpers/fits2gif helpers/svg2gif helpers/curl \
+			helpers/menu helpers/text2pdf helpers/xvl
 
 .PHONY: all install clean dist
 

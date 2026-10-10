@@ -1,0 +1,86 @@
+#!/bin/sh
+
+ShowARJ()
+{
+	unarj l "$1" 2> /dev/null
+}
+
+ShowRPM()
+{
+	rpm -qip "$1"
+}
+
+# _Everything_ on msdos and vfat is marked executable, so mime types
+# must be explicitly searched for, before checking execution flags, to prevent
+# execution of a data file erroneously marked executable.
+
+Detected()
+{
+	case "$1" in
+	*.html )    netscape   "$1" &;;
+	*.htm )     netscape   "$1" &;;
+	*.c   )     xedit      "$1" &;;
+	*.h   )     xedit      "$1" &;;
+	*.txt )     xedit      "$1" &;;
+	*.tar )     guitar "$1" &;;
+	*.tgz )     guitar "$1" &;;
+	*.tar.gz )  guitar "$1" &;;
+	*.tar.Z )   guitar "$1" &;;
+	*.tar.z )   guitar "$1" &;;
+	*.tbz2 )    guitar "$1" &;;
+	*.tar.bz2 ) guitar "$1" &;;
+	*.Z )       guitar "$1" &;;
+	*.z )       guitar "$1" &;;
+	*.gz )      guitar "$1" &;;
+	*.bz2 )     guitar "$1" &;;
+	*.zip )     guitar "$1" &;;
+	*.ZIP )     guitar "$1" &;;
+	*.arj )     ShowARJ    "$1" | xless &;;
+	*.ARJ )     ShowARJ    "$1" | xless &;;
+	*.rpm )     rpm -qip   "$1" | xless &;;
+	*.o   )     hexdump    "$1" | xless &;;
+	*.lib )     hexdump    "$1" | xless &;;
+	*.a   )     hexdump    "$1" | xless &;;
+	*.jpg )     xv         "$1" &;;
+	*.jpeg )    xv         "$1" &;;
+	*.avi )     gmplayer   "$1" &;;
+	*.mov )     gmplayer   "$1" &;;
+	*.mpg )     gmplayer   "$1" &;;
+	*.mpeg )    gmplayer   "$1" &;;
+	*.bmp )     xv         "$1" &;;
+	*.xpm )     xv         "$1" &;;
+	*.png )     xv         "$1" &;;
+	*.gif )     xv         "$1" &;;
+	*.tif )     xv         "$1" &;;
+	*.tiff )    xv         "$1" &;;
+	*.pcx )     xv         "$1" &;;
+	*.PCX )     xv         "$1" &;;
+	*.wav )     play       "$1" &;;
+	*.au  )     play       "$1" &;;
+	*.voc )     play       "$1" &;;
+	*.doc )     abiword    "$1" &;;
+	*.DOC )     abiword    "$1" &;;
+	*.ps )      gv         "$1" &;;
+	*.eps )     gv         "$1" &;;
+	*.pdf )     xpdf -geometry 788x550 "$1" &;;
+	* )         false ;;
+	esac
+}
+
+if [ "$1" = "" ]
+then
+	echo "syntax: $(basename '$0') file"
+else
+	# predefined types take precedence over execution
+	if Detected "$1" ;then
+	  exit
+	fi
+	if [ -x "$1"  ];then
+	  exec "$1" 2> /dev/null &
+	  exit
+	fi
+	case "$1" in
+	* )         xedit      "$1" &;;
+	esac
+fi
+

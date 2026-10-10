@@ -1,0 +1,91 @@
+CHANGES:
+
+Feb 25, 2005 3.00
+Added Up, Down, Enter and Escape key processing for keyboard steering.
+Rewrote this README to support new features.
+
+Feb 9, 2005 2.04
+Added mime decoding scripts requiring menu to be renamed 'Start.menu'
+
+-------------------
+Hey, thanks Elliot.
+
+I have hacked menu up and renamed it 'Start.menu' so that it is a small
+vertical, xlib only, single parameter, general purpose pop-up menu. See the
+source for detailed technical operation.
+
+Bug fixes, flames and code improvements can be sent to:
+loveall@iinet.com
+For other Xlib only apps on my home page see:
+http://www.modest-proposals.com/
+
+To compile menu, type:
+
+	xmkmf
+	make
+
+Place generated binary, renamed to Start.menu, in your default search path
+and/or invoke it from within a program/script with the complete
+path/filename. See sub-directory 'mime' for example scripts designed to
+operate from dir /usr/local/bin.
+
+INSTALL:
+
+copy binary 'Start.menu' to /usr/local/bin. Copy the files in sub-dir 'mime'
+to /usr/local/bin.
+
+Supports right button click in other programs from my web-site, e.g. uxplor,
+guiTAR, hacked dillo, txplor, retawq ...
+
+usage: Start.menu [[menu-file] parameter]
+
+Optional menu-file path and file-name. With no menu-file defaults to '.menu'
+in the current dir. If no menu-file found then defaults to a single menu
+option of 'localhost' which fires up an xterm.
+
+Optional: _one_ filespec parameter, _requires_ menu-file to be specified.
+Parameter is passed on to menu options that contain the string '$F' in the
+execution portion of the menu line.
+
+Menu format:
+
+<Menu_label><tab><execution_string>
+
+<Menu_label> is any ASCII string not including a tab character. Spaces are
+allowed. Tab character terminates <Menu_label>.
+
+<tab> either terminates a <Menu_label> or, as the first character on a line,
+causes the following <execution_string> to be executed DURING MENU-FILE
+LOADING. Can be used for preprocessing before menu execution.
+
+<execution_string> is the command line executed upon menu selection with a
+left mouse button. A single parameter passed to the menu-file can be passed
+to the specified command line by including the string '$F' (without the tick
+marks) see the included example.menu for a working example.
+
+e.g. 'Browser	dillo $F' (without the tick marks) displays the menu seletion,
+'Browser' which will execute 'dillo' (which needs to be in the search path)
+on the optional parameter $F.
+
+Start.menu is now keyboard driven in addition to mouse operation. Up, down
+and <Enter> select and execute the highlighted menu option. <Esc> key
+terminates Start.menu without making a menu selection.
+
+BTW in example.menu and .menu the command 'Cmd' is a shell script which I use
+which fires up an rxvt term with my personal preferences, and 'edx' is a
+homegrown xlib only X-win text editor.
+
+Original README
+----------------------
+To compile menu, type:
+
+	xmkmf
+	make
+
+you should have a "menu" binary in the current directory.
+
+Menu reads a .menu file from its current directory to decide what to
+make available. I've provided my .menu file as an example.
+
+	- Elliott Hughes, 1999-05-28
+

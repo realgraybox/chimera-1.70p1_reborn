@@ -1,0 +1,158 @@
+libwebpdecode_la-io.lo: io.c /usr/include/stdc-predef.h \
+ /usr/include/assert.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/stdlib.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/bits/byteswap-16.h \
+ /usr/include/sys/types.h /usr/include/time.h /usr/include/sys/select.h \
+ /usr/include/bits/select.h /usr/include/bits/sigset.h \
+ /usr/include/bits/time.h /usr/include/bits/select2.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /usr/include/bits/stdlib.h ../dec/vp8i.h /usr/include/string.h \
+ /usr/include/xlocale.h /usr/include/bits/string3.h ../dec/./vp8li.h \
+ ../dec/././webpi.h ../dec/././../utils/rescaler.h \
+ ../dec/././../utils/../webp/types.h /usr/include/inttypes.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
+ /usr/include/bits/wchar.h ../dec/./././decode_vp8.h \
+ ../dec/./././../webp/decode.h ../dec/./././../webp/./types.h \
+ ../dec/./../utils/bit_reader.h ../dec/./../utils/../webp/types.h \
+ ../dec/./../utils/color_cache.h ../dec/./../utils/huffman.h \
+ ../dec/./../utils/../webp/format_constants.h \
+ ../dec/../utils/bit_reader.h ../dec/../utils/random.h \
+ ../dec/../utils/../webp/types.h ../dec/../utils/thread.h \
+ ../dec/../utils/../webp/config.h ../dec/../dsp/dsp.h \
+ ../dec/../dsp/../webp/config.h ../dec/../dsp/../webp/types.h webpi.h \
+ ../dsp/dsp.h ../dsp/yuv.h ../dsp/./dsp.h ../dsp/../dec/decode_vp8.h \
+ ../utils/utils.h ../utils/../webp/types.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/assert.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/stdlib.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/bits/byteswap-16.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/bits/select2.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib-float.h:
+
+/usr/include/bits/stdlib.h:
+
+../dec/vp8i.h:
+
+/usr/include/string.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/bits/string3.h:
+
+../dec/./vp8li.h:
+
+../dec/././webpi.h:
+
+../dec/././../utils/rescaler.h:
+
+../dec/././../utils/../webp/types.h:
+
+/usr/include/inttypes.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+../dec/./././decode_vp8.h:
+
+../dec/./././../webp/decode.h:
+
+../dec/./././../webp/./types.h:
+
+../dec/./../utils/bit_reader.h:
+
+../dec/./../utils/../webp/types.h:
+
+../dec/./../utils/color_cache.h:
+
+../dec/./../utils/huffman.h:
+
+../dec/./../utils/../webp/format_constants.h:
+
+../dec/../utils/bit_reader.h:
+
+../dec/../utils/random.h:
+
+../dec/../utils/../webp/types.h:
+
+../dec/../utils/thread.h:
+
+../dec/../utils/../webp/config.h:
+
+../dec/../dsp/dsp.h:
+
+../dec/../dsp/../webp/config.h:
+
+../dec/../dsp/../webp/types.h:
+
+webpi.h:
+
+../dsp/dsp.h:
+
+../dsp/yuv.h:
+
+../dsp/./dsp.h:
+
+../dsp/../dec/decode_vp8.h:
+
+../utils/utils.h:
+
+../utils/../webp/types.h:

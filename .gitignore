@@ -2,3 +2,5 @@
 *.a
 chimera
 chimera.supp
+helpers/xvl/test_images/
+helpers/xvl/private/

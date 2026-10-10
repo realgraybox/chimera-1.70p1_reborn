@@ -1,0 +1,22 @@
+#!/bin/sh
+INFILE=$1
+
+# Find den rigtige mime-type ved at kigge ind i filen
+MIME=$(file -b --mime-type "$INFILE")
+
+case "$MIME" in
+    "image/x-xwindowdump") EXT="xwd" ;;
+    "image/x-xpixmap")     EXT="xpm" ;;
+    "image/x-xbitmap")     EXT="xbm" ;;
+    "image/x-portable-pixmap") EXT="ppm" ;;
+    "image/x-portable-graymap") EXT="pgm" ;;
+    "image/x-portable-bitmap")  EXT="pbm" ;;
+    *) EXT="tmp" ;; # Falder tilbage til STB (jpeg, png osv.)
+esac
+
+# Opret et midlertidigt link med den korrekte endelse
+TMPLINK="/tmp/chimera_viewer.$EXT"
+ln -sf "$INFILE" "$TMPLINK"
+
+# Kald din eksisterende xvl med det rigtige filnavn!
+xvl "$TMPLINK"

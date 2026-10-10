@@ -1,0 +1,22 @@
+Cmd	Cmd &
+Explorer	uxplor /c/Pdf &
+IE	phoenix &
+Email	sylpheed &
+Calc	ycalc &
+XatiTV	xatitv &
+Xmixer	xmixer &
+XClipboard	xclipboard -geometry 788x200+0+0 &
+Exec	$F &
+Console	Cmnd $F &
+Editor	edx $F
+Dillo	dillo $F &
+Guitar	guitar $F &
+Xless	xless $F &
+HexView	hv $F &
+MailTo:	sylpheed --compose $F &
+FTP	Cmd -g 80x3+50+240 -e /usr/bin/ncftpget -p loveall@gte.net $F &
+XV	xv $F &
+Gv	gv $F &
+Xpdf	xpdf -geometry 788x500 $F &
+Edit Menu	xedit /usr/local/bin/SendTo.menu
+Cancel	
