@@ -1,0 +1,96 @@
+--- TextPop.c.01	2016-11-13 12:48:53.000000000 +0000
++++ TextPop.c	2016-11-13 12:49:13.000000000 +0000
+@@ -235,9 +235,7 @@
+       return;
+     }
+     else
+-      sprintf( msg, "*** Error: %s ***",
+-	      (errno > 0 && errno < sys_nerr) ?
+-	      sys_errlist[errno] : "Can't open file" );
++      sprintf( msg, "*** Error: %s ***", strerror(errno));
+   
+ 
+   (void)SetResourceByName(ctx->text.file_insert, 
+--- AsciiSrc.c.01	1999-04-27 18:27:51.000000000 +0000
++++ AsciiSrc.c	2016-11-13 13:14:25.000000000 +0000
+@@ -987,12 +987,13 @@
+ 	    char msg[11];
+ 	    
+ 	    params[0] = src->ascii_src.string;
+-	    if (errno <= sys_nerr)
+-		params[1] = sys_errlist[errno];
+-	    else {
+-		sprintf(msg, "errno=%.4d", errno);
+-		params[1] = msg;
+-	    }
++	   	// if (errno <= sys_nerr)
++		// params[1] = sys_errlist[errno];
++		params[1] = strerror(errno);
++	    //else {
++		//sprintf(msg, "errno=%.4d", errno);
++		//params[1] = msg;
++	    //}
+ 	    XtAppWarningMsg(XtWidgetToApplicationContext((Widget)src),
+ 			    "openError", "asciiSourceCreate", "XawWarning",
+ 			    "Cannot open file %s; %s", params, &num_params);
+--- Makefile.01	1999-05-18 19:24:38.000000000 +0000
++++ Makefile	2016-11-13 18:18:09.000000000 +0000
+@@ -6,10 +6,10 @@
+ #
+ # Roland Krause 1997, 1999
+ #
+-
++DESTDIR = /usr/X11
+ LIB_PATH =	-L/usr/X11/lib			# Libraries for X
+ INC_PATH =	-I. -I/usr/X11/include 		# Header files for X
+-INST_LIBS=	/usr/X11/lib
++INST_LIBS=	$(DESTDIR)/lib
+ 
+ XAW=		./X11/XawPlus
+ 
+@@ -26,7 +26,7 @@
+  		Tree.o DrawingArea.o StripChart.o Clock.o Logo.o Mailbox.o Dialog.o \
+ 		StrToPmap.o  LocPixmap.o
+ 
+-all:		lib install
++all:		lib
+ lib:		libXawPlus.a libXawPlus.so.2.0
+ 
+ clean:
+@@ -44,8 +44,8 @@
+ # --- This only works as superuser root
+ 
+ install:
+-		mkdir -p /usr/X11/include/X11/XawPlus
+-		cp ./X11/XawPlus/*.h /usr/X11/include/X11/XawPlus
++		mkdir -p $(DESTDIR)/include/X11/XawPlus
++		cp ./X11/XawPlus/*.h $(DESTDIR)/include/X11/XawPlus
+ 		cp libXawPlus.a $(INST_LIBS)
+ 		rm -f $(INST_LIBS)/libXawPlus.so.2 $(INST_LIBS)/libXawPlus.so
+ 		cp libXawPlus.so.2.0 $(INST_LIBS)
+--- Makefile.01	2016-11-13 18:21:52.000000000 +0000
++++ Makefile	2016-11-13 18:24:12.000000000 +0000
+@@ -48,9 +48,10 @@
+ 		cp ./X11/XawPlus/*.h $(DESTDIR)/include/X11/XawPlus
+ 		cp libXawPlus.a $(INST_LIBS)
+ 		rm -f $(INST_LIBS)/libXawPlus.so.2 $(INST_LIBS)/libXawPlus.so
+-		cp libXawPlus.so.2.0 $(INST_LIBS)
++		ln -s libXawPlus.so.2.0 libXawPlus.so
++		cp libXawPlus.so.2.0 libXawPlus.so $(INST_LIBS)
+ 		ldconfig
+-		ln -s $(INST_LIBS)/libXawPlus.so.2.0 $(INST_LIBS)/libXawPlus.so
++		
+ 
+ # --- Common
+ 
+--- Makefile.01	2016-11-13 18:28:20.000000000 +0000
++++ Makefile	2016-11-13 18:29:05.000000000 +0000
+@@ -49,7 +49,7 @@
+ 		cp libXawPlus.a $(INST_LIBS)
+ 		rm -f $(INST_LIBS)/libXawPlus.so.2 $(INST_LIBS)/libXawPlus.so
+ 		ln -s libXawPlus.so.2.0 libXawPlus.so
+-		cp libXawPlus.so.2.0 libXawPlus.so $(INST_LIBS)
++		cp -af libXawPlus.so.2.0 libXawPlus.so $(INST_LIBS)
+ 		ldconfig
+ 		
+ 

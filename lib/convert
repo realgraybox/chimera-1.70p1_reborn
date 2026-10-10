@@ -1,0 +1,34 @@
+#
+# use in-content-type out-content-type command
+#
+
+# Conversions for inline images
+inline application/postscript image/gif pstopxm gif8 %s
+#inline image/jpeg image/gif img2gif %s -
+#inline image/png image/gif img2gif %s -
+inline image/tiff image/gif tif2gif %s -
+#inline image/bmp image/gif img2gif %s -
+#inline image/tga image/gif img2gif %s -
+#inline image/svg image/gif svg2gif %s -
+inline image/x-fits image/gif fits2gif %s -
+
+#fixme - below creates very large images that lack quality aftre chimera resizeprocess
+inline application/pdf image/gif pdftoppm %s | pnmquant 256 | ppmtogif
+
+
+
+# just do a download
+ftp application/x-compress * none
+ftp application/x-gzip * none
+
+# Deal with transfer/content encodings
+x-compress * * zcat %s
+x-gzip * * zcat %s
+
+# Misc. conversions
+* text/x-compress-html text/html	zcat %s
+* text/x-server-parsed-html text/html   cat %s
+* text/x-gzip-html text/html		zcat  %s
+* message/ text/html			echo '<plaintext>'; cat %s
+* x-unknown/x-unknown text/html		echo '<plaintext>'; cat %s
+* application/news-transmission text/html echo '<plaintext>'; cat %s

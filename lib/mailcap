@@ -1,0 +1,32 @@
+#this is a comment - all to often forgot to comment and later forgot why entry was as it was...
+
+application/x-telnet; xterm -e sh -c "dotelnet %s"
+application/x-tn3270; xterm -e sh -c "do3270 %s"
+
+# below deactivated - who use dvi in 2026?
+text/x-dvi;		xdvi %s 2> /dev/null
+application/x-dvi;	xdvi %s 2> /dev/null
+
+#
+application/postscript; gv %s 2> /dev/null
+application/pdf; xpdf %s 2> /dev/null
+
+#
+image/x-fits;           saoimage -fits %s 2> /dev/null
+#xvl take care of most image formats - 147k static linked imageviewer (xv-light)...
+image/x-xwindowdump;	xvl %s 2> /dev/null
+image/x-xbitmap;		xv %s 2> /dev/null
+image/x-portable-anymap        xvl %s 2> /dev/null             
+image/x-portable-bitmap        xvl %s 2> /dev/null             
+image/x-portable-graymap       xvl %s 2> /dev/null             
+image/x-portable-pixmap        xvl %s 2> /dev/null
+          
+image/x-xpixmap                xvl %s 2> /dev/null   
+
+image/*;		xvl %s 2> /dev/null
+
+# works - mpegplayer small 130k static linked mpegplayer!
+video/mpeg;		mpegplayer %s 1>&2 2> /dev/null
+
+#
+audio/basic;		playaudio %s 2> /dev/null
