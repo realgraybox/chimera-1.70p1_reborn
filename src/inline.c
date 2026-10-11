@@ -53,12 +53,151 @@ int global_html_height = -1;
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "libimagequant/libimagequant.h"
-
-
 #ifndef HAVE_POWF
 float powf (float x, float y) { return (float) pow( (double)x, (double)y ); }
 #endif
+
+/*
+ * rgbaToImage
+ *
+ * Turns a width x height RGBA buffer into a colormapped image with at
+ * most 256 colours.  The buffer is not modified.
+ *
+ * Translucent pixels are blended against bg.  Fully transparent pixels
+ * get a palette entry of their own that holds bg exactly, so they match
+ * the page background.
+ *
+ * An image with 256 colours or fewer keeps its colours unchanged.
+ * Anything else goes through reduce() from xloadimage (median cut).
+ * reduce() works on 5 bits per channel, so afterwards every palette
+ * entry is recomputed as the mean of the 24-bit pixels mapped to it.
+ */
+#define RGBA_MAXCOLORS 256
+#define RGBA_HASHSIZE 1024		/* power of 2, > 2 * RGBA_MAXCOLORS */
+#define RGBA_TRANSPARENT 0x1000000UL	/* key no 24-bit colour can have */
+
+static Image *rgbaToImage(unsigned char *rgba, int width, int height, RGBColor *bg) {
+	Image *timg, *img;
+	unsigned long keys[RGBA_HASHSIZE];	/* colour key + 1, 0 = empty */
+	unsigned short slots[RGBA_HASHSIZE];	/* palette index of that key */
+	unsigned long sum[RGBA_MAXCOLORS][3];
+	unsigned long cnt[RGBA_MAXCOLORS];
+	unsigned int bg_r = (bg->red >> 8) & 0xFF;
+	unsigned int bg_g = (bg->green >> 8) & 0xFF;
+	unsigned int bg_b = (bg->blue >> 8) & 0xFF;
+	int total_pixels = width * height;
+	int have_transparent = 0;
+	int ncolors = 0;
+	int exact = 1;
+	unsigned char *src, *dst;
+	int i, c;
+
+	/* 1. Blend against the background into a true colour image */
+	timg = newTrueImage(width, height);
+	timg->title = alloc_string("inline");
+
+	src = rgba;
+	dst = timg->data;
+	for (i = 0; i < total_pixels; i++, src += 4, dst += 3) {
+		unsigned int a = src[3];
+
+		if (a == 0) {
+			dst[0] = bg_r;
+			dst[1] = bg_g;
+			dst[2] = bg_b;
+			have_transparent = 1;
+		} else if (a < 255) {
+			dst[0] = (src[0] * a + bg_r * (255 - a)) / 255;
+			dst[1] = (src[1] * a + bg_g * (255 - a)) / 255;
+			dst[2] = (src[2] * a + bg_b * (255 - a)) / 255;
+		} else {
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = src[2];
+		}
+	}
+
+	/* 2. Try to keep the colours as they are */
+	img = newRGBImage(width, height, 8);
+	img->title = alloc_string("inline");
+	memset(keys, 0, sizeof(keys));
+
+	src = rgba;
+	dst = timg->data;
+	for (i = 0; i < total_pixels; i++, src += 4, dst += 3) {
+		unsigned long key;
+		unsigned int h;
+
+		if (src[3] == 0) key = RGBA_TRANSPARENT;
+		else key = ((unsigned long)dst[0] << 16) | ((unsigned long)dst[1] << 8) | dst[2];
+
+		h = (unsigned int)((key * 2654435761UL) >> 12) & (RGBA_HASHSIZE - 1);
+		while (keys[h] != 0 && keys[h] != key + 1) h = (h + 1) & (RGBA_HASHSIZE - 1);
+
+		if (keys[h] == 0) {
+			if (ncolors == RGBA_MAXCOLORS) {
+				exact = 0;
+				break;
+			}
+			keys[h] = key + 1;
+			slots[h] = ncolors;
+			if (key == RGBA_TRANSPARENT) {
+				img->rgb.red[ncolors] = bg->red;
+				img->rgb.green[ncolors] = bg->green;
+				img->rgb.blue[ncolors] = bg->blue;
+			} else {
+				img->rgb.red[ncolors] = dst[0] * 257;
+				img->rgb.green[ncolors] = dst[1] * 257;
+				img->rgb.blue[ncolors] = dst[2] * 257;
+			}
+			ncolors++;
+		}
+		img->data[i] = (unsigned char)slots[h];
+	}
+
+	if (exact) {
+		img->rgb.used = ncolors;
+		freeImage(timg);
+		return(img);
+	}
+	freeImage(img);
+
+	/* 3. Too many colours: median cut, leaving one entry free for bg */
+	img = reduce(timg, have_transparent ? RGBA_MAXCOLORS - 1 : RGBA_MAXCOLORS, 0);
+	if (img == timg) return(img);	/* reduce() declined, caller copes with true colour */
+
+	memset(sum, 0, sizeof(sum));
+	memset(cnt, 0, sizeof(cnt));
+	src = rgba;
+	dst = timg->data;
+	for (i = 0; i < total_pixels; i++, src += 4, dst += 3) {
+		if (src[3] == 0) continue;
+		c = img->data[i];
+		sum[c][0] += dst[0];
+		sum[c][1] += dst[1];
+		sum[c][2] += dst[2];
+		cnt[c]++;
+	}
+	for (c = 0; c < (int)img->rgb.used && c < RGBA_MAXCOLORS; c++) {
+		if (cnt[c] == 0) continue;
+		img->rgb.red[c] = (unsigned short)((sum[c][0] * 257 + cnt[c] / 2) / cnt[c]);
+		img->rgb.green[c] = (unsigned short)((sum[c][1] * 257 + cnt[c] / 2) / cnt[c]);
+		img->rgb.blue[c] = (unsigned short)((sum[c][2] * 257 + cnt[c] / 2) / cnt[c]);
+	}
+
+	if (have_transparent && img->rgb.used < img->rgb.size && img->rgb.used < RGBA_MAXCOLORS) {
+		c = img->rgb.used++;
+		img->rgb.red[c] = bg->red;
+		img->rgb.green[c] = bg->green;
+		img->rgb.blue[c] = bg->blue;
+		for (i = 0; i < total_pixels; i++) {
+			if (rgba[i * 4 + 3] == 0) img->data[i] = (unsigned char)c;
+		}
+	}
+
+	freeImage(timg);
+	return(img);
+}
 
 Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int target_height) {
 	int width, height, n;
@@ -157,89 +296,16 @@ Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
 		stbi_image_free(orig_rgba);
 	}
      
-    // 3. ALPHA BLENDING: Blend against Chimeras background color (bg)
-	unsigned char bg_r = (bg->red >> 8) & 0xFF;
-	unsigned char bg_g = (bg->green >> 8) & 0xFF;
-	unsigned char bg_b = (bg->blue >> 8) & 0xFF;
-    
-	int total_pixels = width * height;
-	int i;
-	for (i = 0; i < total_pixels; i++) {
-		int idx = i * 4;
-		unsigned char r = raw_rgba[idx];
-		unsigned char g = raw_rgba[idx+1];
-		unsigned char b = raw_rgba[idx+2];
-		unsigned char a = raw_rgba[idx+3];
-        
-		if (a == 0) {
-			raw_rgba[idx]   = bg_r;
-			raw_rgba[idx+1] = bg_g;
-			raw_rgba[idx+2] = bg_b;
-		} else if (a < 255) {
-			raw_rgba[idx]   = (r * a + bg_r * (255 - a)) / 255;
-			raw_rgba[idx+1] = (g * a + bg_g * (255 - a)) / 255;
-			raw_rgba[idx+2] = (b * a + bg_b * (255 - a)) / 255;
-		}
-		raw_rgba[idx+3] = 255; 
-	}
-    
-    // 4. INITIALIZE CHIMERA IMAGE STRUCTURE
-    image = (Image *)alloc_mem(sizeof(Image));
-    memset(image, 0, sizeof(Image));
-    
-    image->type = IRGB; 
-    image->width = width;
-    image->height = height;
-    image->pixlen = 1;  
-    image->data = (unsigned char *)alloc_mem(width * height);
+    // 3. Blend against the page background and reduce to 256 colours
+	image = rgbaToImage(raw_rgba, width, height, bg);
 
-	// GIF/PNG/JPEG/BMP VIA LIBIMAGEQUANT
-    liq_attr *attr = liq_attr_create();
-    liq_set_max_colors(attr, 256); 
-    liq_set_speed(attr, 10);
-        
-    liq_image *liq_img = liq_image_create_rgba(attr, raw_rgba, width, height, 0);
-    liq_result *res = NULL;
-        
-    if (liq_image_quantize(liq_img, attr, &res) != LIQ_OK) {
-        printf("ERROR: libimagequant could not quantize image\n");
-        if (is_scaled) free_mem(raw_rgba); else stbi_image_free(raw_rgba);
-        liq_image_destroy(liq_img);
-        liq_attr_destroy(attr);
-        free_mem(image->data);
-        free_mem(image);
-        return(NULL);
-    }
-        
-        //liq_set_dithering_level(res, 0.80);
-        liq_set_dithering_level(res, 0.0);		//testing for speed/gprof
-        liq_write_remapped_image(res, liq_img, image->data, width * height);
-        
-        const liq_palette *pal = liq_get_palette(res);
-        
-        image->rgb.red = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-        image->rgb.green = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-        image->rgb.blue = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-        image->rgb.used = pal->count;
-        image->rgb.size = pal->count;
-        
-        for (i = 0; i < pal->count; i++) {
-            image->rgb.red[i]   = (unsigned short)pal->entries[i].r * 0xffff / 0xff;
-            image->rgb.green[i] = (unsigned short)pal->entries[i].g * 0xffff / 0xff;
-            image->rgb.blue[i]  = (unsigned short)pal->entries[i].b * 0xffff / 0xff;
-        }
-        
-        liq_result_destroy(res);
-        liq_image_destroy(liq_img);
-        liq_attr_destroy(attr);
-        
-        if (is_scaled) {
-            free_mem(raw_rgba);
-        } else {
-            stbi_image_free(raw_rgba);
-        }
-   
-    return(image);
+	if (is_scaled) {
+		free_mem(raw_rgba);
+	} else {
+		stbi_image_free(raw_rgba);
+	}
+
+	return(image);
 }
 
 Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int target_height) {
@@ -247,7 +313,7 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     NSVGrasterizer  *rast = NULL;
     unsigned char   *raw_rgba = NULL;
     Image           *image;
-    int             width, height, i;
+    int             width, height;
     float           scale = 1.0f;
     char            *svg_copy;
 
@@ -334,82 +400,11 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     nsvgDeleteRasterizer(rast);
     nsvgDelete(svg_img);
 
-    /* --- ALPHA BLENDING (Nøjagtig kopi fra din imgLoad) --- */
-    unsigned char bg_r = (bg->red >> 8) & 0xFF;
-    unsigned char bg_g = (bg->green >> 8) & 0xFF;
-    unsigned char bg_b = (bg->blue >> 8) & 0xFF;
-    
-    int total_pixels = width * height;
-    for (i = 0; i < total_pixels; i++) {
-        int idx = i * 4;
-        unsigned char r = raw_rgba[idx];
-        unsigned char g = raw_rgba[idx+1];
-        unsigned char b = raw_rgba[idx+2];
-        unsigned char a = raw_rgba[idx+3];
-        
-        if (a == 0) {
-            raw_rgba[idx]   = bg_r;
-            raw_rgba[idx+1] = bg_g;
-            raw_rgba[idx+2] = bg_b;
-        } else if (a < 255) {
-            raw_rgba[idx]   = (r * a + bg_r * (255 - a)) / 255;
-            raw_rgba[idx+1] = (g * a + bg_g * (255 - a)) / 255;
-            raw_rgba[idx+2] = (b * a + bg_b * (255 - a)) / 255;
-        }
-        raw_rgba[idx+3] = 255; 
-    }
+    /* Blend against the page background and reduce to 256 colours */
+    image = rgbaToImage(raw_rgba, width, height, bg);
 
-    /* --- INITIALIZE CHIMERA IMAGE & LIBIMAGEQUANT (Ligeledes genbrug) --- */
-    image = (Image *)alloc_mem(sizeof(Image));
-    memset(image, 0, sizeof(Image));
-    
-    image->type = IRGB; 
-    image->width = width;
-    image->height = height;
-    image->pixlen = 1;  
-    image->data = (unsigned char *)alloc_mem(width * height);
-
-    liq_attr *attr = liq_attr_create();
-    liq_set_max_colors(attr, 256); 
-   // liq_set_max_colors(attr, 128); 	//for speedtest/gprof
-    liq_set_speed(attr, 10);
-        
-    liq_image *liq_img = liq_image_create_rgba(attr, raw_rgba, width, height, 0);
-    liq_result *res = NULL;
-        
-    if (liq_image_quantize(liq_img, attr, &res) != LIQ_OK) {
-        printf("ERROR: libimagequant kunne ikke kvantisere SVG\n");
-        free_mem(raw_rgba);
-        liq_image_destroy(liq_img);
-        liq_attr_destroy(attr);
-        free_mem(image->data);
-        free_mem(image);
-        return(NULL);
-    }
-        
-    liq_set_dithering_level(res, 0.80);
-    liq_write_remapped_image(res, liq_img, image->data, width * height);
-    
-    const liq_palette *pal = liq_get_palette(res);
-    
-    image->rgb.red = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-    image->rgb.green = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-    image->rgb.blue = (unsigned short *)alloc_mem(sizeof(unsigned short) * pal->count);
-    image->rgb.used = pal->count;
-    image->rgb.size = pal->count;
-    
-    for (i = 0; i < pal->count; i++) {
-        image->rgb.red[i]   = (unsigned short)pal->entries[i].r * 0xffff / 0xff;
-        image->rgb.green[i] = (unsigned short)pal->entries[i].g * 0xffff / 0xff;
-        image->rgb.blue[i]  = (unsigned short)pal->entries[i].b * 0xffff / 0xff;
-    }
-    
-    liq_result_destroy(res);
-    liq_image_destroy(liq_img);
-    liq_attr_destroy(attr);
-    
     free_mem(raw_rgba);
-   
+
     return(image);
 }
 

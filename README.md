@@ -10,7 +10,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **HTTPS:** through an external helper script that calls a bundled, statically linked `curl` (see [HTTPS](#https)).
 - **Other protocols:** `telnet:` and `mailto:` are handed to external programs through the `mailcap` and `protocol` files.
 - **HTML:** the NCSA Mosaic HTML widget, covering headings, lists, text styles, forms, tables and inline images.
-- **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with libimagequant.
+- **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with xloadimage's median-cut reducer; images with 256 colours or fewer keep their exact colours.
 - **Inline images through converters:** FITS, PostScript and PDF, using the rules in the `convert` file.
 - **External viewers:** anything else is passed to the program named in `mailcap`. `xvl`, a small image viewer included here, handles most image formats, including TIFF and WebP.
 - **Printing:** the print dialog pipes the page to `chimera_print.sh`, which turns plain text into a PDF with the bundled `text2pdf`.
@@ -26,7 +26,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 
 - **Build system:** plain GNU makefiles with one shared configuration file, `mk.config`. No Imake or `xmkmf` step.
 - **Toolchains:** builds as a 64-bit dynamically linked binary with gcc 5.5 and glibc, and as a 32-bit statically linked binary with gcc 3.4.3 and uClibc. Compiler warnings have been reduced on both.
-- **Images:** a new image path in `src/inline.c` using stb_image, NanoSVG and libimagequant (compile flag `IMAGENEW`).
+- **Images:** a new image path in `src/inline.c` using stb_image and NanoSVG, with colour reduction by `xloadimage/reduce.c` (compile flag `IMAGENEW`).
 - **HTTPS:** added through the `protocol` mechanism and the scripts in `helpers/curl`.
 - **Widget set:** XawPlus 2.0.2 is bundled and used by default. Plain Xaw or Xaw3d can be selected in `mk.config`.
 - **Resizing:** window resize events are debounced so the page is not reformatted on every intermediate size (compile flag `REBOUNCH`).
@@ -140,10 +140,9 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | Path | Contents |
 |---|---|
 | `src/` | The browser: URL handling, HTTP, FTP, Gopher, cache, MIME, inline images, main window |
-| `src/libimagequant/` | libimagequant 2.18.0, colour quantisation |
 | `libhtmlw/` | HTML widget from NCSA Mosaic, as modified for Chimera |
 | `mxw/` | Chimera's dialog widgets: bookmarks, authentication, string and output prompts |
-| `xloadimage/` | Image loaders and dithering from xloadimage |
+| `xloadimage/` | Image loaders, dithering and colour reduction from xloadimage |
 | `common/`, `compat/` | Memory helpers and replacements for missing libc functions |
 | `XawPlus-2.0.2/` | Bundled XawPlus widget set |
 | `lib/` | Runtime data files installed to `~/chimera`, and `chimera_print.sh` |
@@ -174,7 +173,6 @@ This repository combines code under several licences. **Chimera itself is not op
 | `src/md5.c` | Public domain |
 | stb_image, stb_image_resize2, stb_image_write | Public domain |
 | NanoSVG | zlib licence |
-| libimagequant 2.18.0 | Refers to a `COPYRIGHT` file that is not included here. Upstream 2.x releases are GPL v3 or later, or a commercial licence |
 | curl 7.47.0 | curl licence (MIT style) |
 | mbedTLS 2.16.0 | Apache 2.0 |
 | libtiff 3.7.0 | libtiff licence (BSD style) |
@@ -187,4 +185,4 @@ Check the individual files before redistributing a build.
 
 ## Credits
 
-Chimera was written by John Kilburg, with contributions from many others. Version 1.70 was put together by Winston Edmond. The HTML widget comes from NCSA Mosaic, the image loaders from Jim Frost's xloadimage. Thanks also to the authors of XawPlus, stb, NanoSVG, libimagequant, curl, mbedTLS, libtiff, libwebp, text2pdf and menu.
+Chimera was written by John Kilburg, with contributions from many others. Version 1.70 was put together by Winston Edmond. The HTML widget comes from NCSA Mosaic, the image loaders from Jim Frost's xloadimage. Thanks also to the authors of XawPlus, stb, NanoSVG, curl, mbedTLS, libtiff, libwebp, text2pdf and menu.
