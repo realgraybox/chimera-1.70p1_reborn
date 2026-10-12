@@ -1521,7 +1521,7 @@ conftest.c:63:22: warning: null argument where non-null required (argument 3) [-
 conftest.c:61:15: warning: 'th' is used uninitialized in this function [-Wuninitialized]
  pthread_t th; pthread_join(th, 0);
                ^
-/tmp/ccZG22ET.o: In function `main':
+/tmp/ccTmsW1J.o: In function `main':
 conftest.c:(.text.startup.main+0x9): undefined reference to `pthread_join'
 conftest.c:(.text.startup.main+0x34): undefined reference to `__pthread_register_cancel'
 conftest.c:(.text.startup.main+0x41): undefined reference to `pthread_create'

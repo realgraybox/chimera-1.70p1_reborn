@@ -47,8 +47,8 @@ int pageObs[500];
 int curObj = 5;  /* object number being or last written */
 long locations[1000];
 
-char text2pdf_font[256];
-char *text2pdf_defaultFont = "Courier";
+char font[256];
+char *defaultFont = "Courier";
 int ISOEnc = 0;
 int doFFs = 1;
 int tab = 8;
@@ -62,7 +62,7 @@ int columns = 1;  /* number of columns */
 int pageHeight = 792;
 int pageWidth = 612;
 
-/*unsigned*/ char buf[1024];
+unsigned char buf[1024];
 unsigned long fpos = 0;
 
 void writestr(char *str) {
@@ -114,7 +114,7 @@ void WriteHeader(char *title){
   writestr("/Type /Font\n");
   writestr("/Subtype /Type1\n");
   writestr("/Name /F1\n");
-  sprintf(buf, "/BaseFont %s\n", text2pdf_font); writestr(buf);
+  sprintf(buf, "/BaseFont %s\n", font); writestr(buf);
   if (ISOEnc) {
     writestr("/Encoding <<\n");
     writestr("/Differences [ 0 /.notdef /.notdef /.notdef /.notdef\n");
@@ -220,7 +220,7 @@ void WritePages(){
   int atBOP;
   long beginstream;
   int lineNo, charNo;
-  int ch = 0, column;
+  int ch, column;
   int padding, i;
 
   while (!atEOF) {
@@ -351,18 +351,13 @@ void ShowHelp(){
   printf("\n%s (c) Phil Smith, 1996\n", appname);
 }
 
-#if MCB
-int text2pdf_main(int argc, char *argv[])
-#else
-int main(int argc, char *argv[])
-#endif
-{
+int main(int argc, char **argv){
   int i = 1;
   int tmp, landscape = 0;
   char *ifilename = NULL;
 
-  strcpy(text2pdf_font, "/");
-  strcat(text2pdf_font, text2pdf_defaultFont);
+  strcpy(font, "/");
+  strcat(font, defaultFont);
   infile = stdin;  /* default */
 
   while (i < argc) {
@@ -378,8 +373,8 @@ int main(int argc, char *argv[])
 	ShowHelp();
 	exit(0);
       case 'f':
-	strcpy(text2pdf_font, "/");
-	strcat(text2pdf_font, ++argv[i]);
+	strcpy(font, "/");
+	strcat(font, ++argv[i]);
 	break;
       case 'I':
 	ISOEnc = 1;
