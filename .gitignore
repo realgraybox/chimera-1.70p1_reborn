@@ -2,15 +2,46 @@
 *.a
 chimera
 chimera.supp
+gmon.out
 helpers/xvl/test_images/
 helpers/xvl/private/
 helpers/xvl/build_target/
 helpers/xvl/xvl
 helpers/text2pdf/text2pdf
 helpers/svg2gif/svg2gif
-helpers/menu/menu/
+helpers/menu/menu
 helpers/fits2gif/fits2gif
 helpers/curl/build_target/
 helpers/curl/curl.7.47.0
 
-
+# Output of ./configure and make in the bundled curl, libtiff and libwebp
+# sources. The helper makefiles run ./configure on every build, so none
+# of this belongs in the repository.
+helpers/curl/curl-7.47.0/**/Makefile
+helpers/curl/curl-7.47.0/curl-config
+helpers/curl/curl-7.47.0/libcurl.pc
+helpers/curl/curl-7.47.0/include/curl/curlbuild.h
+helpers/curl/curl-7.47.0/lib/curl_config.h
+helpers/curl/curl-7.47.0/lib/libcurl.vers
+helpers/curl/curl-7.47.0/packages/**/*.spec
+helpers/curl/curl-7.47.0/packages/EPM/curl.list
+helpers/curl/curl-7.47.0/src/curl
+helpers/curl/curl-7.47.0/src/tool_hugehelp.c
+helpers/curl/curl-7.47.0/tests/configurehelp.pm
+helpers/xvl/tiff-3.7.0/**/Makefile
+helpers/xvl/tiff-3.7.0/libtiff/tif_config.h
+helpers/xvl/tiff-3.7.0/libtiff/tiffconf.h
+helpers/xvl/tiff-3.7.0/libtiff/mkg3states
+helpers/xvl/libwebp-0.4.4/**/Makefile
+helpers/xvl/libwebp-0.4.4/**/*.pc
+helpers/xvl/libwebp-0.4.4/src/webp/config.h
+.deps/
+.libs/
+autom4te.cache/
+config.log
+config.status
+libtool
+stamp-h[0-9]
+*.lo
+*.la
+*.lai
