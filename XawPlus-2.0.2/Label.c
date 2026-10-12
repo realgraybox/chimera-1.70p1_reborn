@@ -48,7 +48,7 @@ SOFTWARE.
 #define WORD64
 #endif
 
-extern void XmuCvtStringToPixmap();	/* The XPM converter */
+extern void XawPlusCvtStringToBitmap();	/* see XmuStrToPixmap.c */
 
 /****************************************************************
  *
@@ -365,7 +365,7 @@ static void ClassInitialize()
 
   XawInitializeWidgetSet();
   XtAddConverter(XtRString,XtRJustify,XmuCvtStringToJustify, NULL, 0);
-  XtAddConverter(XtRString,XtRBitmap,XmuCvtStringToPixmap,xpmCvtArg,XtNumber(xpmCvtArg));
+  XtAddConverter(XtRString,XtRBitmap,XawPlusCvtStringToBitmap,xpmCvtArg,XtNumber(xpmCvtArg));
 }
 
 /***********************************************************************
