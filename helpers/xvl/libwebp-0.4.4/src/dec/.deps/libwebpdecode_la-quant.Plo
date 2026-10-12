@@ -2,17 +2,17 @@ libwebpdecode_la-quant.lo: quant.c /usr/include/stdc-predef.h vp8i.h \
  /usr/include/string.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/xlocale.h \
- /usr/include/bits/string3.h vp8li.h webpi.h ../utils/rescaler.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
+ /usr/include/xlocale.h vp8li.h webpi.h ../utils/rescaler.h \
  ../utils/../webp/types.h /usr/include/inttypes.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/bits/wchar.h decode_vp8.h ../webp/decode.h \
- ../webp/./types.h ../utils/bit_reader.h /usr/include/assert.h \
- ../utils/../webp/types.h ../utils/color_cache.h ../utils/huffman.h \
- ../utils/../webp/format_constants.h ../utils/bit_reader.h \
- ../utils/random.h ../utils/../webp/types.h ../utils/thread.h \
- ../utils/../webp/config.h ../dsp/dsp.h ../dsp/../webp/config.h \
- ../dsp/../webp/types.h
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h decode_vp8.h \
+ ../webp/decode.h ../webp/./types.h ../utils/bit_reader.h \
+ /usr/include/assert.h ../utils/../webp/types.h ../utils/color_cache.h \
+ ../utils/huffman.h ../utils/../webp/format_constants.h \
+ ../utils/bit_reader.h ../utils/random.h ../utils/../webp/types.h \
+ ../utils/thread.h ../utils/../webp/config.h ../dsp/dsp.h \
+ ../dsp/../webp/config.h ../dsp/../webp/types.h
 
 /usr/include/stdc-predef.h:
 
@@ -30,11 +30,9 @@ vp8i.h:
 
 /usr/include/gnu/stubs-64.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 vp8li.h:
 
@@ -46,7 +44,7 @@ webpi.h:
 
 /usr/include/inttypes.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 

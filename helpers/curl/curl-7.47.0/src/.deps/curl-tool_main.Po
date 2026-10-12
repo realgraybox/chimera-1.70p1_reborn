@@ -4,44 +4,41 @@ curl-tool_main.o: tool_main.c /usr/include/stdc-predef.h tool_setup.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
  /usr/include/bits/types.h /usr/include/bits/typesizes.h \
- /usr/include/time.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h \
+ /usr/include/time.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
  /usr/include/endian.h /usr/include/bits/endian.h \
  /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
  /usr/include/sys/select.h /usr/include/bits/select.h \
  /usr/include/bits/sigset.h /usr/include/bits/time.h \
- /usr/include/bits/select2.h /usr/include/sys/sysmacros.h \
- /usr/include/bits/pthreadtypes.h /usr/include/sys/socket.h \
- /usr/include/sys/uio.h /usr/include/bits/uio.h \
- /usr/include/bits/socket.h /usr/include/bits/socket_type.h \
- /usr/include/bits/sockaddr.h /usr/include/asm/socket.h \
- /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h \
- /usr/include/asm-generic/sockios.h /usr/include/bits/socket2.h \
- ../include/curl/curlrules.h /usr/include/stdio.h /usr/include/libio.h \
- /usr/include/_G_config.h /usr/include/wchar.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
- /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio2.h /usr/include/assert.h \
- ../lib/curl_setup_once.h /usr/include/stdlib.h \
- /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
- /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
- /usr/include/bits/stdlib.h /usr/include/string.h /usr/include/xlocale.h \
- /usr/include/bits/string3.h /usr/include/ctype.h /usr/include/errno.h \
- /usr/include/bits/errno.h /usr/include/linux/errno.h \
- /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
- /usr/include/asm-generic/errno-base.h /usr/include/sys/stat.h \
- /usr/include/bits/stat.h /usr/include/sys/time.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h /usr/include/unistd.h \
- /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
- /usr/include/bits/confname.h /usr/include/getopt.h \
- /usr/include/bits/unistd.h ../include/curl/curl.h \
- ../include/curl/curlver.h ../include/curl/curlbuild.h \
- ../include/curl/curlrules.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/sys/socket.h /usr/include/sys/uio.h /usr/include/bits/uio.h \
+ /usr/include/bits/socket.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/limits.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/syslimits.h \
  /usr/include/limits.h /usr/include/bits/posix1_lim.h \
  /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
- /usr/include/bits/posix2_lim.h ../include/curl/easy.h \
- ../include/curl/multi.h ../include/curl/curl.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/socket_type.h \
+ /usr/include/bits/sockaddr.h /usr/include/asm/socket.h \
+ /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h ../include/curl/curlrules.h \
+ /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/wchar.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/assert.h ../lib/curl_setup_once.h /usr/include/stdlib.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /usr/include/string.h /usr/include/xlocale.h /usr/include/ctype.h \
+ /usr/include/errno.h /usr/include/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /usr/include/sys/stat.h /usr/include/bits/stat.h /usr/include/sys/time.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdbool.h \
+ /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+ /usr/include/bits/environments.h /usr/include/bits/confname.h \
+ /usr/include/getopt.h ../include/curl/curl.h ../include/curl/curlver.h \
+ ../include/curl/curlbuild.h ../include/curl/curlrules.h \
+ ../include/curl/easy.h ../include/curl/multi.h ../include/curl/curl.h \
  ../include/curl/typecheck-gcc.h /usr/include/signal.h \
  /usr/include/bits/signum.h /usr/include/bits/siginfo.h \
  /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h \
@@ -80,7 +77,7 @@ tool_setup.h:
 
 /usr/include/time.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/endian.h:
 
@@ -98,8 +95,6 @@ tool_setup.h:
 
 /usr/include/bits/time.h:
 
-/usr/include/bits/select2.h:
-
 /usr/include/sys/sysmacros.h:
 
 /usr/include/bits/pthreadtypes.h:
@@ -111,6 +106,20 @@ tool_setup.h:
 /usr/include/bits/uio.h:
 
 /usr/include/bits/socket.h:
+
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/limits.h:
+
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
 
 /usr/include/bits/socket_type.h:
 
@@ -124,8 +133,6 @@ tool_setup.h:
 
 /usr/include/asm-generic/sockios.h:
 
-/usr/include/bits/socket2.h:
-
 ../include/curl/curlrules.h:
 
 /usr/include/stdio.h:
@@ -136,13 +143,11 @@ tool_setup.h:
 
 /usr/include/wchar.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h:
 
 /usr/include/bits/stdio_lim.h:
 
 /usr/include/bits/sys_errlist.h:
-
-/usr/include/bits/stdio2.h:
 
 /usr/include/assert.h:
 
@@ -158,13 +163,9 @@ tool_setup.h:
 
 /usr/include/bits/stdlib-float.h:
 
-/usr/include/bits/stdlib.h:
-
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 /usr/include/ctype.h:
 
@@ -186,7 +187,7 @@ tool_setup.h:
 
 /usr/include/sys/time.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdbool.h:
 
 /usr/include/unistd.h:
 
@@ -198,8 +199,6 @@ tool_setup.h:
 
 /usr/include/getopt.h:
 
-/usr/include/bits/unistd.h:
-
 ../include/curl/curl.h:
 
 ../include/curl/curlver.h:
@@ -207,20 +206,6 @@ tool_setup.h:
 ../include/curl/curlbuild.h:
 
 ../include/curl/curlrules.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h:
-
-/usr/include/limits.h:
-
-/usr/include/bits/posix1_lim.h:
-
-/usr/include/bits/local_lim.h:
-
-/usr/include/linux/limits.h:
-
-/usr/include/bits/posix2_lim.h:
 
 ../include/curl/easy.h:
 

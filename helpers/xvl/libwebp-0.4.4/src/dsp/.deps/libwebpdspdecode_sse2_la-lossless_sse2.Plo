@@ -1,15 +1,15 @@
 libwebpdspdecode_sse2_la-lossless_sse2.lo: lossless_sse2.c \
  /usr/include/stdc-predef.h dsp.h ../webp/config.h ../webp/types.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/inttypes.h \
- /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
+ /usr/include/inttypes.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/bits/wchar.h /usr/include/assert.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/emmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/xmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/mmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/mm_malloc.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h /usr/include/assert.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/emmintrin.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/xmmintrin.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/mmintrin.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/mm_malloc.h \
  /usr/include/stdlib.h /usr/include/bits/waitflags.h \
  /usr/include/bits/waitstatus.h /usr/include/endian.h \
  /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
@@ -17,18 +17,17 @@ libwebpdspdecode_sse2_la-lossless_sse2.lo: lossless_sse2.c \
  /usr/include/bits/byteswap-16.h /usr/include/sys/types.h \
  /usr/include/time.h /usr/include/sys/select.h /usr/include/bits/select.h \
  /usr/include/bits/sigset.h /usr/include/bits/time.h \
- /usr/include/bits/select2.h /usr/include/sys/sysmacros.h \
- /usr/include/bits/pthreadtypes.h /usr/include/alloca.h \
- /usr/include/bits/stdlib-float.h /usr/include/bits/stdlib.h lossless.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h lossless.h \
  ../webp/decode.h ../webp/./types.h ../enc/histogram.h \
  /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
- /usr/include/wchar.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
+ /usr/include/wchar.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio2.h /usr/include/string.h /usr/include/xlocale.h \
- /usr/include/bits/string3.h ../enc/./backward_references.h \
- ../enc/./../webp/types.h ../enc/./../webp/format_constants.h \
- ../enc/../webp/format_constants.h ../enc/../webp/types.h \
- ../utils/utils.h ../utils/../webp/types.h
+ /usr/include/string.h /usr/include/xlocale.h \
+ ../enc/./backward_references.h ../enc/./../webp/types.h \
+ ../enc/./../webp/format_constants.h ../enc/../webp/format_constants.h \
+ ../enc/../webp/types.h ../utils/utils.h ../utils/../webp/types.h
 
 /usr/include/stdc-predef.h:
 
@@ -38,7 +37,7 @@ dsp.h:
 
 ../webp/types.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/inttypes.h:
 
@@ -52,7 +51,7 @@ dsp.h:
 
 /usr/include/gnu/stubs-64.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 
@@ -60,13 +59,13 @@ dsp.h:
 
 /usr/include/assert.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/emmintrin.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/emmintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/xmmintrin.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/xmmintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/mmintrin.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/mmintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/mm_malloc.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/mm_malloc.h:
 
 /usr/include/stdlib.h:
 
@@ -98,8 +97,6 @@ dsp.h:
 
 /usr/include/bits/time.h:
 
-/usr/include/bits/select2.h:
-
 /usr/include/sys/sysmacros.h:
 
 /usr/include/bits/pthreadtypes.h:
@@ -107,8 +104,6 @@ dsp.h:
 /usr/include/alloca.h:
 
 /usr/include/bits/stdlib-float.h:
-
-/usr/include/bits/stdlib.h:
 
 lossless.h:
 
@@ -126,19 +121,15 @@ lossless.h:
 
 /usr/include/wchar.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h:
 
 /usr/include/bits/stdio_lim.h:
 
 /usr/include/bits/sys_errlist.h:
 
-/usr/include/bits/stdio2.h:
-
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 ../enc/./backward_references.h:
 

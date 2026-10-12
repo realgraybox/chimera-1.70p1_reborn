@@ -89,7 +89,7 @@ while test $# -gt 0; do
         ;;
 
     --protocols)
-        for protocol in HTTP HTTPS; do
+        for protocol in HTTP HTTPS SCP SFTP; do
             echo "$protocol"
         done
         ;;
@@ -148,7 +148,7 @@ while test $# -gt 0; do
            CURLLIBDIR=""
         fi
         if test "Xyes" = "Xyes"; then
-          echo ${CURLLIBDIR}-lcurl -lmbedtls -lmbedx509 -lmbedcrypto
+          echo ${CURLLIBDIR}-lcurl -lssh2 -lmbedtls -lmbedx509 -lmbedcrypto
         else
           echo ${CURLLIBDIR}-lcurl
         fi
@@ -156,7 +156,7 @@ while test $# -gt 0; do
 
     --static-libs)
         if test "Xyes" != "Xno" ; then
-          echo ${exec_prefix}/lib/libcurl.a -Wl,--gc-sections,--sort-common,-s -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/mxw -lmxw -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/libhtmlw -lhtmlw -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/xloadimage -lxloadimage -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/common -lcommon /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn//XawPlus-2.0.2/libXawPlus.a -lXmu -lXt -lSM -lICE -lXpm -lXext -lX11 -lm -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/lib -lmbedtls -lmbedx509 -lmbedcrypto
+          echo ${exec_prefix}/lib/libcurl.a -Wl,--gc-sections,--sort-common,-s -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/mxw -lmxw -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/libhtmlw -lhtmlw -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/xloadimage -lxloadimage -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/common -lcommon /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn//XawPlus-2.0.2/libXawPlus.a -lXmu -lXt -lSM -lICE -lXpm -lXext -lX11 -lm -L/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/lib -lssh2 -lmbedtls -lmbedx509 -lmbedcrypto
         else
           echo "curl was built with static libraries disabled" >&2
           exit 1

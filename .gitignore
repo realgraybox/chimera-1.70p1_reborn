@@ -4,3 +4,13 @@ chimera
 chimera.supp
 helpers/xvl/test_images/
 helpers/xvl/private/
+helpers/xvl/build_target/
+helpers/xvl/xvl
+helpers/text2pdf/text2pdf
+helpers/svg2gif/svg2gif
+helpers/menu/menu/
+helpers/fits2gif/fits2gif
+helpers/curl/build_target/
+helpers/curl/curl.7.47.0
+
+

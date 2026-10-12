@@ -2,9 +2,10 @@ libwebpencode_la-tree.lo: tree.c /usr/include/stdc-predef.h vp8enci.h \
  /usr/include/string.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/xlocale.h \
- /usr/include/bits/string3.h ../webp/encode.h ../webp/./types.h \
- /usr/include/inttypes.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
+ /usr/include/xlocale.h ../webp/encode.h ../webp/./types.h \
+ /usr/include/inttypes.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/wchar.h ../dsp/dsp.h \
  ../dsp/../webp/config.h ../dsp/../webp/types.h ../utils/bit_writer.h \
  ../utils/../webp/types.h ../utils/thread.h ../utils/../webp/config.h
@@ -25,11 +26,9 @@ vp8enci.h:
 
 /usr/include/gnu/stubs-64.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 ../webp/encode.h:
 
@@ -37,7 +36,7 @@ vp8enci.h:
 
 /usr/include/inttypes.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 

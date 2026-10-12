@@ -1,19 +1,41 @@
+#
+# Copyright (C) 2026 M. Glargaard, aka graybox
+#
+# This software is provided "as-is", without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would
+#    be appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not
+#    be misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source distribution.
+#
+
 #!/bin/sh
 
 URI=""
 METHOD="GET"
 CONTENT_TYPE="application/x-www-form-urlencoded"
 CONTENT_LENGTH=0
-
+#set to true for logging/debug or false to avoid
+DEBUG=false
 LOGFILE="/tmp/chimera.log"
 
-: > "$LOGFILE"
+[ "$DEBUG" = true ] && : > "$LOGFILE"
 
 while IFS= read -r line
 do
     line=$(printf "%s" "$line" | tr -d '\r')
-
-    echo "HDR: [$line]" >> "$LOGFILE"
+	[ "$DEBUG" = true ] && echo "HDR: [$line]" >> "$LOGFILE"
 
     [ -z "$line" ] && break
 
@@ -52,23 +74,23 @@ COOKIEJAR="$HOME/chimera/cookies/cookies.txt"
 if [ "$CONTENT_LENGTH" -gt 0 ] 2>/dev/null; then
     BODY=$(dd bs=1 count="$CONTENT_LENGTH" 2>/dev/null)
 fi
-
-echo "REQUEST_LINE=[$REQUEST_LINE]" >> "$LOGFILE"
-echo "HOST=[$HOST]" >> "$LOGFILE"
-echo "METHOD=[$METHOD]" >> "$LOGFILE"
-echo "URI=[$URI]" >> "$LOGFILE"
-echo "CONTENT_TYPE=[$CONTENT_TYPE]" >> "$LOGFILE"
-echo "CONTENT_LENGTH=[$CONTENT_LENGTH]" >> "$LOGFILE"
-echo "BODY=[$BODY]" >> "$LOGFILE"
-echo "COOKIEJAR=[$COOKIEJAR]" >> "$LOGFILE"
-
+if [ "$DEBUG" = true ]; then
+	echo "REQUEST_LINE=[$REQUEST_LINE]" >> "$LOGFILE"
+	echo "HOST=[$HOST]" >> "$LOGFILE"
+	echo "METHOD=[$METHOD]" >> "$LOGFILE"
+	echo "URI=[$URI]" >> "$LOGFILE"
+	echo "CONTENT_TYPE=[$CONTENT_TYPE]" >> "$LOGFILE"
+	echo "CONTENT_LENGTH=[$CONTENT_LENGTH]" >> "$LOGFILE"
+	echo "BODY=[$BODY]" >> "$LOGFILE"
+	echo "COOKIEJAR=[$COOKIEJAR]" >> "$LOGFILE"
+fi
 PATH_AND_QUERY=$(printf "%s\n" "$REQUEST_LINE" | awk '{print $2}')
 
 if [ "$METHOD" = "GET" ] && [ -n "$HOST" ]; then
     URI="https://$HOST$PATH_AND_QUERY"
 fi
 
-echo "FINAL_URI=[$URI]" >> "$LOGFILE"
+[ "$DEBUG" = true ] && echo "FINAL_URI=[$URI]" >> "$LOGFILE"
 
 if [ -z "$URI" ]; then
     printf "HTTP/1.0 500 Error\r\n"
@@ -78,17 +100,17 @@ if [ -z "$URI" ]; then
     exit 1
 fi
 
-# Midlertidige filer til headers og selve bodyen
+# Temporary files for headers and the body itself
 HEADER_DUMP="/tmp/chimera_headers.$$"
 BODY_DUMP="/tmp/chimera_body.$$"
 
-# --- TRICK 1: Bloker kendte problem-links omgående uden netværkskald ---
-# En 1x1 gennemsigtig GIF i Base64-format
+# --- TRICK 1: Block known problem links instantly without network calls ---
+# A 1x1 transparent GIF in Base64 format
 TRANSPARENT_GIF_B64="R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
 case "$URI" in
     *flattr*|*badge*|*counter*|*analytics*)
-        echo "BLOKERET: Sender dummy-billede direkte for $URI" >> "$LOGFILE"
+        [ "$DEBUG" = true ] && echo "BLOCKED: Sending dummy image directly for $URI" >> "$LOGFILE"
         printf "HTTP/1.0 200 OK\r\n"
         printf "Content-Type: image/gif\r\n"
         printf "\r\n"
@@ -97,7 +119,7 @@ case "$URI" in
         ;;
 esac
 
-# Kør selve curl-anmodningen og dump headers til en fil separat
+# Run the curl request itself and dump the headers to a file separately
 if [ "$METHOD" = "POST" ]; then
     curl.7.47.0 -k -L -s \
         -A "Chimera/1.70" \
@@ -122,13 +144,13 @@ fi
 
 CURL_EXIT=$?
 
-# Find HTTP statuskode (f.eks. 200, 404, 500)
+# Find HTTP status code (eg 200, 404, 500)
 HTTP_STATUS=$(tr -d '\r' < "$HEADER_DUMP" 2>/dev/null | awk '/^HTTP\// {print $2}' | tail -1)
 [ -z "$HTTP_STATUS" ] && HTTP_STATUS="000"
 
-echo "CURL_EXIT=[$CURL_EXIT], HTTP_STATUS=[$HTTP_STATUS]" >> "$LOGFILE"
+[ "$DEBUG" = true ] && echo "CURL_EXIT=[$CURL_EXIT], HTTP_STATUS=[$HTTP_STATUS]" >> "$LOGFILE"
 
-# Træk den absolut SIDSTE Content-Type ud af header-dumpet (efter alle redirects)
+# Extract the absolute LAST Content-Type from the header dump (after all redirects)
 CTYPE=$(tr -d '\r' < "$HEADER_DUMP" 2>/dev/null \
     | awk -F': ' 'BEGIN{IGNORECASE=1} /^Content-Type:/ {print $2}' \
     | tail -1)
@@ -137,14 +159,14 @@ if [ -z "$CTYPE" ]; then
     CTYPE="application/octet-stream"
 fi
 
-echo "DETERMINED_CTYPE=[$CTYPE]" >> "$LOGFILE"
+[ "$DEBUG" = true ] && echo "DETERMINED_CTYPE=[$CTYPE]" >> "$LOGFILE"
 
-# --- TRICK 2: Redningsaktion hvis anmodningen fejlede (f.eks. 404 eller dødt domæne) ---
-# Hvis URL'en ligner et billede, og anmodningen fejlede, sender vi dummy-billedet
+# --- TRICK 2: Rescue action if the request failed (e.g. 404 or dead domain) ---
+# If the URL looks like an image and the request failed, we send the dummy image
 if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_STATUS" -ge 400 ]; then
     case "$URI" in
         *.png*|*.gif*|*.jpg*|*.jpeg*|*.ico*)
-            echo "REDNING: Forespørgsel på billede fejlede. Sender 1x1 GIF i stedet." >> "$LOGFILE"
+            [ "$DEBUG" = true ] && echo "RESCUE: Image request failed. Sending 1x1 GIF instead." >> "$LOGFILE"
             printf "HTTP/1.0 200 OK\r\n"
             printf "Content-Type: image/gif\r\n"
             printf "\r\n"
@@ -155,13 +177,13 @@ if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_STATUS" -ge 400 ]; then
     esac
 fi
 
-# Send den normale HTTP-respons hvis alt gik godt (eller det ikke var et billede)
-# Vi videresender den rigtige statuskode i stedet for altid at tvinge '200 OK'
+# Send the normal HTTP response if everything went well (or it wasn't an image)
+# We pass the correct status code instead of always forcing '200 OK'
 if [ "$HTTP_STATUS" = "000" ]; then
     printf "HTTP/1.0 504 Gateway Timeout\r\n"
     printf "Content-Type: text/plain\r\n"
     printf "\r\n"
-    printf "Serveren svarede ikke i tide.\n"
+    printf "The server did not respond in time.\n"
 else
     printf "HTTP/1.0 %s\r\n" "$(tr -d '\r' < "$HEADER_DUMP" | awk '/^HTTP\// {print substr($0, index($0,$2))}' | tail -1)"
     printf "Content-Type: %s\r\n" "$CTYPE"
@@ -169,5 +191,5 @@ else
     cat "$BODY_DUMP"
 fi
 
-# Ryd op efter os selv
+# Clean up
 rm -f "$HEADER_DUMP" "$BODY_DUMP"

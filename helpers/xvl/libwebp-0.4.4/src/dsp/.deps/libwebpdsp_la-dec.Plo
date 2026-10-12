@@ -1,12 +1,12 @@
 libwebpdsp_la-dec.lo: dec.c /usr/include/stdc-predef.h dsp.h \
  ../webp/config.h ../webp/types.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/inttypes.h \
- /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
+ /usr/include/inttypes.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/bits/wchar.h ../dec/vp8i.h /usr/include/string.h \
- /usr/include/xlocale.h /usr/include/bits/string3.h ../dec/./vp8li.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h ../dec/vp8i.h \
+ /usr/include/string.h /usr/include/xlocale.h ../dec/./vp8li.h \
  ../dec/././webpi.h ../dec/././../utils/rescaler.h \
  ../dec/././../utils/../webp/types.h ../dec/./././decode_vp8.h \
  ../dec/./././../webp/decode.h ../dec/./././../webp/./types.h \
@@ -25,7 +25,7 @@ dsp.h:
 
 ../webp/types.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/inttypes.h:
 
@@ -39,7 +39,7 @@ dsp.h:
 
 /usr/include/gnu/stubs-64.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 
@@ -50,8 +50,6 @@ dsp.h:
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 ../dec/./vp8li.h:
 

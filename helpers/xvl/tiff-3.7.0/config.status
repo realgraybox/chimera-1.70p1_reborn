@@ -310,7 +310,7 @@ Copyright (C) 2003 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 srcdir=.
-INSTALL="/usr/bin/ginstall -c"
+INSTALL="/bin/ginstall -c"
 # If no file are specified by the user, then we need to provide default
 # value.  By we need to know if files were specified by the user.
 ac_need_defaults=:
@@ -533,7 +533,7 @@ s,@install_sh@,/mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera
 s,@STRIP@,strip,;t t
 s,@ac_ct_STRIP@,strip,;t t
 s,@INSTALL_STRIP_PROGRAM@,${SHELL} $(install_sh) -c -s,;t t
-s,@mkdir_p@,$(mkinstalldirs),;t t
+s,@mkdir_p@,mkdir -p --,;t t
 s,@AWK@,gawk,;t t
 s,@SET_MAKE@,,;t t
 s,@am__leading_dot@,.,;t t
@@ -564,7 +564,7 @@ s,@LIBTIFF_MINOR_VERSION@,7,;t t
 s,@LIBTIFF_MICRO_VERSION@,0,;t t
 s,@LIBTIFF_ALPHA_VERSION@,,;t t
 s,@LIBTIFF_VERSION@,3.7.0,;t t
-s,@LIBTIFF_RELEASE_DATE@,20261010,;t t
+s,@LIBTIFF_RELEASE_DATE@,20261012,;t t
 s,@LN_S@,ln -s,;t t
 s,@EGREP@,grep -E,;t t
 s,@ECHO@,echo,;t t
@@ -580,25 +580,25 @@ s,@CXXDEPMODE@,depmode=gcc3,;t t
 s,@am__fastdepCXX_TRUE@,,;t t
 s,@am__fastdepCXX_FALSE@,#,;t t
 s,@CXXCPP@,g++ -E,;t t
-s,@F77@,,;t t
-s,@FFLAGS@,,;t t
-s,@ac_ct_F77@,,;t t
+s,@F77@,g77,;t t
+s,@FFLAGS@,-g -O2,;t t
+s,@ac_ct_F77@,g77,;t t
 s,@LIBTOOL@,$(SHELL) $(top_builddir)/libtool,;t t
 s,@LIBOBJS@,,;t t
 s,@X_CFLAGS@,,;t t
 s,@X_PRE_LIBS@, -lSM -lICE,;t t
-s,@X_LIBS@,,;t t
+s,@X_LIBS@, -L/usr/lib64,;t t
 s,@X_EXTRA_LIBS@,,;t t
 s,@acx_pthread_config@,,;t t
 s,@PTHREAD_CC@,gcc,;t t
 s,@PTHREAD_LIBS@,,;t t
 s,@PTHREAD_CFLAGS@,-pthread,;t t
 s,@GL_CFLAGS@,-pthread,;t t
-s,@GL_LIBS@,-lGL  -lm,;t t
+s,@GL_LIBS@,-lGL -L/usr/lib64 -lX11  -lm,;t t
 s,@GLU_CFLAGS@,-pthread,;t t
-s,@GLU_LIBS@,-lGLU -lGL  -lm,;t t
+s,@GLU_LIBS@,-lGLU -lGL -L/usr/lib64 -lX11  -lm,;t t
 s,@GLUT_CFLAGS@,-pthread,;t t
-s,@GLUT_LIBS@,-lglut  -lSM -lICE -lXmu -lXi  -lGLU -lGL  -lm,;t t
+s,@GLUT_LIBS@,-lglut  -lSM -lICE -lXmu -lXi  -lGLU -lGL -L/usr/lib64 -lX11  -lm,;t t
 s,@HAVE_OPENGL_TRUE@,,;t t
 s,@HAVE_OPENGL_FALSE@,#,;t t
 s,@LTLIBOBJS@,,;t t

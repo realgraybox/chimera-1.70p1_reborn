@@ -2,24 +2,24 @@ libwebpencode_la-syntax.lo: syntax.c /usr/include/stdc-predef.h \
  /usr/include/assert.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h ../utils/utils.h ../utils/../webp/types.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/inttypes.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/bits/wchar.h ../webp/format_constants.h ../webp/mux_types.h \
- /usr/include/stdlib.h /usr/include/bits/waitflags.h \
- /usr/include/bits/waitstatus.h /usr/include/endian.h \
- /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
- /usr/include/bits/types.h /usr/include/bits/typesizes.h \
- /usr/include/bits/byteswap-16.h /usr/include/sys/types.h \
- /usr/include/time.h /usr/include/sys/select.h /usr/include/bits/select.h \
- /usr/include/bits/sigset.h /usr/include/bits/time.h \
- /usr/include/bits/select2.h /usr/include/sys/sysmacros.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
+ /usr/include/inttypes.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ ../webp/format_constants.h ../webp/mux_types.h /usr/include/stdlib.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/bits/byteswap-16.h \
+ /usr/include/sys/types.h /usr/include/time.h /usr/include/sys/select.h \
+ /usr/include/bits/select.h /usr/include/bits/sigset.h \
+ /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
  /usr/include/bits/pthreadtypes.h /usr/include/alloca.h \
- /usr/include/bits/stdlib-float.h /usr/include/bits/stdlib.h \
- /usr/include/string.h /usr/include/xlocale.h /usr/include/bits/string3.h \
- ../webp/./types.h vp8enci.h ../webp/encode.h ../webp/./types.h \
- ../dsp/dsp.h ../dsp/../webp/config.h ../dsp/../webp/types.h \
- ../utils/bit_writer.h ../utils/../webp/types.h ../utils/thread.h \
- ../utils/../webp/config.h
+ /usr/include/bits/stdlib-float.h /usr/include/string.h \
+ /usr/include/xlocale.h ../webp/./types.h vp8enci.h ../webp/encode.h \
+ ../webp/./types.h ../dsp/dsp.h ../dsp/../webp/config.h \
+ ../dsp/../webp/types.h ../utils/bit_writer.h ../utils/../webp/types.h \
+ ../utils/thread.h ../utils/../webp/config.h
 
 /usr/include/stdc-predef.h:
 
@@ -39,11 +39,11 @@ libwebpencode_la-syntax.lo: syntax.c /usr/include/stdc-predef.h \
 
 ../utils/../webp/types.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/inttypes.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 
@@ -83,8 +83,6 @@ libwebpencode_la-syntax.lo: syntax.c /usr/include/stdc-predef.h \
 
 /usr/include/bits/time.h:
 
-/usr/include/bits/select2.h:
-
 /usr/include/sys/sysmacros.h:
 
 /usr/include/bits/pthreadtypes.h:
@@ -93,13 +91,9 @@ libwebpencode_la-syntax.lo: syntax.c /usr/include/stdc-predef.h \
 
 /usr/include/bits/stdlib-float.h:
 
-/usr/include/bits/stdlib.h:
-
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 ../webp/./types.h:
 

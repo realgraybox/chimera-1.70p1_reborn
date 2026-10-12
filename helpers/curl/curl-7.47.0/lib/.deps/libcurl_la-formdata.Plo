@@ -4,51 +4,49 @@ libcurl_la-formdata.lo: formdata.c /usr/include/stdc-predef.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
  /usr/include/bits/types.h /usr/include/bits/typesizes.h \
- /usr/include/time.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h \
+ /usr/include/time.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h \
  /usr/include/endian.h /usr/include/bits/endian.h \
  /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
  /usr/include/sys/select.h /usr/include/bits/select.h \
  /usr/include/bits/sigset.h /usr/include/bits/time.h \
- /usr/include/bits/select2.h /usr/include/sys/sysmacros.h \
- /usr/include/bits/pthreadtypes.h /usr/include/sys/socket.h \
- /usr/include/sys/uio.h /usr/include/bits/uio.h \
- /usr/include/bits/socket.h /usr/include/bits/socket_type.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/sys/socket.h /usr/include/sys/uio.h /usr/include/bits/uio.h \
+ /usr/include/bits/socket.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/limits.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/socket_type.h \
  /usr/include/bits/sockaddr.h /usr/include/asm/socket.h \
  /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h \
- /usr/include/asm-generic/sockios.h /usr/include/bits/socket2.h \
- ../include/curl/curlrules.h /usr/include/stdio.h /usr/include/libio.h \
- /usr/include/_G_config.h /usr/include/wchar.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
+ /usr/include/asm-generic/sockios.h ../include/curl/curlrules.h \
+ /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/wchar.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio2.h /usr/include/assert.h curl_setup_once.h \
- /usr/include/stdlib.h /usr/include/bits/waitflags.h \
- /usr/include/bits/waitstatus.h /usr/include/alloca.h \
- /usr/include/bits/stdlib-float.h /usr/include/bits/stdlib.h \
- /usr/include/string.h /usr/include/xlocale.h /usr/include/bits/string3.h \
- /usr/include/ctype.h /usr/include/errno.h /usr/include/bits/errno.h \
+ /usr/include/assert.h curl_setup_once.h /usr/include/stdlib.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /usr/include/string.h /usr/include/xlocale.h /usr/include/ctype.h \
+ /usr/include/errno.h /usr/include/bits/errno.h \
  /usr/include/linux/errno.h /usr/include/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /usr/include/sys/stat.h /usr/include/bits/stat.h /usr/include/sys/time.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h /usr/include/unistd.h \
- /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
- /usr/include/bits/confname.h /usr/include/getopt.h \
- /usr/include/bits/unistd.h ../include/curl/curl.h \
- ../include/curl/curlver.h ../include/curl/curlbuild.h \
- ../include/curl/curlrules.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h \
- /usr/include/limits.h /usr/include/bits/posix1_lim.h \
- /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
- /usr/include/bits/posix2_lim.h ../include/curl/easy.h \
- ../include/curl/multi.h ../include/curl/curl.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdbool.h \
+ /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+ /usr/include/bits/environments.h /usr/include/bits/confname.h \
+ /usr/include/getopt.h ../include/curl/curl.h ../include/curl/curlver.h \
+ ../include/curl/curlbuild.h ../include/curl/curlrules.h \
+ ../include/curl/easy.h ../include/curl/multi.h ../include/curl/curl.h \
  ../include/curl/typecheck-gcc.h /usr/include/libgen.h urldata.h cookie.h \
  formdata.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/ssl.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/config.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/check_config.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/bignum.h \
- /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/bits/wchar.h \
+ /usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/ecp.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/ssl_ciphersuites.h \
  /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/pk.h \
@@ -75,14 +73,14 @@ libcurl_la-formdata.lo: formdata.c /usr/include/stdc-predef.h \
  hostip.h hash.h llist.h curl_addrinfo.h /usr/include/netdb.h \
  /usr/include/rpc/netdb.h /usr/include/bits/netdb.h \
  /usr/include/arpa/inet.h asyn.h /usr/include/setjmp.h \
- /usr/include/bits/setjmp.h /usr/include/bits/setjmp2.h splay.h imap.h \
- pingpong.h curl_sasl.h pop3.h smtp.h ftp.h file.h ssh.h http.h rtsp.h \
- smb.h wildcard.h multihandle.h conncache.h vtls/vtls.h \
- ../lib/curl_setup.h vtls/openssl.h vtls/gtls.h vtls/nssg.h vtls/gskit.h \
- ../lib/urldata.h vtls/polarssl.h vtls/axtls.h vtls/cyassl.h \
- vtls/schannel.h vtls/darwinssl.h vtls/mbedtls.h strequal.h sendf.h \
- strdup.h curl_printf.h ../include/curl/mprintf.h curl_memory.h \
- memdebug.h
+ /usr/include/bits/setjmp.h splay.h imap.h pingpong.h curl_sasl.h pop3.h \
+ smtp.h ftp.h file.h ssh.h /usr/include/libssh2.h \
+ /usr/include/libssh2_sftp.h /usr/include/libssh2.h http.h rtsp.h smb.h \
+ wildcard.h multihandle.h conncache.h vtls/vtls.h ../lib/curl_setup.h \
+ vtls/openssl.h vtls/gtls.h vtls/nssg.h vtls/gskit.h ../lib/urldata.h \
+ vtls/polarssl.h vtls/axtls.h vtls/cyassl.h vtls/schannel.h \
+ vtls/darwinssl.h vtls/mbedtls.h strequal.h sendf.h strdup.h \
+ curl_printf.h ../include/curl/mprintf.h curl_memory.h memdebug.h
 
 /usr/include/stdc-predef.h:
 
@@ -110,7 +108,7 @@ curl_config.h:
 
 /usr/include/time.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stddef.h:
 
 /usr/include/endian.h:
 
@@ -128,8 +126,6 @@ curl_config.h:
 
 /usr/include/bits/time.h:
 
-/usr/include/bits/select2.h:
-
 /usr/include/sys/sysmacros.h:
 
 /usr/include/bits/pthreadtypes.h:
@@ -141,6 +137,20 @@ curl_config.h:
 /usr/include/bits/uio.h:
 
 /usr/include/bits/socket.h:
+
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/limits.h:
+
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
 
 /usr/include/bits/socket_type.h:
 
@@ -154,8 +164,6 @@ curl_config.h:
 
 /usr/include/asm-generic/sockios.h:
 
-/usr/include/bits/socket2.h:
-
 ../include/curl/curlrules.h:
 
 /usr/include/stdio.h:
@@ -166,13 +174,11 @@ curl_config.h:
 
 /usr/include/wchar.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdarg.h:
 
 /usr/include/bits/stdio_lim.h:
 
 /usr/include/bits/sys_errlist.h:
-
-/usr/include/bits/stdio2.h:
 
 /usr/include/assert.h:
 
@@ -188,13 +194,9 @@ curl_setup_once.h:
 
 /usr/include/bits/stdlib-float.h:
 
-/usr/include/bits/stdlib.h:
-
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
-
-/usr/include/bits/string3.h:
 
 /usr/include/ctype.h:
 
@@ -216,7 +218,7 @@ curl_setup_once.h:
 
 /usr/include/sys/time.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdbool.h:
 
 /usr/include/unistd.h:
 
@@ -228,8 +230,6 @@ curl_setup_once.h:
 
 /usr/include/getopt.h:
 
-/usr/include/bits/unistd.h:
-
 ../include/curl/curl.h:
 
 ../include/curl/curlver.h:
@@ -237,20 +237,6 @@ curl_setup_once.h:
 ../include/curl/curlbuild.h:
 
 ../include/curl/curlrules.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h:
-
-/usr/include/limits.h:
-
-/usr/include/bits/posix1_lim.h:
-
-/usr/include/bits/local_lim.h:
-
-/usr/include/linux/limits.h:
-
-/usr/include/bits/posix2_lim.h:
 
 ../include/curl/easy.h:
 
@@ -276,7 +262,7 @@ formdata.h:
 
 /mnt/sdb3/src/legepladsen/toolchain_dir_2/src/todo/github/chimera-1.70p1_reborn/helpers/curl/build_target/include/mbedtls/bignum.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+/usr/lib64/gcc/x86_64-slackware-linux/5.5.0/include/stdint.h:
 
 /usr/include/stdint.h:
 
@@ -356,8 +342,6 @@ asyn.h:
 
 /usr/include/bits/setjmp.h:
 
-/usr/include/bits/setjmp2.h:
-
 splay.h:
 
 imap.h:
@@ -375,6 +359,12 @@ ftp.h:
 file.h:
 
 ssh.h:
+
+/usr/include/libssh2.h:
+
+/usr/include/libssh2_sftp.h:
+
+/usr/include/libssh2.h:
 
 http.h:
 
