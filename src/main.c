@@ -213,6 +213,27 @@ static XtResource       resource_list[] =
 	offset(localIndexFiles), XtRString, (XtPointer)"index.html" },
 };
 
+#ifdef USE_XAWPLUS
+/*
+ * NoOpAction
+ *
+ * The Scrollbar translations in the Chimera resource file start with
+ * StartScroll(), which Xaw and Xaw3d need before MoveThumb() and
+ * NotifyThumb() do anything.  XawPlus's Scrollbar has no StartScroll
+ * action, so this empty one stands in for it.  Xt only falls back to an
+ * application action when the widget class has none of that name.
+ */
+static void
+NoOpAction(w, event, params, num_params)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *num_params;
+{
+  return;
+}
+#endif
+
 static XtActionsRec actionsList[] =
 {
   { "home",     (XtActionProc) HomeAction },
@@ -229,6 +250,9 @@ static XtActionsRec actionsList[] =
   { "bookmark", (XtActionProc) BookmarkAction },
   { "openurl",  (XtActionProc) OpenURL },
   { "deferpix",	(XtActionProc) DeferPixAction },
+#ifdef USE_XAWPLUS
+  { "StartScroll", (XtActionProc) NoOpAction },
+#endif
 };
 
 static char *fallback_resources[] =

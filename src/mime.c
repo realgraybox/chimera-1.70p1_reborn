@@ -52,7 +52,7 @@ static MIMEType mhlist[] =
   { "image/tga", "tga" },
   { "image/psd", "psd" },
   { "image/sgi", "sgi" },
-  { "image/svg", "svg" },
+  { "image/svg+xml", "svg" },
   { "image/pdf", "pdf" },
   { "image/tiff", "tif" },
 #endif

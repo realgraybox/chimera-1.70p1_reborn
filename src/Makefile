@@ -1,15 +1,6 @@
 include ../mk.config
 
-# Check if uClibc is present by runnig a small test through preprocessor
-IS_UCLIBC := $(shell $(CC) -include features.h -dM -E - < /dev/null | grep -c "__UCLIBC__")
-
-# If result is 1 (true), add special flags
-ifeq ($(IS_UCLIBC), 1)
-    CFLAGS += -fno-builtin-sin -fno-builtin-cos -fno-builtin-tan \
-              -fno-builtin-atan2 -fno-builtin-fmod -fno-builtin-acos
-    # Add definition so code knows to activate wrappers
-    CFLAGS += -D__UCLIBC__
-endif
+# uClibc flags are set in mk.config
 
 SRCS = \
 	cache.c url.c net.c ftp.c convert.c gopher.c http.c  \

@@ -1,15 +1,10 @@
 include ../../mk.config
 
-# check if uClibc is present by running a small test through preprocessor
-IS_UCLIBC := $(shell $(CC) -include features.h -dM -E - < /dev/null | grep -c "__UCLIBC__")
-
 TARGET_CFLAGS = $(CFLAGS) -std=gnu99
 
-# -fPIC only for 64bit
+# -fPIC only when not building statically against uClibc (IS_UCLIBC is set in mk.config)
 ifneq ($(IS_UCLIBC), 1)
     TARGET_CFLAGS += -fPIC
-else
-    TARGET_CFLAGS += -D__UCLIBC__
 endif
 
 # path to sources
