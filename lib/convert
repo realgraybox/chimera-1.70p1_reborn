@@ -6,7 +6,9 @@
 inline application/postscript image/gif pstopxm gif8 %s
 #inline image/jpeg image/gif img2gif %s -
 #inline image/png image/gif img2gif %s -
-inline image/tiff image/gif tif2gif %s -
+inline image/tiff image/gif xvl -c %s
+inline image/webp image/png xvl -c %s
+inline image/sgi image/png xvl -c %s
 #inline image/bmp image/gif img2gif %s -
 #inline image/tga image/gif img2gif %s -
 #inline image/svg image/gif svg2gif %s -

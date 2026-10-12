@@ -24,7 +24,7 @@ clean:
 	done
 
 install:
-	@for dir in util lib src helpers/curl helpers/fits2gif helpers/img2gif helpers/svg2gif helpers/tif2gif; do \
+	@for dir in util lib src helpers/curl helpers/fits2gif helpers/svg2gif; do \
 		$(MAKE) -C $$dir install DESTDIR=$(DESTDIR); \
 	done
 

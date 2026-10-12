@@ -20,12 +20,26 @@
 #	include <X11/XawPlus/DialogP.h>
 #	include <X11/XawPlus/Form.h>
 #	include <X11/XawPlus/Text.h>
-#include <X11/XawPlus/Scrollbar.h>
-#include <X11/XawPlus/IconList.h>
+#	include <X11/XawPlus/Scrollbar.h>
+#	include <X11/XawPlus/IconList.h>
    // ... other XawPlus headers
 #elif defined(USE_XAW3D)
+#	include <X11/Xaw3d/Box.h>
 #	include <X11/Xaw3d/Command.h>
 #   include <X11/Xaw3d/Label.h>
+#	include <X11/Xaw3d/AsciiText.h>
+#	include <X11/Xaw3d/Paned.h>
+#	include <X11/Xaw3d/Viewport.h>
+#	include <X11/Xaw3d/Cardinals.h>
+#	include <X11/Xaw3d/SimpleMenu.h>
+#	include <X11/Xaw3d/SmeBSB.h>
+#	include <X11/Xaw3d/SmeLine.h>
+#	include <X11/Xaw3d/MenuButton.h>
+#	include <X11/Xaw3d/Toggle.h>
+#	include <X11/Xaw3d/List.h>
+#	include <X11/Xaw3d/DialogP.h>
+#	include <X11/Xaw3d/Form.h>
+#	include <X11/Xaw3d/Text.h>
 #else
 #	include <X11/Xaw/Box.h>
 #	include <X11/Xaw/Command.h>

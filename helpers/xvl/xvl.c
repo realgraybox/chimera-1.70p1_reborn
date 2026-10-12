@@ -56,6 +56,43 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 
+static char loaded_path[4096];
+static void make_save_path(char *buf, size_t bufsz)
+{
+    const char *base = "output";
+    char dir[4096] = ".";
+
+    if (loaded_path[0]) {
+        const char *slash = strrchr(loaded_path, '/');
+
+        if (slash) {
+            size_t dirlen = (size_t)(slash - loaded_path);
+
+            if (dirlen >= sizeof dir)
+                dirlen = sizeof dir - 1;
+
+            memcpy(dir, loaded_path, dirlen);
+            dir[dirlen] = '\0';
+
+            base = slash + 1;
+        } else {
+            base = loaded_path;
+        }
+    }
+
+    char stem[4096];
+    snprintf(stem, sizeof stem, "%s", base);
+
+    char *dot = strrchr(stem, '.');
+    if (dot && dot != stem)
+        *dot = '\0';
+
+    if (strcmp(dir, ".") == 0)
+        snprintf(buf, bufsz, "%s_view.png", stem);
+    else
+        snprintf(buf, bufsz, "%s/%s_view.png", dir, stem);
+}
+
 void set_window_icon(Display *dpy, Window win) {
     unsigned long icon_data[] = {
         2, 2,                     // width, height
@@ -140,7 +177,7 @@ static void pan_down(void) {
     offset_y += (int)(20 / zoom);
 }
 
-//filemanager
+// filemanager
 #define MAX_FILES 1024
 static char fm_cwd[4096];
 static char *fm_files[MAX_FILES];
@@ -191,13 +228,13 @@ static FsRegion fs_hit_region(int x, int y) {
 }
 
 static void draw_fm(Display *dpy, Window win, GC gc, XFontStruct *font, int win_w, int win_h) {
-    /* 1. Mørk baggrund i hele vinduet (Matcher billedviseren uden billede) */
+    /* 1. Dark background in the entire window (Matches the image viewer without image) */
     XSetForeground(dpy, gc, BlackPixel(dpy, DefaultScreen(dpy)));
     XFillRectangle(dpy, win, gc, 0, 0, win_w, win_h);
 
     int line_height = font ? font->ascent + font->descent + 2 : 14;
     
-    /* 2. Brug din globale ui_height (40) i stedet for dynamisk højde */
+    /* 2. Use global ui_height (40) instead of dynamic height */
     int usable_h = win_h - ui_height;
     int visible_lines = usable_h / line_height;
 
@@ -214,12 +251,12 @@ static void draw_fm(Display *dpy, Window win, GC gc, XFontStruct *font, int win_
         int y = (i + 1) * line_height;
 
         if (idx == fm_selected) {
-            /* Valgt fil: Flot mørkegrå markering (eller hvid, hvis du vil have fuld kontrast) */
+            /* Selected file: Nice dark gray selection (or white if you want full contrast) */
             XSetForeground(dpy, gc, WhitePixel(dpy, DefaultScreen(dpy)));
             XFillRectangle(dpy, win, gc, 0, y - line_height + 2, win_w, line_height);
             XSetForeground(dpy, gc, BlackPixel(dpy, DefaultScreen(dpy)));
         } else {
-            /* Almindelig tekst: Hvid */
+            /* Plain text: White */
             XSetForeground(dpy, gc, WhitePixel(dpy, DefaultScreen(dpy)));
         }
 
@@ -236,31 +273,31 @@ static void draw_fm(Display *dpy, Window win, GC gc, XFontStruct *font, int win_
         XDrawString(dpy, win, gc, win_w > 350 ? win_w - 150 : 200, y, info, strlen(info));
     }
 
-    /* 3. Statuslinje i bunden: Hvid bjælke med sort tekst (Matcher præcis draw_ui) */
+    /* 3. Status bar at the bottom: White bar with black text (Matches draw_ui exactly) */
     XSetForeground(dpy, gc, WhitePixel(dpy, DefaultScreen(dpy)));
     XFillRectangle(dpy, win, gc, 0, win_h - ui_height, win_w, ui_height);
     
     XSetForeground(dpy, gc, BlackPixel(dpy, DefaultScreen(dpy)));
 
-    /* Opdel tekst i zoner for at måle præcise klik-koordinater */
+    /* Divide text into zones to measure precise click coordinates */
     const char *cancel_text = "[Esc/q]: Cancel";
     const char *scroll_text = "  [Arrows/Wheel]: Scroll  ";
     const char *open_text   = "[Enter/Click]: Open/Select";
 
     int x = 10;
-    fs_text_y = win_h - ui_height + 20; /* Centrer teksten lodret i den 40 pixel høje bjælke */
+    fs_text_y = win_h - ui_height + 20; /* Center the text vertically in the 40 pixel high bar */
     
-    // Zone 1: Cancel knap
+    // Zone 1: Cancel button
     fs_cancel_x1 = x;
     XDrawString(dpy, win, gc, x, fs_text_y, cancel_text, strlen(cancel_text));
     fs_cancel_x2 = fs_cancel_x1 + (font ? XTextWidth(font, cancel_text, (int)strlen(cancel_text)) : 100);
 
-    // Zone 2: Scroll info (mellemrum)
+    // Zone 2: Scroll info (space)
     x = fs_cancel_x2;
     XDrawString(dpy, win, gc, x, fs_text_y, scroll_text, strlen(scroll_text));
     int scroll_w = font ? XTextWidth(font, scroll_text, (int)strlen(scroll_text)) : 150;
 
-    // Zone 3: Open/Select knap
+    // Zone 3: Open/Select button
     x = fs_cancel_x2 + scroll_w;
     fs_open_x1 = x;
     XDrawString(dpy, win, gc, x, fs_text_y, open_text, strlen(open_text));
@@ -280,12 +317,11 @@ char* run_file_picker(Display *dpy, Window win, GC gc, XFontStruct *font, int *w
 
         int line_height = font ? font->ascent + font->descent + 2 : 14;
         
-        /* RETTET: Nu bruger event-loopet også din globale ui_height til scroll-beregning */
         int usable_h = *win_h - ui_height;
         int visible_lines = usable_h / line_height;
 
         if (ev.type == Expose) {
-            /* Tegnes bare i næste omgang af loopet */
+            /* Only drawn in the next iteration of the loop */
         } 
         else if (ev.type == ConfigureNotify) {
             *win_w = ev.xconfigure.width;
@@ -324,15 +360,15 @@ char* run_file_picker(Display *dpy, Window win, GC gc, XFontStruct *font, int *w
         } 
         else if (ev.type == ButtonPress) {
             if (ev.xbutton.button == Button1) {
-                /* NYT: Tjek først om der trykkes på bundbjælkens UI elementer */
+                /* First check if the bottom bar UI elements are pressed */
                 FsRegion hit = fs_hit_region(ev.xbutton.x, ev.xbutton.y);
 
                 if (hit == FS_REGION_CANCEL) {
-                    /* Afbryd med det samme (svarer til Esc/q) */
+                    /* Cancel immediately (equivalent to Esc/q) */
                     break;
                 } 
                 else if (hit == FS_REGION_OPEN) {
-                    /* Åbn den markerede fil eller mappe (svarer til Enter) */
+                    /* Open the selected file or folder (equivalent to Enter) */
                     if (fm_file_count > 0 && fm_selected >= 0 && fm_selected < fm_file_count) {
                         char path[1024];
                         snprintf(path, sizeof(path), "%s/%s", fm_cwd, fm_files[fm_selected]);
@@ -348,7 +384,7 @@ char* run_file_picker(Display *dpy, Window win, GC gc, XFontStruct *font, int *w
                     }
                 } 
                 else {
-                    /* Intet ramt i bunden: Håndter klik på fillisten som normalt */
+                   /* Nothing hit at the bottom: Handle clicks on the file list as normal */
                     int idx = ev.xbutton.y / line_height;
                     if (idx < visible_lines) {
                         int file_idx = idx + fm_scroll_offset;
@@ -372,11 +408,9 @@ char* run_file_picker(Display *dpy, Window win, GC gc, XFontStruct *font, int *w
                     }
                 }
             } 
-            /* RETTET: Scroll op fungerer korrekt igen nu */
             else if (ev.xbutton.button == Button4) { 
                 if (fm_scroll_offset > 0) fm_scroll_offset--;
             } 
-            /* RETTET: Scroll ned bruger nu de korrekte synlige linjer */
             else if (ev.xbutton.button == Button5) { 
                 if (fm_scroll_offset < fm_file_count - visible_lines) {
                     fm_scroll_offset++;
@@ -390,82 +424,14 @@ char* run_file_picker(Display *dpy, Window win, GC gc, XFontStruct *font, int *w
 
     return result_path;
 }
-
 //filemanager end
 
-//webp
-
 /* 
- * Analog til: data = stbi_load(filename, w, h, channels, 3);
- * Returnerer en RGB-pixelbuffer (3 bytes pr. pixel) eller NULL ved fejl.
- * VIGTIGT: Outputtet skal frigives med WebPFree() i stedet for stbi_image_free().
- */
+* Analogous to: data = stbi_load(filename, w, h, channels, 3);
+* Returns an RGB pixel buffer (3 bytes per pixel) or NULL on error.
+* IMPORTANT: The output must be freed with WebPFree() instead of stbi_image_free().
+*/
 #ifdef WEBP
-
-/*unsigned char* stbi_load_webp_rgb(const char* filename, int* w, int* h, int* channels) {
-    FILE* f = NULL;
-    long file_size = 0;
-    unsigned char* file_buffer = NULL;
-    unsigned char* pixel_buffer = NULL;
-
-    if (!filename || !w || !h || !channels) {
-        return NULL;
-    }
-
-    // 1. open file
-    f = fopen(filename, "rb");
-    if (!f) {
-        return NULL;
-    }
-
-    // 2. find filesize
-    if (fseek(f, 0, SEEK_END) != 0) {
-        fclose(f);
-        return NULL;
-    }
-    file_size = ftell(f);
-    if (file_size <= 0) {
-        fclose(f);
-        return NULL;
-    }
-    if (fseek(f, 0, SEEK_SET) != 0) {
-        fclose(f);
-        return NULL;
-    }
-
-    // 3. allocate temp buffer for raw WebP-filedata
-    file_buffer = (unsigned char*)malloc(file_size);
-    if (!file_buffer) {
-        fclose(f);
-        return NULL;
-    }
-
-    // 4. read file to memory
-    if (fread(file_buffer, 1, file_size, f) != (size_t)file_size) {
-        free(file_buffer);
-        fclose(f);
-        return NULL;
-    }
-    fclose(f);
-
-    // 5. Check if valid WebP-file and get dimensions
-    // WebPGetInfo returns 1 at succes
-    if (!WebPGetInfo(file_buffer, (size_t)file_size, w, h)) {
-        free(file_buffer);
-        return NULL; // not valid WebP-file or corrupt header
-    }
-
-    // 6. set channels to 3, as we specific force RGB-output
-    *channels = 3;
-
-    // 7. Decode raw data direct to new allocted RGB-pixelbuffer
-    // WebPDecodeRGB allocates buffer internal and returns it
-    pixel_buffer = WebPDecodeRGB(file_buffer, (size_t)file_size, w, h);
-
-    // 8. release temp filebuffer and return pixeldata
-    free(file_buffer);
-    return pixel_buffer;
-}*/
 unsigned char* stbi_load_webp_rgb(const char* filename, int* w, int* h, int* channels) {
     FILE* f = NULL;
     long file_size = 0;
@@ -512,24 +478,24 @@ unsigned char* stbi_load_webp_rgb(const char* filename, int* w, int* h, int* cha
     }
     fclose(f);
 
-    // 5. Tjek WebP features for at se om billedet har en alfa-kanal
+    // 5. Check WebP features to see if the image has an alpha channel
     WebPBitstreamFeatures features;
     if (WebPGetFeatures(file_buffer, (size_t)file_size, &features) != VP8_STATUS_OK) {
         free(file_buffer);
-        return NULL; // Ikke en gyldig WebP-fil eller korrupt header
+        return NULL; // Not a valid WebP file or corrupt header
     }
 
     *w = features.width;
     *h = features.height;
 
-    // 6. Sæt antallet af kanaler dynamisk baseret på om der er transparens
+    // 6. Set the number of channels dynamically based on whether there is transparency
     if (features.has_alpha) {
         *channels = 4;
         // 7. Afkod direkte til RGBA-pixelbuffer
         pixel_buffer = WebPDecodeRGBA(file_buffer, (size_t)file_size, w, h);
     } else {
         *channels = 3;
-        // 7. Afkod direkte til RGB-pixelbuffer (som før)
+        // 7. Decode directly to RGB pixel buffer
         pixel_buffer = WebPDecodeRGB(file_buffer, (size_t)file_size, w, h);
     }
 
@@ -537,10 +503,9 @@ unsigned char* stbi_load_webp_rgb(const char* filename, int* w, int* h, int* cha
     free(file_buffer);
     return pixel_buffer;
 }
-
 #endif
 
-/* RETTET: Læser 2 bytes korrekt ind i et array og swapper til Big-Endian */
+/* Reads 2 bytes correctly into an array and swaps to Big-Endian */
 static uint16_t sgi_read_ushort(FILE *f) {
     unsigned char b[2];
     if (fread(b, 1, 2, f) != 2) return 0;
@@ -571,7 +536,7 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
     FILE *f = fopen(filename, "rb");
     if (!f) return NULL;
 
-    /* 1. Læs og tjek Magic Number (SGI er altid 474 / 0x01DA) */
+    /* 1. Read and check Magic Number (SGI is always 474 / 0x01DA) */
     uint16_t magic = sgi_read_ushort(f);
     if (magic != 474) {
         fclose(f);
@@ -579,23 +544,23 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
     }
 
     unsigned char storage = (unsigned char)fgetc(f); /* 0 = Raw, 1 = RLE */
-    unsigned char bpc = (unsigned char)fgetc(f);     /* Bytes per channel (skal være 1) */
+    unsigned char bpc = (unsigned char)fgetc(f);     /* Bytes per channel (must be 1) */
     
     uint16_t dimension = sgi_read_ushort(f);
     (void)dimension;
     uint16_t xsize = sgi_read_ushort(f);
     uint16_t ysize = sgi_read_ushort(f);
-    uint16_t zsize = sgi_read_ushort(f); /* Kanaler: 1=Gråtoner, 3=RGB, 4=RGBA */
+    uint16_t zsize = sgi_read_ushort(f); /* Channels: 1=Grayscale, 3=RGB, 4=RGBA */
 
     if (bpc != 1 || xsize <= 0 || ysize <= 0 || (zsize != 1 && zsize != 3 && zsize != 4)) {
         fclose(f);
         return NULL;
     }
 
-    /* Spring resten af den 512-byte store header over */
+    /* Skip the rest of the 512-byte header */
     fseek(f, 512, SEEK_SET);
 
-    /* Alloker din standard RGB buffer (3 bytes pr pixel) */
+    /* Allocate standard RGB buffer (3 bytes per pixel) */
     unsigned char *rgb_data = (unsigned char*)malloc((size_t)xsize * ysize * 3);
     if (!rgb_data) {
         fclose(f);
@@ -605,7 +570,7 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
     *w = xsize;
     *h = ysize;
 
-    /* Midlertidig buffer til et enkelt kanal-plan (1 byte pr pixel pr række) */
+    /* Temporary buffer for a single channel plane (1 byte per pixel per row) */
     unsigned char *channel_row = (unsigned char*)malloc(xsize);
     if (!channel_row) {
         free(rgb_data);
@@ -614,14 +579,14 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
     }
 
     if (storage == 0) {
-        /* --- UKOMPRIMERET (RAW) SETUP --- */
-        /* SGI gemmer plan-vist: Alle R rækker, så alle G rækker, så alle B rækker */
+        /* --- UNCOMPRESSED (RAW) SETUP --- */
+		/* SGI saves plan-wise: All R rows, then all G rows, then all B rows */
         int c, y, x;
         for (c = 0; c < zsize; ++c) {
             for (y = 0; y < ysize; ++y) {
                 if (fread(channel_row, 1, xsize, f) != xsize) goto error_cleanup;
                 
-                /* SGI er bottom-up, vend y-aksen om til dit top-down format */
+                /* SGI is bottom-up, flip the y-axis to your top-down format */
                 int target_y = ysize - 1 - y;
                 
                 for (x = 0; x < xsize; ++x) {
@@ -629,7 +594,7 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
                     if (zsize >= 3) {
                         if (c < 3) rgb_data[dst_idx + c] = channel_row[x];
                     } else {
-                        /* Gråtone: Kopier til R, G og B */
+                        /* Grayscale: Copy to R, G and B */
                         rgb_data[dst_idx + 0] = channel_row[x];
                         rgb_data[dst_idx + 1] = channel_row[x];
                         rgb_data[dst_idx + 2] = channel_row[x];
@@ -638,7 +603,7 @@ unsigned char* load_sgi_to_rgb(const char* filename, int* w, int* h) {
             }
         }
     } else {
-        /* --- RLE KOMPRIMERET SETUP --- */
+        /* --- RLE COMPRESSED SETUP --- */
         int num_rows = ysize * zsize;
         uint32_t *start_tab = (uint32_t*)malloc((size_t)num_rows * sizeof(uint32_t));
         uint32_t *length_tab = (uint32_t*)malloc((size_t)num_rows * sizeof(uint32_t));
@@ -1169,63 +1134,6 @@ unsigned char* load_xbm_to_rgb(const char* filename, int* width, int* height) {
     return rgb;
 }
 
-/*unsigned char* load_xpm_to_rgb(const char* filename, int* width, int* height) {
-    XpmImage xpm_img;
-    Display* dpy = XOpenDisplay(NULL);
-    if (!dpy) return NULL;
-
-    if (XpmReadFileToXpmImage((char*)filename, &xpm_img, NULL) != XpmSuccess) {
-        XCloseDisplay(dpy);
-        return NULL;
-    }
-
-    int w = xpm_img.width;
-    int h = xpm_img.height;
-    unsigned char* rgb = (unsigned char*)malloc((size_t)w * h * 3);
-    unsigned int* palette = (unsigned int*)malloc((size_t)xpm_img.ncolors * sizeof(unsigned int));
-    if (!rgb || !palette) {
-        free(rgb);
-        free(palette);
-        XpmFreeXpmImage(&xpm_img);
-        XCloseDisplay(dpy);
-        return NULL;
-    }
-
-    Colormap cmap = DefaultColormap(dpy, DefaultScreen(dpy));
-	unsigned int i;
-    for (i = 0; i < xpm_img.ncolors; i++) {
-        XColor xcol;
-        if (xpm_img.colorTable[i].c_color &&
-            XParseColor(dpy, cmap, xpm_img.colorTable[i].c_color, &xcol)) {
-            palette[i] = ((xcol.red >> 8) << 16) |
-                         ((xcol.green >> 8) << 8) |
-                         (xcol.blue >> 8);
-        } else {
-            palette[i] = 0;
-        }
-    }
-	int y;
-	int x;
-    for (y = 0; y < h; y++) {
-        for (x = 0; x < w; x++) {
-            unsigned int pixel_data = xpm_img.data[y * w + x];
-            unsigned int color = (pixel_data < xpm_img.ncolors) ? palette[pixel_data] : 0;
-            int idx = (y * w + x) * 3;
-            rgb[idx + 0] = (color >> 16) & 0xFF;
-            rgb[idx + 1] = (color >> 8) & 0xFF;
-            rgb[idx + 2] = color & 0xFF;
-        }
-    }
-
-    free(palette);
-    XpmFreeXpmImage(&xpm_img);
-    XCloseDisplay(dpy);
-    *width = w;
-    *height = h;
-    return rgb;
-}*/
-
-// Ændret navn til rgba og tilføjet 'int* channels' argument
 unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, int* channels) {
     XpmImage xpm_img;
     Display* dpy = XOpenDisplay(NULL);
@@ -1239,10 +1147,10 @@ unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, i
     int w = xpm_img.width;
     int h = xpm_img.height;
     
-    // 1. Alloker plads til 4 kanaler (RGBA) i stedet for 3
+    // 1. Allocate space for 4 channels (RGBA) instead of 3
     unsigned char* rgba = (unsigned char*)malloc((size_t)w * h * 4);
     
-    // Vi gemmer nu både RGB farven (i de øverste bits) og alfa-værdien i vores midlertidige palette
+    // We now store both the RGB color (in the top bits) and the alpha value in our temporary palette
     unsigned long* palette = (unsigned long*)malloc((size_t)xpm_img.ncolors * sizeof(unsigned long));
     
     if (!rgba || !palette) {
@@ -1256,11 +1164,11 @@ unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, i
     Colormap cmap = DefaultColormap(dpy, DefaultScreen(dpy));
     unsigned int i;
     for (i = 0; i < xpm_img.ncolors; i++) {
-		XColor xcol; // <-- Den manglede deklaration indsættes her
-        // Tjek om denne farve i XPM-filen er markeret som gennemsigtig ("None")
+		XColor xcol;
+        // Check if this color in the XPM file is marked as transparent ("None")
         if (xpm_img.colorTable[i].c_color && 
             strcasecmp(xpm_img.colorTable[i].c_color, "None") == 0) {
-            // Sæt RGB til 0 og Alfa til 0 (gennemsigtig)
+            // Set RGB to 0 and Alpha to 0 (transparent)
             palette[i] = 0x00000000; 
         } else if (xpm_img.colorTable[i].c_color &&
                    XParseColor(dpy, cmap, xpm_img.colorTable[i].c_color, &xcol)) {
@@ -1270,14 +1178,14 @@ unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, i
             unsigned char r = xcol.red >> 8;
             unsigned char g = xcol.green >> 8;
             unsigned char b = xcol.blue >> 8;
-            unsigned char a = 255; // Helt uigennemsigtig farve
+            unsigned char a = 255; // Completely opaque color
             
             palette[i] = ((unsigned long)r << 24) | 
                          ((unsigned long)g << 16) | 
                          ((unsigned long)b << 8)  | 
                          a;
         } else {
-            // Fallback hvis farven ikke kan tolkes (Sort, uigennemsigtig)
+           // Fallback if the color cannot be interpreted (Black, opaque)
             palette[i] = 0x000000FF; 
         }
     }
@@ -1294,7 +1202,7 @@ unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, i
             rgba[idx + 0] = (color >> 24) & 0xFF; // R
             rgba[idx + 1] = (color >> 16) & 0xFF; // G
             rgba[idx + 2] = (color >> 8) & 0xFF;  // B
-            rgba[idx + 3] = color & 0xFF;         // A (Alfa-kanal!)
+            rgba[idx + 3] = color & 0xFF;         // A (Alpha channel!)
         }
     }
 
@@ -1304,10 +1212,9 @@ unsigned char* load_xpm_to_rgba(const char* filename, int* width, int* height, i
     
     *width = w;
     *height = h;
-    *channels = 4; // Fortæl programmet at billedet har 4 kanaler
+    *channels = 4; // Tell the program that the image has 4 channels
     return rgba;
 }
-
 
 unsigned char* load_xwd_to_rgb(const char* filename, int* width, int* height) {
     FILE* f = fopen(filename, "rb");
@@ -1548,65 +1455,6 @@ unsigned char* load_xwd_to_rgb(const char* filename, int* width, int* height) {
 
 //tiff
 #ifdef USE_TIFF
-
-/*unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int* channels, int desired_channels) {
-    TIFF* tif = TIFFOpen(filename, "r");
-    if (!tif) {
-        return NULL;
-    }
-
-    uint32 width, height;
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-
-    *w = (int)width;
-    *h = (int)height;
-    // libtiff's TIFFReadRGBAImageOriented returnerer altid 4 kanaler (RGBA)
-    *channels = 4; 
-
-    // Alloker hukommelse til midlertidig RGBA-buffer (4 bytes pr. pixel)
-    uint32* raster = (uint32*)_TIFFmalloc(width * height * sizeof(uint32));
-    if (!raster) {
-        TIFFClose(tif);
-        return NULL;
-    }
-
-    // Læs billedet direkte som RGBA med top-venstre orientering (ligesom stb_image)
-    if (!TIFFReadRGBAImageOriented(tif, width, height, raster, ORIENTATION_TOPLEFT, 0)) {
-        _TIFFfree(raster);
-        TIFFClose(tif);
-        return NULL;
-    }
-
-    // Bestem antal output-kanaler (standardiser til 3 for RGB, hvis 3 er valgt)
-    int out_channels = (desired_channels > 0) ? desired_channels : 4;
-    unsigned char* data = (unsigned char*)malloc(width * height * out_channels);
-    if (!data) {
-        _TIFFfree(raster);
-        TIFFClose(tif);
-        return NULL;
-    }
-
-    // Konverter fra uint32 raster (ABGR/RGBA afhængig af arkitektur) til output-buffer
-    uint32 i;
-    for (i = 0; i < width * height; i++) {
-        uint32 pixel = raster[i];
-        
-        // TIFFReadRGBAImage pakker pixels i formattet: R=TIFFGetR, G=TIFFGetG, B=TIFFGetB, A=TIFFGetA
-        data[i * out_channels + 0] = (unsigned char)(TIFFGetR(pixel));
-        data[i * out_channels + 1] = (unsigned char)(TIFFGetG(pixel));
-        data[i * out_channels + 2] = (unsigned char)(TIFFGetB(pixel));
-        
-        if (out_channels == 4) {
-            data[i * out_channels + 3] = (unsigned char)(TIFFGetA(pixel));
-        }
-    }
-
-    _TIFFfree(raster);
-    TIFFClose(tif);
-    return data;
-}*/
-// Vi fjerner desired_channels, da funktionen nu selv regner det ud dynamisk
 unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int* channels) {
     TIFF* tif = TIFFOpen(filename, "r");
     if (!tif) {
@@ -1620,13 +1468,13 @@ unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int
     *w = (int)width;
     *h = (int)height;
 
-    // 1. Tjek om TIFF-filen indeholder en alfa-kanal (ekstra samples)
+    // 1. Check if the TIFF file contains an alpha channel (extra samples)
     uint16 extra_samples_count = 0;
     uint16* extra_samples_types = NULL;
     int has_alpha = 0;
 
     if (TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &extra_samples_count, &extra_samples_types)) {
-        // Hvis der er ekstra kanaler, og den første er markeret som associeret eller uassocieret alfa
+        // If there are extra channels and the first one is marked as associated or unassociated alpha
         if (extra_samples_count > 0 && extra_samples_types != NULL) {
             if (extra_samples_types[0] == EXTRASAMPLE_ASSOCALPHA || 
                 extra_samples_types[0] == EXTRASAMPLE_UNASSALPHA) {
@@ -1635,18 +1483,18 @@ unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int
         }
     }
 
-    // Bestem antal output-kanaler baseret på om der reelt er transparens
+    // Determine number of output channels based on whether there is real transparency
     int out_channels = has_alpha ? 4 : 3;
     *channels = out_channels; 
 
-    // Alloker hukommelse til midlertidig RGBA-buffer (4 bytes pr. pixel, som libtiff kræver)
+    // Allocate memory for temporary RGBA buffer (4 bytes per pixel, which libtiff requires)
     uint32* raster = (uint32*)_TIFFmalloc(width * height * sizeof(uint32));
     if (!raster) {
         TIFFClose(tif);
         return NULL;
     }
 
-    // Læs billedet direkte som RGBA med top-venstre orientering
+    // Read the image directly as RGBA with top-left orientation
     if (!TIFFReadRGBAImageOriented(tif, width, height, raster, ORIENTATION_TOPLEFT, 0)) {
         _TIFFfree(raster);
         TIFFClose(tif);
@@ -1660,7 +1508,7 @@ unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int
         return NULL;
     }
 
-    // Konverter fra uint32 raster til vores output-buffer
+    // Convert from uint32 raster to our output buffer
     uint32 i;
     for (i = 0; i < width * height; i++) {
         uint32 pixel = raster[i];
@@ -1678,63 +1526,14 @@ unsigned char* load_tiff_rgba_fallback(const char* filename, int* w, int* h, int
     TIFFClose(tif);
     return data;
 }
-
-
 #endif //TIFF
 
-
-// Wrapper function try load image
-/*unsigned char* minimalist_load_image(const char* filename, int* w, int* h, int* channels) {
-    unsigned char* data = NULL;
-    *channels = 3;
-
-    // 1. Try PNM (PBM/PGM/PPM) first. Super fast rejection (just 2 bytes check: 'P1'-'P6')
-    data = load_pnm_to_rgb(filename, w, h);
-    if (data != NULL) return data;
-
-    // 2. Try stb_image (PNG, JPEG, GIF, BMP, TGA). This covers 99% of modern use-cases
-	data = stbi_load(filename, w, h, channels, 3);
-    if (data != NULL) return data;
-    
-#ifdef USE_TIFF
-	data = load_tiff_rgba_fallback(filename, w, h, channels, 3);
-    if (data != NULL) return data;
-
-#endif
-    
-#ifdef WEBP   
-    data = stbi_load_webp_rgb(filename, w, h, channels);
-	if (data != NULL) {
-		return data;
-	}
-#endif	
-	
-    // 3. Try XWD. Has a clean binary header, quick to reject.
-    data = load_xwd_to_rgb(filename, w, h);
-    if (data != NULL) return data;
-
-    // 4. Try XPM Common in older X11 apps. Quick text-check for XPM
-    data = load_xpm_to_rgb(filename, w, h);
-    if (data != NULL) return data;
-
-    // 5. Try PCX (Magic byte 0x0A)
-    data = load_pcx_to_rgb(filename, w, h);
-    if (data != NULL) return data;
-    
-    // 6. Try SGI/RGB (Magic bytes 0x01, 0xDA)
-    data = load_sgi_to_rgb(filename, w, h);
-    if (data != NULL) return data;
-    
-    // 7. Try XBM Put this last. XBMs are text-based C-code without a strong magic header, 
-    //      making them the slowest to safely reject.
-    return load_xbm_to_rgb(filename, w, h);
-}*/
 unsigned char* minimalist_load_image(const char* filename, int* w, int* h, int* channels) {
     unsigned char* data = NULL;
-    // Fælles udgangspunkt, men lad funktionerne overskrive dette
+    // Common starting point, but let the functions override this
     *channels = 3; 
 
-    // 1. Try PNM (PBM/PGM/PPM) - disse har typisk kun 3 kanaler
+    // 1. Try PNM (PBM/PGM/PPM) - these typically only have 3 channels
     data = load_pnm_to_rgb(filename, w, h);
     if (data != NULL) {
         *channels = 3;
@@ -1742,38 +1541,26 @@ unsigned char* minimalist_load_image(const char* filename, int* w, int* h, int* 
     }
 
     // 2. Try stb_image (PNG, JPEG, GIF, BMP, TGA)
-    // Ved at ændre det sidste argument fra 3 til 0, beholder billedet sine originale kanaler (RGB eller RGBA)
+    // By changing the last argument from 3 to 0, the image retains its original channels (RGB or RGBA)
     data = stbi_load(filename, w, h, channels, 0); 
     if (data != NULL) return data;
     
-#ifdef USE_TIFF
-    // Hvis din TIFF-loader understøtter alfa, skal det sidste argument nok også ændres til 0 eller 4
-    /*data = load_tiff_rgba_fallback(filename, w, h, channels, 0);
-    if (data != NULL) return data;*/
-    // Vi fjerner det sidste '3'-tal, da funktionen nu selv opdager antallet af kanaler
-    data = load_tiff_rgba_fallback(filename, w, h, channels);
-    if (data != NULL) return data;
-    
-#endif
+
     
 #ifdef WEBP   
-    // Tjek om din stbi_load_webp_rgb tvinger RGB. Hvis den gør, skal den måske opgraderes senere
+    // Check if your stbi_load_webp_rgb forces RGB. If it does, it may need to be upgraded later
     data = stbi_load_webp_rgb(filename, w, h, channels);
     if (data != NULL) return data;
 #endif	
-	
+
+
     // 3. Try XWD
     data = load_xwd_to_rgb(filename, w, h);
     if (data != NULL) { *channels = 3; return data; }
 
-    // 4. Try XPM
-    /*data = load_xpm_to_rgb(filename, w, h);
-    if (data != NULL) { *channels = 3; return data; }*/
-    
     // 4. Try XPM Common in older X11 apps. Quick text-check for XPM
-    data = load_xpm_to_rgba(filename, w, h, channels); // <--- Opdateret her
+    data = load_xpm_to_rgba(filename, w, h, channels);
     if (data != NULL) return data;
-
 
     // 5. Try PCX
     data = load_pcx_to_rgb(filename, w, h);
@@ -1783,74 +1570,33 @@ unsigned char* minimalist_load_image(const char* filename, int* w, int* h, int* 
     data = load_sgi_to_rgb(filename, w, h);
     if (data != NULL) { *channels = 3; return data; }
     
-    // 7. Try XBM
+	// 7. Try XBM
     data = load_xbm_to_rgb(filename, w, h);
-    if (data != NULL) { *channels = 3; }
-    return data;
+    if (data != NULL) { *channels = 3; return data;}
+    
+#ifdef USE_TIFF
+    data = load_tiff_rgba_fallback(filename, w, h, channels);
+    if (data != NULL) return data;
+#endif
+
+	return NULL;
+    
 }
 
-
-/*void save_visible_area(unsigned char* image_data, int img_w, int img_h,
-                       int screen_w, int screen_h, float zoom,
-                       int offset_x, int offset_y) {
-    int out_w = screen_w;
-    int out_h = screen_h - ui_height;
-    
-    // Sikring mod negative eller ugyldige vinduesstørrelser
-    if (out_w <= 0 || out_h <= 0) return;
-
-    unsigned char* out_data = (unsigned char*)malloc((size_t)out_w * out_h * 3);
-    if (!out_data) {
-        fprintf(stderr, "Error: Could not allocate memory to save image\n");
-        return;
-    }
-
-    int y, x;
-    for (y = 0; y < out_h; ++y) {
-        for (x = 0; x < out_w; ++x) {
-            // Eksplicit cast til int for at matche skærmens pixel-mapping præcist
-            int src_x = offset_x + (int)(x / zoom);
-            int src_y = offset_y + (int)(y / zoom);
-            int dst_idx = (y * out_w + x) * 3;
-
-            if (src_x < 0 || src_y < 0 || src_x >= img_w || src_y >= img_h) {
-                out_data[dst_idx + 0] = 0;
-                out_data[dst_idx + 1] = 0;
-                out_data[dst_idx + 2] = 0;
-            } else {
-                int src_idx = (src_y * img_w + src_x) * 3;
-                out_data[dst_idx + 0] = image_data[src_idx + 0];
-                out_data[dst_idx + 1] = image_data[src_idx + 1];
-                out_data[dst_idx + 2] = image_data[src_idx + 2];
-            }
-        }
-    }
-
-    // stbi_write_png returnerer 0 ved fejl, så lad os tjekke det
-    if (stbi_write_png("output.png", out_w, out_h, 3, out_data, out_w * 3)) {
-        printf("Saved image as output.png\n");
-    } else {
-        fprintf(stderr, "Failed to write output.png\n");
-    }
-
-    free(out_data);
-}*/
-
 void save_visible_area(unsigned char* image_data, int img_w, int img_h,
-                       int img_channels, // <--- NY: Vi skal kende kildens kanaler (3 eller 4)
-                       int screen_w, int screen_h, float zoom,
+                       int img_channels, int screen_w, int screen_h, float zoom,
                        int offset_x, int offset_y) {
     int out_w = screen_w;
     int out_h = screen_h - ui_height;
     
     if (out_w <= 0 || out_h <= 0) return;
 
-    // ØNSKER DU SKAKTERN I DEN GEMTE FIL?
-    // Sæt til 1 hvis du vil gemme med skaktern (3 kanaler output)
-    // Sæt til 0 hvis du vil bevare ægte transparens/sort baggrund (3 eller 4 kanaler output)
+	// DO YOU WANT CHECKERBOARD IN THE SAVED FILE?
+	// Set to 1 if you want to save with checkerboard (3 channel output)
+	// Set to 0 if you want to keep true transparency/black background (3 or 4 channel output)
     int burn_checkerboard = 0; 
 
-    // Find ud af hvor mange kanaler output-filen skal have
+    // Find out how many channels the output file should have
     int out_channels = (img_channels == 4 && !burn_checkerboard) ? 4 : 3;
 
     unsigned char* out_data = (unsigned char*)malloc((size_t)out_w * out_h * out_channels);
@@ -1866,27 +1612,27 @@ void save_visible_area(unsigned char* image_data, int img_w, int img_h,
             int src_y = offset_y + (int)(y / zoom);
             int dst_idx = (y * out_w + x) * out_channels;
 
-            // Generer skaktern-farve til brug hvis vi er uden for billedet, eller hvis vi bager det ind
+            // Generate checkerboard color to use if we are outside the image, or if we bake it in
             unsigned char bg_r = 240; unsigned char bg_g = 240; unsigned char bg_b = 240;
             if (((x / 16) + (y / 16)) % 2 == 0) {
                 bg_r = 200; bg_g = 200; bg_b = 200;
             }
 
             if (src_x < 0 || src_y < 0 || src_x >= img_w || src_y >= img_h) {
-                // Området UDEN FOR billedets rammer
+                // The area OUTSIDE the image's borders
                 if (burn_checkerboard) {
                     out_data[dst_idx + 0] = bg_r;
                     out_data[dst_idx + 1] = bg_g;
                     out_data[dst_idx + 2] = bg_b;
                 } else {
-                    // Hvis vi vil bevare ægte transparens, gør vi området uden for billedet gennemsigtigt
+                    // If we want to preserve true transparency, we make the area outside the image transparent
                     out_data[dst_idx + 0] = 0;
                     out_data[dst_idx + 1] = 0;
                     out_data[dst_idx + 2] = 0;
-                    if (out_channels == 4) out_data[dst_idx + 3] = 0; // Helt gennemsigtig baggrund
+                    if (out_channels == 4) out_data[dst_idx + 3] = 0; // Completely transparent background
                 }
             } else {
-                // Området INDEN FOR billedets rammer
+                // The area WITHIN the image's borders
                 int src_idx = (src_y * img_w + src_x) * img_channels;
 
                 if (img_channels == 4) {
@@ -1896,39 +1642,41 @@ void save_visible_area(unsigned char* image_data, int img_w, int img_h,
                     unsigned char src_a = image_data[src_idx + 3];
 
                     if (burn_checkerboard) {
-                        // Blend farverne med skaktern og gem som 3-kanals RGB
+                        // Blend the colors with checkerboard and save as 3-channel RGB
                         out_data[dst_idx + 0] = (src_r * src_a + bg_r * (255 - src_a)) / 255;
                         out_data[dst_idx + 1] = (src_g * src_a + bg_g * (255 - src_a)) / 255;
                         out_data[dst_idx + 2] = (src_b * src_a + bg_b * (255 - src_a)) / 255;
                     } else {
-                        // Gem som rå, ægte 4-kanals RGBA
+                        // Save as raw, true 4-channel RGBA
                         out_data[dst_idx + 0] = src_r;
                         out_data[dst_idx + 1] = src_g;
                         out_data[dst_idx + 2] = src_b;
                         out_data[dst_idx + 3] = src_a;
                     }
                 } else {
-                    // Standard 3-kanals RGB kilde
+                    // Standard 3-channel RGB source
                     out_data[dst_idx + 0] = image_data[src_idx + 0];
                     out_data[dst_idx + 1] = image_data[src_idx + 1];
                     out_data[dst_idx + 2] = image_data[src_idx + 2];
-                    // Hvis output absolut skal være 4 kanaler (men kilden kun er 3), sætter vi alfa til fuld
+                    // If the output absolutely needs to be 4 channels (but the source is only 3), we set alpha to full
                     if (out_channels == 4) out_data[dst_idx + 3] = 255; 
                 }
             }
         }
     }
-
-    // Vi ændrer '3' og 'out_w * 3' til at bruge den dynamiske 'out_channels'
-    if (stbi_write_png("output.png", out_w, out_h, out_channels, out_data, out_w * out_channels)) {
-        printf("Saved image as output.png (%d channels)\n", out_channels);
+	char save_path[4096];
+	make_save_path(save_path, sizeof save_path);
+    // We change '3' and 'out_w * 3' to use the dynamic 'out_channels'
+    if (stbi_write_png(/*"output.png"*/save_path, out_w, out_h, out_channels, out_data, out_w * out_channels)) {
+        //printf("Saved image as output.png (%d channels)\n", out_channels);
+        printf("Saved image as %s (%d channels)\n",
+           save_path, out_channels);
+        
     } else {
         fprintf(stderr, "Failed to write output.png\n");
     }
     free(out_data);
 }
-
-
 
 // --- XVL DISPLAY LOGIC --- 
 void draw_ui(Display* dpy, Drawable drawable, GC gc, int win_w, int win_h) {
@@ -1966,78 +1714,9 @@ void draw_ui(Display* dpy, Drawable drawable, GC gc, int win_w, int win_h) {
     ui_quit_x2 = ui_quit_x1 + XTextWidth(ui_font, quit_text, (int)strlen(quit_text));
 }
 
-/*XImage* create_scaled_ximage(Display* dpy, Visual* visual, int depth,
-                             unsigned char* image_data, int img_w, int img_h,
-                             int screen_w, int screen_h,
-                             float zoom, int offset_x, int offset_y) {
-    int disp_w = screen_w;
-    int disp_h = screen_h;
-    int max_image_y = disp_h - ui_height;
-
-    // 1. Alloker rå hukommelse til XImage baseret på X11-serverens format.
-    //      Vi lader XCreateImage beregne 'bytes_per_line' ved at sætte 0 til sidst.
-    XImage* img = XCreateImage(dpy, visual, depth, ZPixmap, 0, NULL, disp_w, disp_h, 32, 0);
-    if (!img) return NULL;
-
-    // 2. Alloker selve billed-bufferen med den korrekte størrelse som XImage kræver
-    img->data = (char*)malloc((size_t)img->bytes_per_line * img->height);
-    if (!img->data) {
-        XDestroyImage(img);
-        return NULL;
-    }
-
-    // 3. zero buffer (black background)
-    memset(img->data, 0, (size_t)img->bytes_per_line * img->height);
-    
-    // before pixel-loppet: check if we are TrueColor/DirectColor
-	int is_truecolor = (visual->class == TrueColor || visual->class == DirectColor);
-
-    // 4. Pixel-loop
-    int y;
-    int x;
-    for (y = 0; y < max_image_y; ++y) {
-        for (x = 0; x < disp_w; ++x) {
-            int src_x = offset_x + (int)(x / zoom);
-            int src_y = offset_y + (int)(y / zoom);
-            
-            if (src_x < 0 || src_y < 0 || src_x >= img_w || src_y >= img_h)
-                continue;
-
-            int src_idx = (src_y * img_w + src_x) * 3;
-            
-            unsigned char r = image_data[src_idx + 0];
-            unsigned char g = image_data[src_idx + 1];
-            unsigned char b = image_data[src_idx + 2];
-
-			unsigned long pixel_val;
-			if (is_truecolor) {
-				// for 15, 16, 24 and 32-bit
-				pixel_val = 
-						(((unsigned long)r * (visual->red_mask   + 1) / 256) & visual->red_mask)   |
-						(((unsigned long)g * (visual->green_mask + 1) / 256) & visual->green_mask) |
-						(((unsigned long)b * (visual->blue_mask  + 1) / 256) & visual->blue_mask);
-			} else if (depth == 8) {
-				// pack r, g, b to precisely 3:3:2 index (0-255), to match the new  colormap
-				unsigned char r_3bit = r & 0xE0;        // keep top 3 bits
-				unsigned char g_3bit = (g & 0xE0) >> 3; // move 3 top bits to mid
-				unsigned char b_2bit = (b & 0xC0) >> 6; // move 2 top bits to buttom
-				
-				pixel_val = r_3bit | g_3bit | b_2bit;
-			} else {
-				pixel_val = 0;
-			}
-			// XPutPixel automatic enclosure of the value img->data despite if 16, 24 or 32-bit debth
-			XPutPixel(img, x, y, pixel_val);
-		}
-	}
-
-    return img;
-}*/
-
 XImage* create_scaled_ximage(Display* dpy, Visual* visual, int depth,
                              unsigned char* image_data, int img_w, int img_h,
-                             int channels, // <--- NY: Vi skal vide om det er 3 eller 4 kanaler
-                             int screen_w, int screen_h,
+                             int channels, int screen_w, int screen_h,
                              float zoom, int offset_x, int offset_y) {
     int disp_w = screen_w;
     int disp_h = screen_h;
@@ -2051,17 +1730,15 @@ XImage* create_scaled_ximage(Display* dpy, Visual* visual, int depth,
         XDestroyImage(img);
         return NULL;
     }
-
-    // Vi behøver ikke memset til sort her, da vi udfylder alle pixels med enten skaktern eller billede
-    
+       
     int is_truecolor = (visual->class == TrueColor || visual->class == DirectColor);
 
     int y;
     int x;
     for (y = 0; y < max_image_y; ++y) {
         for (x = 0; x < disp_w; ++x) {
-            // 1. Generer skaktern-baggrund for denne pixel (f.eks. 16x16 pixels tern)
-            // Vi skifter mellem en lys grå og en lidt mørkere grå
+            // 1. Generate checkerboard background for this pixel (e.g. 16x16 pixels checkerboard)
+			// We alternate between a light gray and a slightly darker gray
             unsigned char bg_r = 240;
             unsigned char bg_g = 240;
             unsigned char bg_b = 240;
@@ -2078,31 +1755,31 @@ XImage* create_scaled_ximage(Display* dpy, Visual* visual, int depth,
             unsigned char g = bg_g;
             unsigned char b = bg_b;
 
-            // Hvis vi rammer inden for billedets rammer, henter vi farven derfra
+            // If we hit within the image's bounds, we get the color from there
             if (src_x >= 0 && src_y >= 0 && src_x < img_w && src_y < img_h) {
-                int src_idx = (src_y * img_w + src_x) * channels; // Bruger dynamisk 'channels' (3 eller 4)
+                int src_idx = (src_y * img_w + src_x) * channels; // Uses dynamic 'channels' (3 or 4)
                 
                 if (channels == 4) {
                     unsigned char src_r = image_data[src_idx + 0];
                     unsigned char src_g = image_data[src_idx + 1];
                     unsigned char src_b = image_data[src_idx + 2];
-                    unsigned char src_a = image_data[src_idx + 3]; // Alfa-kanalen (0-255)
+                    unsigned char src_a = image_data[src_idx + 3]; // Alpha channel (0-255)
 
                     if (src_a == 255) {
-                        // Helt uigennemsigtig
+                        // Completely opaque
                         r = src_r; g = src_g; b = src_b;
                     } else if (src_a == 0) {
-                        // Helt gennemsigtig - behold baggrunden (skakternet)
-                        // r, g, b forbliver bg_r, bg_g, bg_b
+                        // Completely transparent - keep the background (checkerboard)
+						// r, g, b remain bg_r, bg_g, bg_b
                     } else {
-                        // Semi-transparent: Alpha blending formel
-                        // Bland billedets farve med skaktern-baggrunden
+                        // Semi-transparent: Alpha blending formula
+						// Blend the image color with the checkerboard background
                         r = (src_r * src_a + bg_r * (255 - src_a)) / 255;
                         g = (src_g * src_a + bg_g * (255 - src_a)) / 255;
                         b = (src_b * src_a + bg_b * (255 - src_a)) / 255;
                     }
                 } else {
-                    // Standard 3 kanaler (RGB) - ingen transparens
+                    // Standard 3 channels (RGB) - no transparency
                     r = image_data[src_idx + 0];
                     g = image_data[src_idx + 1];
                     b = image_data[src_idx + 2];
@@ -2128,44 +1805,23 @@ XImage* create_scaled_ximage(Display* dpy, Visual* visual, int depth,
         }
     }
 
-    // Udfyld resten af vinduet (hvis billedområdet ikke dækker hele vejen ned til UI) med skaktern
-    // (Dette erstatter din gamle memset(img->data, 0, ...) og sikrer at tomme områder også har tern)
+    // Fill the rest of the window (if the image area doesn't cover all the way down to the UI) with checkers
+	// (This replaces your old memset(img->data, 0, ...) and ensures that empty areas also have checkers)
     for (y = max_image_y; y < disp_h; ++y) {
         for (x = 0; x < disp_w; ++x) {
-            XPutPixel(img, x, y, 0); // Holder bunden sort/klar til UI overskrivning
+            XPutPixel(img, x, y, 0); // Keeps the bottom black/clear for UI overwriting
         }
     }
 
     return img;
 }
 
-
-/*void redraw(Display* dpy, Window win, Pixmap buffer, GC gc,
-            Visual* visual, int depth, unsigned char* image_data,
-            int img_w, int img_h, int win_w, int win_h) {
-    XImage* ximg = create_scaled_ximage(dpy, visual, depth,
-                                        image_data, img_w, img_h,
-                                        win_w, win_h, zoom, offset_x, offset_y);
-    if (!ximg) return;
-
-    XPutImage(dpy, buffer, gc, ximg, 0, 0, 0, 0, ximg->width, ximg->height);
-    XDestroyImage(ximg);
-
-    XSetForeground(dpy, gc, WhitePixel(dpy, DefaultScreen(dpy)));
-    XFillRectangle(dpy, buffer, gc, 0, win_h - ui_height, win_w, ui_height);
-
-    XSetForeground(dpy, gc, BlackPixel(dpy, DefaultScreen(dpy)));
-    draw_ui(dpy, buffer, gc, win_w, win_h);
-
-    XCopyArea(dpy, buffer, win, gc, 0, 0, win_w, win_h, 0, 0);
-}*/
-
 void redraw(Display* dpy, Window win, Pixmap buffer, GC gc,
             Visual* visual, int depth, unsigned char* image_data,
-            int img_w, int img_h, int img_channels, // <--- Tilføj her (eller brug global variabel)
+            int img_w, int img_h, int img_channels,
             int win_w, int win_h) {
     
-    // Vi sender img_channels med videre nu
+    // We're passing img_channels along now
     XImage* ximg = create_scaled_ximage(dpy, visual, depth,
                                         image_data, img_w, img_h, img_channels,
                                         win_w, win_h, zoom, offset_x, offset_y);
@@ -2182,7 +1838,6 @@ void redraw(Display* dpy, Window win, Pixmap buffer, GC gc,
 
     XCopyArea(dpy, buffer, win, gc, 0, 0, win_w, win_h, 0, 0);
 }
-
 
 //8bit color display
 void setup_8bit_colormap(Display* dpy, Window win, Visual* visual) {
@@ -2221,16 +1876,60 @@ void setup_8bit_colormap(Display* dpy, Window win, Visual* visual) {
     XSetWindowColormap(dpy, win, cmap);
 }
 
+static void write_stdout(void *context, void *data, int size)
+{
+    FILE *fp = (FILE *)context;
+
+    if (size > 0)
+        fwrite(data, 1, (size_t)size, fp);
+}
+
+static int convert_to_png_stdout(const char *filename)
+{
+    int w, h, channels;
+    unsigned char *data;
+
+    data = minimalist_load_image(filename, &w, &h, &channels);
+    if (!data) {
+        fprintf(stderr, "xvl: cannot load '%s'\n", filename);
+        return 1;
+    }
+
+    if (!stbi_write_png_to_func(write_stdout, stdout,
+                                w, h, channels,
+                                data, w * channels)) {
+        fprintf(stderr, "xvl: cannot write PNG to stdout\n");
+        free(data);
+        return 1;
+    }
+
+    free(data);
+
+    if (fflush(stdout) == EOF || ferror(stdout)) {
+        fprintf(stderr, "xvl: error writing PNG to stdout\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(int argc, char** argv) {
     int img_w = 0, img_h = 0, img_channels = 0;
     unsigned char* image_data = NULL;
     char current_filename[512] = "No image loaded";
+    
+    //climode
+    if (argc == 3 && strcmp(argv[1], "-c") == 0)
+        return convert_to_png_stdout(argv[2]);
+    
+    //
 
     // if any argument given read as starting image
     if (argc >= 2) {
         image_data = minimalist_load_image(argv[1], &img_w, &img_h, &img_channels);
         if (image_data) {
             strncpy(current_filename, argv[1], sizeof(current_filename) - 1);
+            snprintf(loaded_path, sizeof loaded_path, "%s", current_filename);
         } else {
             fprintf(stderr, "Could not read initial image: %s\n", argv[1]);
         }
@@ -2266,20 +1965,20 @@ int main(int argc, char** argv) {
     GC gc = XCreateGC(dpy, win, 0, NULL);
     
     ui_font = XLoadQueryFont(dpy, "9x15");
-    // 3. FALLBACK: Hvis 9x15 ikke findes, så prøv "fixed"
+    // 3. FALLBACK: If 9x15 is not found, try "fixed"
 	if (ui_font == NULL) {
 		fprintf(stderr, "Warning: Could not load font '9x15'. Using 'fixed'\n");
 		ui_font = XLoadQueryFont(dpy, "fixed");
 	}
 
-	// 4. KRITISK SIKKERHED: Hvis alt fejler (hvilket er ekstremt sjældent med "fixed")
+	// 4. CRITICAL SAFETY: If all else fails (which is extremely rare with "fixed")
 	if (ui_font == NULL) {
 		fprintf(stderr, "Error: No usefull fonts found on the system - closing.\n");
-		// Luk programmet kontrolleret her, så det ikke crasher senere
+		// Close the program controlled here so it doesn't crash later
 		exit(1); 
 	}
 
-	// 5. Sæt den fundne font i din GC
+	// 5. Put the found font in GC
 	XSetFont(dpy, gc, ui_font->fid);
     
     Pixmap buffer = XCreatePixmap(dpy, win, win_w, win_h, depth);
@@ -2374,10 +2073,13 @@ int main(int argc, char** argv) {
             if (chosen_file) {
                 unsigned char *new_data = minimalist_load_image(chosen_file, &img_w, &img_h, &img_channels);
                 if (new_data) {
-                    if (image_data) free(image_data);
+					if (image_data) free(image_data);
                     image_data = new_data;
                     zoom = 1.0f; offset_x = 0; offset_y = 0;
                     strncpy(current_filename, chosen_file, sizeof(current_filename) - 1);
+                    current_filename[sizeof(current_filename) - 1] = '\0';
+                    snprintf(loaded_path, sizeof loaded_path, "%s", current_filename);
+                    printf("debug: %s\n", current_filename);
                     snprintf(window_title, sizeof(window_title), "xvl - %s", current_filename);
                     XStoreName(dpy, win, window_title);
                 } else {
@@ -2388,11 +2090,10 @@ int main(int argc, char** argv) {
             // force full redraw after closure of filemanager
             XFreePixmap(dpy, buffer);
             buffer = XCreatePixmap(dpy, win, win_w, win_h, depth);
-            //if (image_data) redraw(dpy, win, buffer, gc, visual, depth, image_data, img_w, img_h, win_w, win_h);
-			if (image_data) {
+            if (image_data) {
                 redraw(dpy, win, buffer, gc, visual, depth, image_data, img_w, img_h, img_channels, win_w, win_h);
             } else {
-                // Rengør og tegn den tomme menu igen, hvis der blev trykket cancel uden et billede
+                // Clean and redraw the empty menu if cancel was pressed without an image
                 XSetForeground(dpy, gc, BlackPixel(dpy, screen));
                 XFillRectangle(dpy, buffer, gc, 0, 0, win_w, win_h - ui_height);
                 XSetForeground(dpy, gc, WhitePixel(dpy, screen));
