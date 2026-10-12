@@ -286,10 +286,10 @@
 !*html.autoSize:             True
 
 *Scrollbar.translations: #override \
-			<Btn1Down>: MoveThumb() NotifyThumb() \n\
-			<Btn2Down>: MoveThumb() NotifyThumb() \n\
-			<Btn3Down>: MoveThumb() NotifyThumb() \n\
-			<Btn4Down>: MoveThumb() NotifyThumb() \n\
-			<Btn5Down>: MoveThumb() NotifyThumb() \n\
+			<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
+			<Btn2Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
+			<Btn3Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
+			<Btn4Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
+			<Btn5Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
 			<Btn1Motion>: MoveThumb() NotifyThumb() \n\
 			<BtnUp>: NotifyScroll(Proportional) EndScroll()

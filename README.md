@@ -11,7 +11,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **Other protocols:** `telnet:` and `mailto:` are handed to external programs through the `mailcap` and `protocol` files.
 - **HTML:** the NCSA Mosaic HTML widget, covering headings, lists, text styles, forms, tables and inline images.
 - **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with xloadimage's median-cut reducer; images with 256 colours or fewer keep their exact colours.
-- **Inline images through converters:** FITS, PostScript and PDF, using the rules in the `convert` file.
+- **Inline images through converters:** TIFF, WebP and SGI (converted to PNG by `xvl -c`), FITS, PostScript and PDF, using the rules in the `convert` file.
 - **External viewers:** anything else is passed to the program named in `mailcap`. `xvl`, a small image viewer included here, handles most image formats, including TIFF and WebP.
 - **Printing:** the print dialog pipes the page to `chimera_print.sh`, which turns plain text into a PDF with the bundled `text2pdf`.
 
@@ -32,7 +32,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **Resizing:** window resize events are debounced so the page is not reformatted on every intermediate size (compile flag `REBOUNCH`).
 - **Parser:** faster tag matching in the HTML parser, found by profiling (compile flag `GPROFOPT`).
 - **Locale:** the browser calls `setlocale()` at startup so the system character set is used.
-- **Helpers:** new small programs `xvl`, `svg2gif`, `fits2gif`, plus bundled `text2pdf` and `menu`.
+- **Helpers:** new small programs `xvl` (image viewer, and converter for inline images with `-c`) and `fits2gif`, plus bundled `text2pdf` and `menu`.
 
 ## Building
 
@@ -40,7 +40,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 
 - GNU make and a C compiler that accepts `-std=gnu99`.
 - X11 development headers and libraries: `libX11`, `libXt`, `libXmu`, `libXext`, `libXpm`, `libSM`, `libICE`.
-- `giflib` for `fits2gif`, `svg2gif` and `menu`.
+- `giflib` for `fits2gif` and `menu`.
 - `zlib` for `xvl`.
 
 On Debian or Ubuntu:
@@ -68,19 +68,19 @@ for d in compat common lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src; do ma
 
 ### Static build with uClibc
 
-Point `CC` at the uClibc compiler and set `STATIC`:
+Point `CC` at the uClibc compiler:
 
 ```sh
-make CC=i386-linux-uclibc-gcc STATIC=-static
+make CC=i386-linux-uclibc-gcc
 ```
 
-The makefiles detect uClibc from the compiler and add the flags and math wrappers it needs. For a 32-bit target, `mk.config` has a commented-out flag line with `-march=i386`.
+`mk.config` asks the compiler which C library it uses. For uClibc it links statically and adds the flags and math wrappers it needs, so nothing has to be edited when switching between the 64-bit and 32-bit toolchains. For a 32-bit target, `mk.config` has a commented-out flag line with `-march=i386`.
 
 ### Configuration
 
 | File | What it sets |
 |---|---|
-| `mk.config` | Compiler, flags, install prefix, widget set (`XAW_LIB_TYPE`: `XAWPLUS`, `XAW3D` or plain Xaw), static linking |
+| `mk.config` | Compiler, flags, install prefix, widget set (`XAW_LIB_TYPE`: `XAWPLUS`, `XAW3D` or plain Xaw); detects the target and uClibc |
 | `options.h` | User-Agent string, print command, mail command, network timeouts. `options.h.dist` is the original |
 | `src/fallback.c` | Built-in X resources (colours, labels, fonts) |
 
@@ -149,14 +149,14 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | `util/` | Original helper scripts (telnet, 3270, audio, mailto, bookmark conversion) |
 | `helpers/curl/` | curl 7.47.0, mbedTLS 2.16.0 and the HTTPS helper scripts |
 | `helpers/xvl/` | `xvl` image viewer, with libtiff 3.7.0 and libwebp 0.4.4 |
-| `helpers/svg2gif/`, `helpers/fits2gif/` | Converters for inline SVG and FITS images |
+| `helpers/fits2gif/` | Converter for inline FITS images |
 | `helpers/text2pdf/` | text2pdf 1.1, used for printing |
 | `helpers/menu/` | Small Xlib pop-up menu |
 
 ## Known rough edges
 
-- `make install` refers to `helpers/img2gif` and `helpers/tif2gif`, which are not in the repository, and does not install `menu`, `text2pdf` or `xvl`. The scripts in `util/` are not installed either.
-- `lib/convert` uses `tif2gif` for inline TIFF, and `lib/protocol` points `mailto` at `/usr/X11/bin/mailto.pl`. Adjust both to what is installed.
+- `make install` does not install `menu`, `text2pdf` or `xvl`. The scripts in `util/` are not installed either.
+- `lib/protocol` points `mailto` at `/usr/X11/bin/mailto.pl`. Adjust it to what is installed.
 - Some comments and script messages are in Danish.
 
 ## Licensing
@@ -179,7 +179,8 @@ This repository combines code under several licences. **Chimera itself is not op
 | libwebp 0.4.4 | BSD 3-clause |
 | text2pdf 1.1 | Free redistribution; modification only with the author's permission |
 | `menu` | GPL v2 or later |
-| `xvl`, `svg2gif`, `fits2gif`, helper scripts | No licence stated yet |
+| `xvl`, `fits2gif`, HTTPS helper scripts | zlib licence |
+| `XawPlus-2.0.2/XmuStrToPixmap.c` | MIT |
 
 Check the individual files before redistributing a build.
 

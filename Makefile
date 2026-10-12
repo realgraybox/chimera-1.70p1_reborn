@@ -8,7 +8,7 @@ DISTDIR = $(PACKAGE)-$(VERSION)-20260626
 
 LDFLAGS ?=
 SUBDIRS = compat common lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src \
-			helpers/fits2gif helpers/svg2gif helpers/curl \
+			helpers/fits2gif helpers/curl \
 			helpers/menu helpers/text2pdf helpers/xvl
 
 .PHONY: all install clean dist
@@ -24,7 +24,7 @@ clean:
 	done
 
 install:
-	@for dir in util lib src helpers/curl helpers/fits2gif helpers/svg2gif; do \
+	@for dir in util lib src helpers/curl helpers/fits2gif; do \
 		$(MAKE) -C $$dir install DESTDIR=$(DESTDIR); \
 	done
 
