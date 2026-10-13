@@ -16,11 +16,11 @@ PREFIX_DIR  = $(CURDIR)/build_target
 
 TARGET = curl.7.47.0
 
-# Definer de faktiske filer vi holder øje med
+# Define the actual files we are watching
 MBEDTLS_LIBS = $(PREFIX_DIR)/lib/libmbedcrypto.a $(PREFIX_DIR)/lib/libmbedx509.a $(PREFIX_DIR)/lib/libmbedtls.a
 CURL_SRC_BIN = $(CURL_DIR)/src/curl
 
-# Kun reelle ikke-fil targets skal være .PHONY
+# Only real non-file targets should be .PHONY
 .PHONY: all clean install
 
 # build mbedtls first, then curl
@@ -37,7 +37,7 @@ $(MBEDTLS_LIBS):
 	cp $(MBEDTLS_DIR)/library/libmbedx509.a $(PREFIX_DIR)/lib/
 	cp $(MBEDTLS_DIR)/library/libmbedtls.a $(PREFIX_DIR)/lib/
 
-# 2. configure and build curl statisc with reference to local build mbedTLS
+# 2. configure and build curl static with reference to local build mbedTLS
 $(CURL_SRC_BIN): $(MBEDTLS_LIBS)
 	cd $(CURL_DIR) && ./configure \
 		--disable-shared \
@@ -77,7 +77,7 @@ $(CURL_SRC_BIN): $(MBEDTLS_LIBS)
 	$(MAKE) -C $(CURL_DIR)
 	
 	
-# 3. Kopier den endelige binære fil til hovedmappen
+#3. Copy the final binary file to the main directory
 $(TARGET): $(CURL_SRC_BIN)
 	cp $(CURL_SRC_BIN) ./$(TARGET)
 	

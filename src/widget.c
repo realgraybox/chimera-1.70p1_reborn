@@ -19,17 +19,6 @@
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <xaw_wrapper.h>
-/*#include <X11/Xaw/Form.h>
-#include <X11/Xaw/Paned.h>
-#include <X11/Xaw/Box.h>
-#include <X11/Xaw/Command.h>
-#include <X11/Xaw/AsciiText.h>
-#include <X11/Xaw/Viewport.h>
-#include <X11/Xaw/List.h>
-#include <X11/Xaw/Scrollbar.h>
-#include <X11/Xaw/Toggle.h>
-
-#include <X11/Xaw/Cardinals.h>*/
 
 #include <X11/xpm.h>
 
@@ -77,12 +66,11 @@ char *list;
 {
   char name[256];
   struct ButtonTable *btp;
-  char *allocated_list; // 1. Opret en ny variabel til at holde styr på hukommelsen
+  char *allocated_list; // 1. Create a new variable to keep track of memory
 
-  // 2. Gem den allokerede streng her i stedet
+  // 2. Store the allocated string here instead
   allocated_list = alloc_string(list);
   list = allocated_list; 
- // list = alloc_string(list);
 
   while (sscanf(list, " %[^,]", name) == 1)
   {
@@ -147,7 +135,7 @@ char *list;
       list++;
   }
   
-  // 3. Frigør hukommelsen her, før funktionen afslutter!
+  // 3. Free the memory here before the function ends!
   if (allocated_list != NULL) {
       XtFree(allocated_list); 
   }

@@ -348,7 +348,7 @@ CreateDocument()
 
   d->mflist = NULL;
 #ifdef IMAGENEW
-  d->req_width = -1;   /* -1 indikerer, at ingen størrelse er sat endnu */
+  d->req_width = -1;   /* -1 indicates that no size has been set yet */
   d->req_height = -1;
 #endif
   return(d);

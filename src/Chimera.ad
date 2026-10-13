@@ -285,11 +285,6 @@
 !*html.horizontalScrollBarPos: 0
 !*html.autoSize:             True
 
-*Scrollbar.translations: #override \
-			<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
-			<Btn2Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
-			<Btn3Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
-			<Btn4Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
-			<Btn5Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \n\
-			<Btn1Motion>: MoveThumb() NotifyThumb() \n\
-			<BtnUp>: NotifyScroll(Proportional) EndScroll()
+Chimera*html*Vbar.translations: #override \
+	<Btn4Down>: scroll-down("Oneline") scroll-down("Oneline") scroll-down("Oneline") \n\
+	<Btn5Down>: scroll-up("Oneline") scroll-up("Oneline") scroll-up("Oneline")

@@ -74,7 +74,7 @@ ImageInfo anchored_image;
 
 static int allocation_index[256];
 
-/* En meget simpel fejlhandler, der absolut intet gør */
+/* A very simple error handler that does absolutely nothing */
 static int SilenceXErrors(Display *dsp, XErrorEvent *err) {
     return 0;
 }
@@ -89,7 +89,7 @@ FreeColors(Display *dsp, Colormap colormap)
     if (!dsp || colormap == None)
         return;
 
-    /* 1. Tving alle ventende kommandoer ud og installer "støjdæmper" */
+    /* 1. Force out all pending commands and install "noise suppressor" */
     XSync(dsp, False);
     old_handler = XSetErrorHandler(SilenceXErrors);
 
@@ -98,8 +98,8 @@ FreeColors(Display *dsp, Colormap colormap)
         if (allocation_index[i] > 0)
         {
             pix = (unsigned long) i;
-            /* Vi kører j-løkken, men X-serveren vil nu bare ignorere 
-               hvis vi tæller for højt */
+            /* We run the j-loop, but the X server will now just ignore 
+			if we count too high */
             for (j = 0; j < allocation_index[i]; j++)
             {
                 XFreeColors(dsp, colormap, &pix, 1, 0L);
@@ -108,10 +108,10 @@ FreeColors(Display *dsp, Colormap colormap)
         allocation_index[i] = 0;
     }
 
-    /* 2. MEGET VIGTIGT: Tving fejlene igennem NU, mens SilenceXErrors stadig er aktiv */
+    /* 2. VERY IMPORTANT: Force the errors through NOW while SilenceXErrors is still active */
     XSync(dsp, False);
 
-    /* 3. Gendan den originale handler */
+    /* 3. Restore the original handler */
     XSetErrorHandler(old_handler);
 }
 

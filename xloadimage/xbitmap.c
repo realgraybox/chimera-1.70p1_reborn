@@ -42,9 +42,9 @@ static int bitmap_datalen;
 static void free_image(Image *image) {
     if (image) {
         if (image->data) {
-            free(image->data); // Frigør billeddata
+            free(image->data); // Free the image data
         }
-        free(image); // Frigør selve billedstrukturen
+        free(image); // Free the image structure itself
     }
 }
 

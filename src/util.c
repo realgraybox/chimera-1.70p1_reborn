@@ -127,65 +127,6 @@ char *filename;
   return(0);
 }
 
-/*
- * ReapChild
- *
- * This code grabs the status from an exiting child process.  We really
- * don't care about the status, we just want to keep zombie's from
- * cropping up.
- */
-/*static void
-ReapChild()
-{
-// QNX support added by D J Hawkey Jr <hawkeyd@visi.com> 1997May16
-#if defined(WNOHANG) && !defined(SYSV) && !defined(SVR4) && !defined(__QNX__)
-  int pid;
-#endif
-  extern int errno;
-  int old_errno = errno;
-
-  // It would probably be better to use the POSIX mechanism here,but I have not 
- // checked into it.  This gets us off the ground with SYSV.  RSE@GMI
- // QNX support added by Frank G Liu <liug@cs.rose-hulman.edu> 1997May09
-  
-//#if defined(WNOHANG) && !defined(SYSV) && !defined(SVR4) && !defined(__QNX__)
-  union wait st;
-
-  do 
-  {
-    errno = 0;
-    pid = wait3(&st, WNOHANG, 0);
-  }
-  while (pid <= 0 && errno == EINTR);
-#else
-  int st;
-
-  wait(&st);
-#endif
-  StartReaper();
-  errno = old_errno;
-
-  return;
-}*/
-
-/*
- * StartReaper
- *
- * This code inits the code which reaps child processes that were
- * fork'd off for external viewers.
- */
-/*void
-StartReaper()
-{
-#ifdef SIGCHLD
-  signal(SIGCHLD, ReapChild);
-#else
-  signal(SIGCLD, ReapChild);
-#endif
-
-  return;
-}*/
-
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -194,21 +135,21 @@ StartReaper()
 /*
  * ReapChild
  *
- * Rydder automatisk og effektivt alle afsluttede underprocesser op,
- * så vi helt undgår zombie-processer (<defunct>).
+ * Automatically and efficiently cleans up all terminated subprocesses,
+ * so that we completely avoid zombie processes (<defunct>).
  */
 static void
 ReapChild(int sig)
 {
-  (void)sig; // Forhindrer compiler-advarsel om ubrugt parameter
+  (void)sig; // Prevents compiler warning about unused parameter
   int old_errno = errno;
   int pid;
   int status;
 
-  /* Loop sikrer, at ALLE zombier ryddes op, selvom de dør samtidigt */
+  /* Loop ensures that ALL zombies are cleared, even if they die at the same time */
   while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
   {
-    /* Underproces ryddet op. Vi behøver ikke gøre mere her. */
+    /* Subprocess cleaned up. We don't need to do anything else here. */
   }
 
   errno = old_errno;
@@ -218,7 +159,7 @@ ReapChild(int sig)
 /*
  * StartReaper
  *
- * Registrerer vores rydningsfunktion til at lytte efter døde processer.
+ * Registers our cleanup function to listen for dead processes.
  */
 void
 StartReaper()
@@ -227,7 +168,7 @@ StartReaper()
 
   sa.sa_handler = ReapChild;
   sigemptyset(&sa.sa_mask);
-  /* SA_RESTART genstarter systemkald automatisk, hvis de afbrydes af signalet */
+  /* SA_RESTART automatically restarts system calls if they are interrupted by the signal*/
   sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
 
   sigaction(SIGCHLD, &sa, NULL);

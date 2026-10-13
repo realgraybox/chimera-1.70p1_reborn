@@ -120,7 +120,7 @@ int caseless_equal(const char *s1, const char *s2) {
     }
 
     while (*s2 != '\0') {
-        // Cast til unsigned char sikrer mod negative værdier ved f.eks. æ, ø, å
+        // Cast to unsigned char protects against negative values ​​for example æ, ø, å
         if (tolower((unsigned char)*s1) != tolower((unsigned char)*s2)) {
             return 0;
         }
@@ -128,7 +128,7 @@ int caseless_equal(const char *s1, const char *s2) {
         s2++;
     }
 
-    // Tjek om s1 slutter her, eller om det næste tegn ikke er alfanumerisk
+    // Check if s1 ends here, or if the next character is not alphanumeric
     return (*s1 == '\0' || !isalnum((unsigned char)*s1));
 }
 
@@ -178,17 +178,17 @@ void clean_white_space(char *txt) {
     char *dst = txt;
     int in_whitespace = 0;
 
-    // 1. Spring førende mellemrum over
+    // 1. Skip leading spaces
     while (isspace((unsigned char)*src)) {
         src++;
     }
 
-    // 2. Gennemløb og komprimer interne mellemrum
+    // 2. Pass through and compress internal spaces
     while (*src != '\0') {
         if (isspace((unsigned char)*src)) {
             in_whitespace = 1;
         } else {
-            // Hvis vi lige har forladt en række mellemrum, indsætter vi ét enkelt her
+            // If we just left a series of spaces, we insert a single one here
             if (in_whitespace) {
                 *dst++ = ' ';
                 in_whitespace = 0;
@@ -198,7 +198,7 @@ void clean_white_space(char *txt) {
         src++;
     }
 
-    // 3. Luk strengen (efterfølgende mellemrum bliver automatisk skåret væk)
+    // 3. Close the string (trailing spaces will be automatically trimmed)
     *dst = '\0';
 }
 
@@ -300,18 +300,18 @@ char ExpandEscapes(const char *esc, const char **endp, int termination) {
         return '\0';
     }
 
-    esc++; // Spring over '&'
+    esc++; // Skip '&'
 
-    // 1. HÅNDTERING AF NUMERISKE ESCAPES (f.eks. &#64;)
+    // 1. HANDLING NUMERIC ESCAPES (e.g. &#64;)
     if (*esc == '#') {
-        esc++; // Spring over '#'
+        esc++; // Skip '#'
         char *next_char;
         
-        // strtol parser tallet direkte og fortæller os præcis, hvor tallet stopper via next_char
+        // strtol parses the number directly and tells us exactly where the number stops via next_char
         long num = strtol(esc, &next_char, 10);
         
         if (next_char == esc) {
-            // Intet tal blev parset
+            // No number was parsed.
             if (endp) *endp = esc;
             return '\0';
         }
@@ -321,34 +321,34 @@ char ExpandEscapes(const char *esc, const char **endp, int termination) {
         if (unterminated) {
             if (endp) *endp = next_char;
         } else {
-            // Hvis den ikke er unterminated, må vi antage at den stopper ved semikolon ';'
+            // If it is not unterminated, we must assume that it ends at the semicolon ';'
             if (endp) {
                 *endp = (*next_char == ';') ? next_char + 1 : next_char;
             }
         }
     }
-    // 2. HÅNDTERING AF NAVNGIVNE ESCAPES (f.eks. &amp;, &lt;)
+    // 2. HANDLING NAMED ESCAPES (e.g. &amp;, &lt;)
     else {
-        if (endp) *endp = NULL; // Default hvis vi ikke finder et match
+        if (endp) *endp = NULL; // Default if we don't find a match
 		int cnt;
         for (cnt = 0; AmpEscapes[cnt].tag != NULL; cnt++) {
             const char *tag = AmpEscapes[cnt].tag;
             size_t tag_len = strlen(tag);
 
-            // Brug strncmp til at tjekke om tagget matcher starten af vores esc-streng
+            // Use strncmp to check if the tag matches the start of our esc string
             if (strncmp(esc, tag, tag_len) == 0) {
                 val = AmpEscapes[cnt].value;
                 
                 if (endp) {
                     const char *match_end = esc + tag_len;
-                    // Hvis den er korrekt termineret, spoler vi også forbi semikolonet
+                    // If it is properly terminated, we also skip past the semicolon
                     if (!unterminated && *match_end == ';') {
                         *endp = match_end + 1;
                     } else {
                         *endp = match_end;
                     }
                 }
-                break; // Match fundet, afbryd løkken
+                break; // Match found, break the loop
             }
         }
 
@@ -447,7 +447,7 @@ void clean_text(char *txt) {
         return;
     }
 
-    // 1. Hurtig scanning efter den første escape-sekvens
+    // 1. Quick scan after the first escape sequence
     char *src = txt;
     while (*src != '\0') {
         if (*src == '&' && (isalpha((unsigned char)*(src + 1)) || *(src + 1) == '#')) {
@@ -457,18 +457,18 @@ void clean_text(char *txt) {
     }
     
     if (*src == '\0') {
-        return; // Ingen escapes fundet, returner med det samme
+        return; // No escapes found, return immediately
     }
 
-    // 2. Behandlingsløkke (src læser, dst skriver in-place)
+    // 2. Processing loop (src reads, dst writes in-place)
     char *dst = src;
     
     while (*src != '\0') {
         if (*src == '&' && (isalpha((unsigned char)*(src + 1)) || *(src + 1) == '#')) {
             const char *tend = NULL;
             
-            // Vi tjekker hurtigt fremad for at se, hvordan sekvensen er termineret
-            // (Det bevarer kompatibiliteten med din eksisterende ExpandEscapes logik)
+            // We fast forward to see how the sequence is terminated
+            // (This maintains compatibility with your existing ExpandEscapes logic)
             const char *check = src + 1;
             while (*check != ';' && !isspace((unsigned char)*check) && *check != '\0') {
                 check++;
@@ -478,21 +478,21 @@ void clean_text(char *txt) {
             int space_terminated = (isspace((unsigned char)*check)) ? 1 : 0;
             int termination_flags = (space_terminated << 1) + unterminated;
 
-            // Kald vores nye, sikre ExpandEscapes uden destruktiv streng-manipulation!
+            // Call our new, safe ExpandEscapes without destructive string manipulation!
             char val = ExpandEscapes(src, &tend, termination_flags);
 
             if (val != '\0' && tend != NULL) {
                 *dst++ = val;
-                src = (char *)tend; // Spol src direkte frem til efter escape-sekvensen
+                src = (char *)tend; // Fast forward src directly to after the escape sequence
                 continue;
             }
         }
 
-        // Hvis det ikke var en gyldig escape, kopierer vi bare tegnet råt og rykker videre
+        // If it wasn't a valid escape, we just copy the character raw and move on.
         *dst++ = *src++;
     }
     
-    *dst = '\0'; // Luk strengen korrekt af
+    *dst = '\0'; // Close the string properly
 }
 
 #else
@@ -643,7 +643,7 @@ char *txt;
  */
 #ifdef GPROFOPT
 
-// Hjælpefunktion til at tjekke om en position starter et HTML-tag/kommentar
+// Helper function to check if a position starts an HTML tag/comment
 static inline int is_html_mark(const char *p) {
     if (*p != '<') return 0;
     
@@ -662,30 +662,30 @@ char *get_text(const char *start, const char **endp) {
 
     const char *ptr = start;
     
-    // Find slutningen af tekst-blokken
+    // Find the end of the text block
     while (*ptr != '\0' && !is_html_mark(ptr)) {
         ptr++;
     }
     
     *endp = ptr;
 
-    // Returner NULL hvis ingen tekst blev fundet
+    // Return NULL if no text was found
     size_t length = ptr - start;
     if (length == 0) {
         return NULL;
     }
 
-    // Alloker præcis den mængde hukommelse der skal bruges (+1 til '\0')
+    // Allocate exactly the amount of memory to be used (+1 to '\0')
     char *text = malloc(length + 1);
     if (text == NULL) {
-        return NULL; // Håndter fejl i hukommelsesallokering
+        return NULL; // Handle memory allocation errors
     }
 
-    // Kopier teksten sikkert uden at ændre kildestrengen
+    // Copy text securely without changing the source string
     memcpy(text, start, length);
     text[length] = '\0';
 
-    // Rens teksten (f.eks. &amp; -> &)
+    // Clean the text (e.g. &amp; -> &)
     clean_text(text);
 
     return text;
@@ -769,7 +769,7 @@ struct mark_up *get_mark(const char *start, const char **endp) {
 
     const char *ptr = start + 1;
 
-    /* 1. KOMMENTAR-HÅNDTERING (<! eller <!--) */
+    /* 1. COMMENT HANDLING (<! or <!--) */
     if (*ptr == '!') {
         ptr++;
 #ifndef SGML_COMMENTS
@@ -800,7 +800,7 @@ struct mark_up *get_mark(const char *start, const char **endp) {
 
     int is_script_or_style = 0;
 
-    /* 2. SCRIPT OG STYLE SPECIAL-HÅNDTERING */
+    /* 2. SCRIPT AND STYLE SPECIAL HANDLING */
     if ((*ptr == 's' || *ptr == 'S') && caseless_equal(ptr, "script")) {
         int is_comment = 1;
         is_script_or_style = 1;
@@ -843,26 +843,26 @@ struct mark_up *get_mark(const char *start, const char **endp) {
         return NULL;
     }
 
-    // Alloker strukturen via standard malloc
+    // Allocate the structure via standard malloc
     struct mark_up *mark = malloc(sizeof(struct mark_up));
     if (mark == NULL) return NULL;
 
-    /* 3. OPBYGNING AF MARK-OBJEKT */
+    /* 3. BUILDING A MARK OBJECT */
     if (is_script_or_style) {
         mark->is_end = 0;
         mark->type = ParseMarkType(""); 
-        mark->start = strdup("");   // Undgår null-pointer nedbrud
+        mark->start = strdup("");   // Avoids null-pointer crashes
         mark->text = NULL;
         mark->end = NULL;
         mark->next = NULL;
         return mark;
     }
 
-    // Mål tag-indholdets mængde (spring over indledende '<')
+    // Measure the amount of tag content (skip leading '<')
     const char *tag_start = start + 1;
     size_t length = ptr - tag_start;
 
-    // Lav en ren kopi uden at modificere kildestrengen
+    // Make a clean copy without modifying the source string
     char *text = malloc(length + 1);
     if (text == NULL) {
         free(mark);
@@ -872,14 +872,14 @@ struct mark_up *get_mark(const char *start, const char **endp) {
     text[length] = '\0';
 
     if (*text == '/') {
-        // Lukke-tag (f.eks. </p>)
+        // Closing tag (e.g. </p>)
         mark->is_end = 1;
         mark->type = ParseMarkType(text + 1);
         mark->start = NULL;
         mark->text = NULL;
         mark->end = text;
     } else {
-        // Åbne-tag (f.eks. <a href="...">)
+        // Opening tag (e.g. <a href="...">)
         clean_text(text);
         mark->is_end = 0;
         mark->type = ParseMarkType(text);
@@ -1108,7 +1108,7 @@ char **endp;
  */
 #ifdef GPROFOPT
 
-// Vi genbruger is_html_mark logikken fra tidligere for at gøre koden læsbar
+// We reuse the is_html_mark logic from earlier to make the code readable
 
 char *get_plain_text(const char *start, const char **endp) {
     if (start == NULL || endp == NULL) {
@@ -1118,23 +1118,23 @@ char *get_plain_text(const char *start, const char **endp) {
     const char *ptr = start;
 
     while (*ptr != '\0') {
-        // Tjek hurtigt om vi overhovedet står ved starten af et HTML-tag
+       // Quickly check if we are at the start of an HTML tag
         if (is_html_mark(ptr)) {
             const char *ep;
             
-            // get_mark skal opdateres til at tage (const char*, const char**)
+            //get_mark needs to be updated to take (const char*, const char**)
             struct mark_up *mp = get_mark(ptr, &ep);
             
             if (mp != NULL) {
-                // Tjek om det er det specifikke sluttag, vi leder efter (</XMP> eller </LISTING>)
+                // Check if it is the specific end tag we are looking for (</XMP> or </LISTING>)
                 if ((mp->type == M_PLAIN_TEXT || mp->type == M_LISTING_TEXT) && mp->is_end) {
-                    // Vi fandt vores slutpunkt. Frigør mark-strukturen og bryd ud.
+                    // We found our endpoint. Release the field structure and break out.
                     free(mp->end);
                     free(mp);
                     break;
                 }
                 
-                // Det var et andet tag. Frigør det og fortsæt søgningen.
+                // It was another roof. Release it and continue the search.
                 free(mp->start);
                 free(mp->end);
                 free(mp);
@@ -1145,13 +1145,13 @@ char *get_plain_text(const char *start, const char **endp) {
     
     *endp = ptr;
 
-    // Returner NULL hvis der ikke var noget tekst overhovedet
+    // Return NULL if there was no text at all
     size_t length = ptr - start;
     if (length == 0) {
         return NULL;
     }
 
-    // Alloker hukommelse sikkert uden at modificere kildestrengen
+    // Allocate memory safely without modifying the source string
     char *text = malloc(length + 1);
     if (text == NULL) {
         return NULL;
@@ -1160,7 +1160,7 @@ char *get_plain_text(const char *start, const char **endp) {
     memcpy(text, start, length);
     text[length] = '\0';
 
-    // Rens teksten for HTML escapes
+    // Clean the text of HTML escapes
     clean_text(text);
 
     return text;
@@ -1276,7 +1276,7 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
     fprintf(stderr, "HTMLParse enter (%ld.%d)\n", (long)tv.tv_sec, (int)tv.tv_usec);
 #endif
 
-    // Frigør den tidligere liste med det samme
+    // Free the previous list immediately
     FreeObjList(old_list);
 
     if (str == NULL) {
@@ -1287,21 +1287,21 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
         text = NULL;
 
         /*
-         * 1. HÅNDTERING AF TEKST
+         * 1. HANDLING TEXT
          */
         if (mark != NULL && !mark->is_end && mark->type == M_PLAIN_FILE) {
-            // Ved PLAINTEXT sluger vi alt resten af dokumentet råt
+            // At PLAINTEXT we swallow the rest of the document raw.
             end = start;
             while (*end != '\0') {
                 end++;
             }
             
-            // Standard C erstatning for XtNewString
+            // Standard C replacement for XtNewString
             text = strdup(start); 
         }
         else if (mark != NULL && !mark->is_end && 
                 (mark->type == M_PLAIN_TEXT || mark->type == M_LISTING_TEXT)) {
-            // Hvis du opdaterer get_plain_text, skal dens signatur også tage (const char*, const char**)
+            // If you update get_plain_text, its signature should also take (const char*, const char**)
             text = get_plain_text(start, &end);
         }
         else {
@@ -1309,7 +1309,7 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
         }
 
         /*
-         * 2. VALIDERING OG TILFØJELSE AF TEKST
+         * 2. VALIDATION AND ADDING TEXT
          */
         if (text == NULL) {
             if (start != end) {
@@ -1319,9 +1319,9 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
                 return list;
             }
         } else {
-            // Standard malloc i stedet for XtMalloc
+            // Default malloc instead of XtMalloc
             mark = malloc(sizeof(struct mark_up));
-            if (mark == NULL) return list; // Sikkerhed mod hukommelsessvigt
+            if (mark == NULL) return list; // Memory failure protection
 
             mark->type = M_NONE;
             mark->is_end = 0;
@@ -1338,9 +1338,9 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
         }
 
         /*
-         * 3. HÅNDTERING AF HTML-MARKS (TAGS)
+         * 3. HANDLING HTML TAGS
          */
-        // get_mark skal ligeledes opdateres til (const char*, const char**)
+        // get_mark must also be updated to (const char*, const char**)
         mark = get_mark(start, &end);
         
         if (mark == NULL) {
@@ -1356,7 +1356,7 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
             mark->next = NULL;
             current = AddObj(&list, current, mark, preformat);
 
-            // Ignorer linjeskift direkte efter specifikke tags (<PLAINTEXT>, <XMP>, <LISTING>, <PRE>)
+            // Ignore line breaks directly after specific tags (<PLAINTEXT>, <XMP>, <LISTING>, <PRE>)
             if ((mark->type == M_PLAIN_FILE || mark->type == M_PLAIN_TEXT || mark->type == M_LISTING_TEXT) && !mark->is_end) {
                 if (*start == '\n') {
                     start++;
@@ -1574,13 +1574,13 @@ int ParseMarkType (char *str) {
     return (M_NONE);
   }
 
-  /* Hent det første tegn og tving det til lille bogstav for nemmere switch */
+  /* Get the first character and force it to lowercase for easier switching */
   first_char = str[0];
   if (first_char >= 'A' && first_char <= 'Z') {
     first_char |= 0x20;
   }
 
-  /* OPTIMERING: Grupper de oprindelige tjek baseret på det første bogstav */
+  /* OPTIMIZATION: Group the original checks based on the first letter */
   switch (first_char) {
     case 'a':
       if (caseless_equal (str, MT_ANCHOR)) return M_ANCHOR;
@@ -1686,7 +1686,7 @@ int ParseMarkType (char *str) {
       break;
   }
 
-  /* Hvis vi rammer her, passede ingen af de definerede tags */
+  /* If we hit here, none of the defined tags matched */
 #ifdef VERBOSE
   fprintf (stderr, "warning: unknown mark (%s)\n", str);
 #endif
@@ -1959,7 +1959,7 @@ char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
   const char *start;
   int quoted;
   int has_value;
-  int len; // Ny variabel til at holde længden
+  int len; // New variable to hold the length
 
   quoted = 0;
 
@@ -2038,7 +2038,7 @@ char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
   }
 
   /*
-   * OPTIMERING: Beregn længden på forhånd og brug memcpy i stedet for strncat
+   * OPTIMIZATION: Calculate the length in advance and use memcpy instead of strncat
    */
   len = ptr - start;
   tag_val = XtMalloc (len + 1);
@@ -2047,7 +2047,7 @@ char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
   {
     memcpy (tag_val, start, len);
   }
-  tag_val[len] = '\0'; // Sæt det afsluttende nul-tegn manuelt og lynhurtigt
+  tag_val[len] = '\0'; // Insert the trailing zero character manually and quickly
 
   if (quoted) ptr++;
   *ptrp = ptr;
@@ -2176,8 +2176,6 @@ const char **endp;
  */
  
 #ifdef GPROFOPT
-/* Definer _GNU_SOURCE i toppen af filen hvis strcasestr driller, 
-   eller lad os bare bruge den direkte: */
 extern char *strcasestr(const char *haystack, const char *needle);
 
 char *
@@ -2194,15 +2192,15 @@ const char *mtag;
   }
 
   /*
-   * HURTIG OG PRÆCIS GENVEJ: 
-   * Hvis hele attribut-navnet (f.eks. "href" eller "width") overhovedet ikke 
-   * findes i tag-teksten (uanset store/små bogstaver), så afviser vi med det samme!
+   * QUICK AND PRECISE SHORTCUT: 
+   * If the entire attribute name (e.g. "href" or "width") is not 
+   * found in the tag text at all (regardless of case), we reject it immediately!
    */
   if (*mtag != '\0')
   {
     if (strcasestr(text, mtag) == NULL)
     {
-      return (NULL); /* Spring over - attributten findes definitivt ikke i dette tag */
+      return (NULL); /* Skip - the attribute definitely does not exist in this tag */
     }
   }
 
@@ -2217,7 +2215,7 @@ const char *mtag;
 
     char *tag_val = AnchorTag (&ptr, &start, &end);
 
-    if (caseless_equal (start, mtag))  /* fundet! */
+    if (caseless_equal (start, mtag))  /* found! */
     {
       return (tag_val != NULL) ?  tag_val  :  XtNewString("");
     }

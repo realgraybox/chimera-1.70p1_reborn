@@ -161,7 +161,7 @@ static void	ViewClearAndRefresh (HTMLWidget hw);
 #endif /* _NO_PROTO */
 
 #ifdef REBOUNCH
-/* En global/statisk ID til at holde styr på vores debouncing-timer */
+/* A global/static ID to keep track of our debouncing timer */
 static XtIntervalId resize_timeout_id = (XtIntervalId)0;
 #endif
 
@@ -197,6 +197,8 @@ s<Key>Left:      scroll-left(\"Onepixel\")\n\
 <Key>Left:      scroll-left(\"Oneline\")\n\
 <Key>Home:      top-bot(\"Top\")\n\
 <Key>End:       top-bot(\"Bottom\")\n\
+<Btn4Down>:     scroll-down(\"Oneline\") scroll-down(\"Oneline\") scroll-down(\"Oneline\")\n\
+<Btn5Down>:     scroll-up(\"Oneline\") scroll-up(\"Oneline\") scroll-up(\"Oneline\")\n\
 ";
 /*
  * Changes above by Satoshi ASAMI <asami@cory.EECS.Berkeley.EDU>
@@ -753,7 +755,7 @@ HTMLWidget hw;
 /*
  * Set the Athena Scrollbar's thumb position properly.
  */
-static void
+/*static void
 setScrollBar (sb, topPosition, totalLength, currentLength)
 Widget sb;
 int topPosition;
@@ -771,6 +773,37 @@ int totalLength, currentLength;
 #else
   XawScrollbarSetThumb (sb, top, shown);
 #endif
+}*/
+
+static void
+setScrollBar (sb, topPosition, totalLength, currentLength)
+Widget sb;
+int topPosition;
+int totalLength, currentLength;
+{
+  float top, shown;
+
+  if (totalLength <= 0)
+  {
+    top = 0.0;
+    shown = 1.0;
+  }
+  else
+  {
+    top = (float) topPosition / (float) totalLength;
+    shown = (float) currentLength / (float) totalLength;
+  }
+
+  {
+    union { XtArgVal xt; float f; } t, s;
+    Arg args[2];
+
+    t.xt = 0; t.f = top;
+    s.xt = 0; s.f = shown;
+    XtSetArg (args[0], XtNtopOfThumb, t.xt);
+    XtSetArg (args[1], XtNshown, s.xt);
+    XtSetValues (sb, args, 2);
+  }
 }
 
 
@@ -2064,32 +2097,32 @@ XtIntervalId *id;
   }
 #endif
 
- /* Nulstil timer-ID, når arbejdet er udført */
+ /* Reset timer ID when work is done */
   resize_timeout_id = (XtIntervalId)0;
 
   return;
 }
 
 /* 
- * Den nye debounced Resize-funktion, der modtager X11-events i realtid,
- * men venter med at reagere, indtil brugeren stopper med at trække i vinduet.
- */
+* The new debounced Resize function, which receives X11 events in real time,
+* but waits to respond until the user stops dragging the window.
+*/
 static void
 Resize (hw)
 HTMLWidget hw;
 {
-  /* 1. Hvis der allerede er en aktiv timer, så stop den (brugeren trækker stadig) */
+  /* 1. If there is already an active timer, stop it (the user is still drawing) */
   if (resize_timeout_id != (XtIntervalId)0) {
       XtRemoveTimeOut(resize_timeout_id);
   }
 
-  /* 2. Start en ny timer. 300 millisekunder er ofte det magiske punkt for musen. */
-  /* XtWidgetToApplicationContext bruges til at finde den rette Xt-kontekst */
+/* 2. Start a new timer. 300 milliseconds is often the magic point for the mouse. */
+/* XtWidgetToApplicationContext is used to find the right Xt context */
   resize_timeout_id = XtAppAddTimeOut(
       XtWidgetToApplicationContext((Widget)hw),
-      300,                       /* Tid i millisekunder */
-      ActualResizeWorker,        /* Funktionen der skal kaldes, når tiden løber ud */
-      (XtPointer)hw              /* Vi sender 'hw' med som data til funktionen */
+      300,                       /* Time in milliseconds */
+      ActualResizeWorker,        /* The function to be called when the time runs out */
+      (XtPointer)hw              /* We pass 'hw' as data to the function */
   );
 }
 
@@ -4067,14 +4100,14 @@ int *format;
     Atom *targetP;
     Atom *std_targets;
     unsigned long std_length;
-    // 1. Opret en midlertidig variabel af den korrekte type
+    // 1. Create a temporary variable of the correct type
     caddr_t temp_targets; 
     
-    // 2. Send adressen på temp-variablen med (uden at caste)
+    // 2. Send the address of the temp variable with (without casting)
     XmuConvertStandardSelection (w, hw->html.selection_time,
                                  selection, target, type, &temp_targets,
                                  &std_length, format); 
-    // 3. Kopier værdien over i din rigtige Atom-pointer bagefter
+    // 3. Copy the value into real Atom pointer afterwards
     std_targets = (Atom *) temp_targets;
 
     *length = std_length + 5;
@@ -4096,7 +4129,7 @@ int *format;
   if (*target == XA_STRING || *target == XA_TEXT (d) ||
       *target == XA_COMPOUND_TEXT (d))
   {
-	static char *last_selection_text = NULL; // Holder styr på den forrige allokering  
+	static char *last_selection_text = NULL; // Keeps track of the previous allocation 
     
     if (*target == XA_COMPOUND_TEXT (d))
     {
@@ -4106,7 +4139,7 @@ int *format;
     {
       *type = XA_STRING;
     }
-     /* --- INDSÆT: Frigør teksten fra FORRIGE gang der blev kopieret --- */
+     /* --- INSERT: Free the text from the PREVIOUS time it was copied --- */
     if (last_selection_text != NULL)
     {
       XtFree(last_selection_text);
@@ -4118,7 +4151,7 @@ int *format;
 			      hw->html.sel_start_pos, hw->html.sel_end_pos,
 			      hw->html.font->max_bounds.width);
     *value = text;
-    last_selection_text = text; // Gem pointeren, så vi kan slette den næste gang!
+    last_selection_text = text; // Save the pointer so we can delete it next time!
     *length = strlen (*value);
     *format = 8;
     return True;

@@ -317,36 +317,29 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     float           scale = 1.0f;
     char            *svg_copy;
 
-    /* nanosvg kræver en null-termineret streng. Vi laver en hurtig kopi. */
+    /* nanosvg requires a null-terminated string. We'll make a quick copy. */
     svg_copy = (char *)alloc_mem(datalen + 1);
     memcpy(svg_copy, data, datalen);
     svg_copy[datalen] = '\0';
 
-    /* Parse SVG kildekoden */
+    /* Parse the SVG source code */
     svg_img = nsvgParse(svg_copy, "px", 96.0f);
     free_mem(svg_copy);
 
     if (svg_img == NULL) {
-        printf("ERROR: Kunne ikke parse SVG data!\n");
+        printf("ERROR: Could not parse SVG data!\n");
         return(NULL);
     }
 
-    /* Originale dimensioner fra SVG-filen */
+    /* Original dimensions from the SVG file */
     int orig_w = (int)svg_img->width;
     int orig_h = (int)svg_img->height;
     if (orig_w < 1) orig_w = 1;
     if (orig_h < 1) orig_h = 1;
     
-   /* printf("NANO says width         : %d pixels\n", orig_w);
-    printf("HTML request width : %d pixels\n", target_width);
-    printf("NANO says height       : %d pixels\n", orig_h);
-    printf("HTML request height: %d pixels\n", target_height);
-    printf("\n");*/
-
     width = orig_w;
     height = orig_h;
 
-    /* --- Genbrug af din smarte boks-skaleringslogik --- */
     const int MAX_WIDTH = 600;
 
     if (target_width > 0 || target_height > 0) {
@@ -369,7 +362,7 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
         }
     }
 
-    /* Undgå upscaling og respekter MAX_WIDTH */
+    /* Avoid upscaling and respect MAX_WIDTH */
     if (width > orig_w) {
         height = (height * orig_w) / width;
         width = orig_w;
@@ -386,21 +379,21 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     if (width < 1) width = 1;
     if (height < 1) height = 1;
 
-    /* Beregn den præcise skaleringsfaktor til vektorgrafikken */
+    /* Calculate the exact scaling factor for the vector graphic */
     scale = (float)width / svg_img->width;
 
-    /* Alloker buffer til de rå RGBA pixels */
+    /* Allocate buffer for the raw RGBA pixels */
     raw_rgba = (unsigned char *)alloc_mem(width * height * 4);
 
-    /* Rasteriser SVG direkte til den ønskede målstørrelse */
+    /* Rasterize SVG directly to the desired target size */
     rast = nsvgCreateRasterizer();
     nsvgRasterize(rast, svg_img, 0.0f, 0.0f, scale, raw_rgba, width, height, width * 4);
 
-    /* Frigør nanosvg strukturer med det samme – vi har vores pixels nu */
+    /* Free the nanosvg structures immediately – we have our pixels now */
     nsvgDeleteRasterizer(rast);
     nsvgDelete(svg_img);
 
-    /* Blend against the page background and reduce to 256 colours */
+    /* Blend against the page background and reduce to 256 colors */
     image = rgbaToImage(raw_rgba, width, height, bg);
 
     free_mem(raw_rgba);

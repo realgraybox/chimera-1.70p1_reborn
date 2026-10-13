@@ -7,7 +7,7 @@ TARGET = libmxw.a
 all: libmxw.a
 
 libmxw.a: 
-	$(CC) $(CFLAGS) -c *.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c *.c
 	$(AR) rcs libmxw.a  *.o
 
 clean:

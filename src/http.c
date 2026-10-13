@@ -242,9 +242,9 @@ int s;
    * content-length.
    */
    
-  /* FIX: Frigør gammel hukommelse, hvis den findes, for at undgå leak */
+  /* FIX: Free old memory if found to avoid leak */
   if (d->text != NULL) {
-      free_mem(d->text); /* eller free(d->text) afhængigt af dit projekt */
+      free_mem(d->text); /* or free(d->text) depending on your project */
       d->text = NULL;
   }
   

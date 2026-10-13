@@ -1,0 +1,2 @@
+To reduce size of tifflib handling fax-format /tiff-3.7.0/libtiff/tif_fax3:_
+h:88:unsigned short Param; /* <--- Halves the data size for each and every table element */

@@ -85,7 +85,7 @@ typedef struct {		/* state table entry */
 	unsigned char State;	/* see above */
 	unsigned char Width;	/* width of code in bits */
 	/*uint32	Param;		// unsigned 32-bit run length in bits */
-	unsigned short Param; /* <--- Halverer datastørrelsen for hvert eneste tabel-element */
+	unsigned short Param; /* <--- Halves the data size for each and every table element */
 } __attribute__((packed)) TIFFFaxTabEnt;
 
 extern	const TIFFFaxTabEnt TIFFFaxMainTable[];

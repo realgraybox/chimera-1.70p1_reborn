@@ -213,27 +213,6 @@ static XtResource       resource_list[] =
 	offset(localIndexFiles), XtRString, (XtPointer)"index.html" },
 };
 
-#ifdef USE_XAWPLUS
-/*
- * NoOpAction
- *
- * The Scrollbar translations in the Chimera resource file start with
- * StartScroll(), which Xaw and Xaw3d need before MoveThumb() and
- * NotifyThumb() do anything.  XawPlus's Scrollbar has no StartScroll
- * action, so this empty one stands in for it.  Xt only falls back to an
- * application action when the widget class has none of that name.
- */
-static void
-NoOpAction(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
-{
-  return;
-}
-#endif
-
 static XtActionsRec actionsList[] =
 {
   { "home",     (XtActionProc) HomeAction },
@@ -250,19 +229,13 @@ static XtActionsRec actionsList[] =
   { "bookmark", (XtActionProc) BookmarkAction },
   { "openurl",  (XtActionProc) OpenURL },
   { "deferpix",	(XtActionProc) DeferPixAction },
-#ifdef USE_XAWPLUS
-  { "StartScroll", (XtActionProc) NoOpAction },
-#endif
 };
 
 static char *fallback_resources[] =
 {
-//#include "app-defaults.h"
-
   NULL /* I'm bitter about this because I have to include stdio.h which
           seems like worthlessness */
 };
-
 
 //new code
 static void
@@ -270,10 +243,9 @@ CheckQuitTimer(XtPointer client_data, XtIntervalId *id)
 {
   XtAppContext app = (XtAppContext)client_data;
 
-  /* Hvis vores signal-handler har sat flaget, lukker vi pænt nu */
+  /* If our signal handler has set the flag, we close nicely now */
   if (g_should_quit) {
-    printf("DBG: i g_should_quit (Timer opdagede signalet)\n");
-    // --- INDSÆT OPRYDNING HER ---
+    //printf("DBG: in g_should_quit (Timer detected the signal)\n");
     if (root.toplevel != NULL) {
        XtDestroyWidget(root.toplevel);
     }
@@ -281,12 +253,10 @@ CheckQuitTimer(XtPointer client_data, XtIntervalId *id)
     Quit(root.quit, &root, NULL);
   }
 
-  /* Tjek igen om 100 millisekunder (10 gange i sekundet) */
+  /* Check again in 100 milliseconds (10 times per second) */
   XtAppAddTimeOut(app, 100, CheckQuitTimer, client_data);
 }
 //new end
-
-
 
 /*
  * main
@@ -312,13 +282,13 @@ int main(int argc, char *argv[])
   char *cwd;
   Atom delete;
   
-  // Sætter programmet til at bruge operativsystemets sprog/tegnsæt (f.eks. da_DK.UTF-8)
-    setlocale(LC_ALL, ""); 
+  // Sets the program to use the operating system's language/character set (e.g. da_DK.UTF-8)
+  setlocale(LC_ALL, ""); 
     
-    // Derefter skal X-systemet have besked på at acceptere denne locale
-    if (!XSupportsLocale()) {
-        fprintf(stderr, "X-serveren understøtter ikke den valgte locale.\n");
-    }
+  // Then the X system must be told to accept this locale
+  if (!XSupportsLocale()) {
+	fprintf(stderr, "The X server does not support the selected locale.\n");
+  }
 
 #ifdef SOCKS
   SOCKSinit(argv[0]);
@@ -337,16 +307,16 @@ int main(int argc, char *argv[])
   //new code:
     struct sigaction sa_catch, sa_ignore;
 
-  /* Konfigurer opsætning for de signaler vi vil fange */
+  /* Configure setup for the signals we want to capture */
   sa_catch.sa_handler = sigigh_handler;
   sigemptyset(&sa_catch.sa_mask);
-  sa_catch.sa_flags = 0; // VIGTIGT: Ingen SA_RESTART. Gør at XtAppMainLoop afbrydes pænt.
+  sa_catch.sa_flags = 0; // IMPORTANT: No SA_RESTART. Makes XtAppMainLoop terminate gracefully.
 
   sigaction(SIGINT,  &sa_catch, NULL);
   sigaction(SIGHUP,  &sa_catch, NULL);
   sigaction(SIGTERM, &sa_catch, NULL);
 
-  /* Konfigurer opsætning for de signaler vi vil ignorere */
+  /* Configure settings for the signals we want to ignore */
   sa_ignore.sa_handler = SIG_IGN;
   sigemptyset(&sa_ignore.sa_mask);
   sa_ignore.sa_flags = 0;
@@ -517,17 +487,14 @@ int main(int argc, char *argv[])
 
   HandleDoc(d, 0);
   
- /* Sæt timeren i gang til at holde øje med signaler */
+  /* Set the timer to watch for signals */
   XtAppAddTimeOut(root.appcon, 100, CheckQuitTimer, (XtPointer)root.appcon);
   
   XtAppMainLoop(root.appcon);
-  
-  // --- OPRYDNING INDSÆTTES HER ---
-  // Erstat 'root.toplevel' med navnet på din øverste (toplevel) Widget, hvis den hedder noget andet.
+
   if (root.toplevel != NULL) {
       XtDestroyWidget(root.toplevel); 
   }
-  // -------------------------------
     
   return (0);
 }
@@ -1671,30 +1638,30 @@ XtPointer cldata, cbdata;
 {
   DocNode *t;
   Document *d;
-  URLParts *copy_up; // Vi har brug for en kopi af URL'en
+  URLParts *copy_up; // We need a copy of the URL
 
   root.rflag = True;
 
   t = root.dlist;
   if (t->up == NULL) return;
 
-  // 1. Tag en kopi af URL'en, så vi kan slette 't' med det samme
+  // 1. Make a copy of the URL so we can delete the 't' immediately
   copy_up = MakeURLParts(t->up, (URLParts *) NULL);
 
-  // 2. Flyt listen frem
+  // 2. Move the list forward
   root.dlist = root.dlist->next;
 
-  // 3. RYD OP NU - før vi loader noget nyt
+  // 3. CLEAN UP NOW - before we load anything new
   HTMLSetText(root.w, "", NULL, NULL);
   if (t->doc != NULL) DestroyDocument(t->doc);
   if (t->up != NULL) DestroyURLParts(t->up);
   if (t->base != NULL) free_mem(t->base);
   free_mem((char *)t);
 
-  // 4. Load nu det nye dokument med vores kopi-URL
+  // 4. Now load the new document with our copied URL
   d = LoadDoc(copy_up, 1, 0);
 
-  // 5. Vis det og ryd op i kopien
+  // 5. Show it and clean up the copy
   HandleDoc(d, 0);
   DestroyURLParts(copy_up);
 
@@ -2070,7 +2037,7 @@ sigigh_handler()
 static void
 sigigh_handler(int sig)
 {
-  (void)sig; // Forhindrer compiler-advarsel
+  (void)sig; // Prevents compiler warning
   g_should_quit = 1;
 }
 //end new
@@ -2104,7 +2071,7 @@ void Quit(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   struct sigaction sa_ignore, sa_default;
 
-  // Ignorer signaler under oprydning
+  // Ignore signals during cleanup
   sa_ignore.sa_handler = SIG_IGN;
   sigemptyset(&sa_ignore.sa_mask);
   sa_ignore.sa_flags = 0;
@@ -2112,7 +2079,7 @@ void Quit(Widget w, XtPointer cldata, XtPointer cbdata)
   sigaction(SIGHUP,  &sa_ignore, NULL);
   sigaction(SIGALRM, &sa_ignore, NULL);
 
-  // Sæt SIGTERM til standard opførsel
+  // Set SIGTERM to default behavior
   sa_default.sa_handler = SIG_DFL;
   sigemptyset(&sa_default.sa_mask);
   sa_default.sa_flags = 0;
@@ -2245,7 +2212,7 @@ int delay;	/* boolean; if true, only if in cache or on localhost */
 				 * set these insensitive -- GN1997May19 */
   d = LoadDoc (tup, 0, delay);
     
- //debug forskydning af width/height med eet billede
+ //debug offset width/height with one image
  #ifdef IMAGENEW
 HTMLWidget hw = (HTMLWidget) w;
   struct mark_up *mptr;
@@ -2255,8 +2222,8 @@ HTMLWidget hw = (HTMLWidget) w;
   int found_height = -1;
 
   /* 
-   * 1. JAGT: Vi løber igennem alle HTML-objekter for at finde det tag, 
-   * der matcher den URL, vi er ved at hente lige nu.
+   * 1. HUNT: We loop through all HTML objects to find the tag 
+   * that matches the URL we are currently retrieving.
    */
   mptr = hw->html.html_objects;
   while (mptr != NULL)
@@ -2266,10 +2233,10 @@ HTMLWidget hw = (HTMLWidget) w;
       srcptr = ParseMarkTag (mptr->start, MT_IMAGE, "SRC");
       if (srcptr != NULL) 
       {
-        /* Matcher dette HTML-tag den URL, vi forsøger at resolvere? */
+        /* Does this HTML tag match the URL we are trying to resolve? */
         if (strcmp(srcptr, url) == 0) 
         {
-          /* Bingo! Vi har fundet det korrekte tag. Hent dimensionerne direkte herfra */
+          /* Bingo! We've found the correct tag. Get the dimensions directly from here */
           tptr = ParseMarkTag (mptr->start, MT_IMAGE, "WIDTH");
           if (tptr != NULL) {
               found_width = atoi(tptr);
@@ -2283,7 +2250,7 @@ HTMLWidget hw = (HTMLWidget) w;
           }
           
           XtFree(srcptr);
-          break; /* Stop søgningen, vi har fundet målet */
+          break; /* Stop searching, we have found the target */
         }
         XtFree(srcptr);
       }
@@ -2291,11 +2258,9 @@ HTMLWidget hw = (HTMLWidget) w;
     mptr = mptr->next;
   }
 
-  /* 2. OPRET DOKUMENT/IMAGE INFO (Her er din eksisterende logik) */
-  //d = CreateDocument(); /* Eller hvordan du henter dit Document *d */
-  
+  /* 2. CREATE DOCUMENT/IMAGE INFO (Here is your existing logic) */
   if (d != NULL) {
-      /* Nu sætter vi de synkroniserede værdier, som med statsgaranti passer! */
+      /* Now we set the synchronized values, which with state guarantee fit! */
       d->req_width = found_width;
       d->req_height = found_height;
       
@@ -2874,12 +2839,12 @@ XtPointer cldata, cbdata;
 	  alloc_string(formdata->attribute_values[i]):NULL;
     }
   }
-// HTMLSetText kaldes indeni HandleDoc, som rydder formdata op automatisk
+// HTMLSetText is called inside HandleDoc, which cleans up form data automatically
   d = LoadDoc(up, 0, 0);
   HandleDoc(d, 0);
   DestroyURLParts(up);
 
-// INGEN MANUEL FRIGØRELSE AF FORMDATA HER!
+// NO MANUAL RELEASE OF FORM DATA HERE!
 
   return;
 }

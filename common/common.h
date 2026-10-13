@@ -1,6 +1,7 @@
 /*
  * common.h
  */
+#include <X11/Intrinsic.h>
 
 /*
  * ANSI-C stuff.  Snarfed from xloadimage.
@@ -22,9 +23,8 @@
 
 #endif /* __STDC__ */
 
-
-void free_mem _ArgProto((void *));
-char *alloc_mem _ArgProto((int));
-char *calloc_mem _ArgProto((int, int));
-char *realloc_mem _ArgProto((char *, int));
-char *alloc_string _ArgProto((char *));
+#define free_mem(m)            XtFree((char *)(m))
+#define alloc_mem(len)         XtMalloc(len)
+#define calloc_mem(n, len)     XtCalloc(n, len)
+#define realloc_mem(s, len)    XtRealloc((char *)(s), len)
+#define alloc_string(str)      XtNewString(str)

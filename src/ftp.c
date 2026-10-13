@@ -245,11 +245,10 @@ MIMEType *mtlist;
   }
   else 
   {
-    /* --- INDSÆT OPRYDNING HER --- */
-    /* Hvis kommandoen gik godt, skal vi ikke bruge fejlmeddelelsen til noget */
+    /* If the command went well, we don't need the error message for anything. */
     if (emsg != NULL) 
     {
-      XtFree(emsg); // Brug free(emsg); hvis alloc_mem internt bruger standard malloc
+      XtFree(emsg); // Use free(emsg); if alloc_mem internally uses standard malloc
       emsg = NULL;
     }
     /* ---------------------------- */

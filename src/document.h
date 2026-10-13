@@ -30,7 +30,7 @@ typedef struct _document
   char *auth_type;      /* authentication type */
   MIMEField *mflist;    /* list of MIME fields for document */
 #ifdef IMAGENEW
-    /* Tilføjet til skalering med stb_image_resize2 */
+   /* Added scaling with stb_image_resize2 */
   int req_width;
   int req_height;
   #endif

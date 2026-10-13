@@ -5,7 +5,7 @@ CFLAGS += -I.. -I../common -I../mxw
 all: libhtmlw.a
 
 libhtmlw.a: 
-	$(CC) $(CFLAGS) -c *.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c *.c
 	$(AR) rcs libhtmlw.a *.o
 
 clean:

@@ -2101,24 +2101,20 @@ FormInfo *fptr;
   XtManageChild (w);
   PrepareFormEnd (hw, w, fptr);
   
-  /* --- DETTE ER RETTELSEN --- */
-  // 1. Gem resultatet fra AddNewWidget i en midlertidig variabel
+  
+  // 1. Save the result from AddNewWidget in a temporary variable
   WidgetInfo *winfo = AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
 			             name, value, NULL, False);
 
-  // 2. Frigør den allokerede 'value'-streng nu, hvor widgetten og AddNewWidget har lavet deres egne kopier
+  // 2. Free the allocated 'value' string now that the widget and AddNewWidget have made their own copies
   if (value != NULL)
   {
     XtFree (value);
     value = NULL;
   }
 
-  // 3. Returner det gemte resultat
+  // 3. Return the saved result
   return (winfo);
-  /* -------------------------- */
-  
-  /*return (AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
-			name, value, NULL, False));*/
 }
 
 /*
@@ -2443,29 +2439,26 @@ FormInfo *fptr;			/* not used */
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
 
-    /* --- DETTE ER DEN NYE OG KOMPLETTE OPRYDNING --- */
-  //int i; // Husk at deklarere 'i' i toppen af funktionen, hvis den ikke er der i forvejen
-
   if (list != NULL) {
-    // 1. Frigør hver enkelt streng indeni listen
+    // 1. Free each string inside the list
     for (i = 0; i < list_cnt; i++) {
       if (list[i] != NULL) {
         XtFree(list[i]);
       }
     }
-    // 2. Frigør selve listen
+    // 2. Free the list itself
     XtFree((char *) list);
     list = NULL;
   }
 
   if (ret_list != NULL) {
-    // 3. Gør det samme for ret_list
+    // 3. Do the same for ret_list
     for (i = 0; i < return_cnt; i++) {
       if (ret_list[i] != NULL) {
         XtFree(ret_list[i]);
       }
     }
-    // 4. Frigør selve ret_list
+    // 4. Free the ret_list itself
     XtFree((char *) ret_list);
     ret_list = NULL;
   }
