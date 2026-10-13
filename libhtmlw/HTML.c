@@ -754,27 +754,12 @@ HTMLWidget hw;
 
 /*
  * Set the Athena Scrollbar's thumb position properly.
+ *
+ * The position is set through the XtNtopOfThumb and XtNshown resources
+ * rather than XawScrollbarSetThumb(), whose float arguments are passed
+ * as float or double depending on how each widget library was compiled.
+ * The union hands the float's bytes to Xt unchanged.
  */
-/*static void
-setScrollBar (sb, topPosition, totalLength, currentLength)
-Widget sb;
-int topPosition;
-int totalLength, currentLength;
-{
-  //float top = (float) topPosition / (float) (totalLength);
-  //float shown = (float) currentLength / (float) (totalLength);
-
-#if !defined(ultrix)
-#if defined(XRELEASE)
-#if XRELEASE > 4
-  XawScrollbarSetThumb (sb, top, shown);
-#endif
-#endif
-#else
-  XawScrollbarSetThumb (sb, top, shown);
-#endif
-}*/
-
 static void
 setScrollBar (sb, topPosition, totalLength, currentLength)
 Widget sb;
@@ -2111,7 +2096,7 @@ static void
 Resize (hw)
 HTMLWidget hw;
 {
-  /* 1. If there is already an active timer, stop it (the user is still drawing) */
+  /* 1. If there is already an active timer, stop it (the user is still dragging) */
   if (resize_timeout_id != (XtIntervalId)0) {
       XtRemoveTimeOut(resize_timeout_id);
   }
@@ -4139,13 +4124,12 @@ int *format;
     {
       *type = XA_STRING;
     }
-     /* --- INSERT: Free the text from the PREVIOUS time it was copied --- */
+    /* Free the text handed out for the previous selection request */
     if (last_selection_text != NULL)
     {
       XtFree(last_selection_text);
       last_selection_text = NULL;
     }
-    /* ----------------------------------------------------------------- */
     text = ParseTextToString ((hw->html.fancy_selections == True) ? hw : NULL,
 			      hw->html.select_start, hw->html.select_end,
 			      hw->html.sel_start_pos, hw->html.sel_end_pos,

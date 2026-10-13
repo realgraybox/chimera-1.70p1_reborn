@@ -2258,9 +2258,8 @@ HTMLWidget hw = (HTMLWidget) w;
     mptr = mptr->next;
   }
 
-  /* 2. CREATE DOCUMENT/IMAGE INFO (Here is your existing logic) */
+  /* 2. Pass the WIDTH and HEIGHT found in the IMG tag on to the document */
   if (d != NULL) {
-      /* Now we set the synchronized values, which with state guarantee fit! */
       d->req_width = found_width;
       d->req_height = found_height;
       
