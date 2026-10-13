@@ -17,8 +17,12 @@ CFLAGS += -I../XawPlus-2.0.2 -I../ -std=gnu99 -funit-at-a-time
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(CFLAGS)
+# Relink when one of our own libraries has been rebuilt
+LIBDEPS = ../libhtmlw/libhtmlw.a ../mxw/libmxw.a ../xloadimage/libxloadimage.a \
+          $(filter %.a,$(XAW_LIBS))
+
+$(TARGET): $(OBJS) $(LIBDEPS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CFLAGS)
 
 install: $(TARGET)
 	install -d $(DESTDIR)$(BINDIR)

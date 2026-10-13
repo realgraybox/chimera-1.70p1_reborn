@@ -5,9 +5,7 @@ PACKAGE = chimera-browser
 VERSION = 1.70
 DISTDIR = $(PACKAGE)-$(VERSION)-20260626
 
-LDFLAGS ?=
-
-SUBDIRS =  lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src \
+SUBDIRS = lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src \
 			helpers/fits2gif helpers/curl \
 			helpers/menu helpers/text2pdf helpers/xvl
 

@@ -63,7 +63,7 @@ This builds, in order, the support libraries, XawPlus, the browser (`src/chimera
 The top-level makefile keeps going when one directory fails, so check that `src/chimera` exists afterwards. To build only the browser and what it needs:
 
 ```sh
-for d in compat common lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src; do make -C $d; done
+for d in lib libhtmlw mxw util xloadimage XawPlus-2.0.2 src; do make -C $d; done
 ```
 
 ### Static build with uClibc
@@ -143,7 +143,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | `libhtmlw/` | HTML widget from NCSA Mosaic, as modified for Chimera |
 | `mxw/` | Chimera's dialog widgets: bookmarks, authentication, string and output prompts |
 | `xloadimage/` | Image loaders, dithering and colour reduction from xloadimage |
-| `common/`, `compat/` | Memory helpers and replacements for missing libc functions |
+| `common/` | `common.h`, shared by all parts: memory helper macros mapped onto Xt's allocator |
 | `XawPlus-2.0.2/` | Bundled XawPlus widget set |
 | `lib/` | Runtime data files installed to `~/chimera`, and `chimera_print.sh` |
 | `util/` | Original helper scripts (telnet, 3270, audio, mailto, bookmark conversion) |
@@ -165,11 +165,10 @@ This repository combines code under several licences. **Chimera itself is not op
 
 | Component | Licence, as stated in its files |
 |---|---|
-| Chimera (`src/`, `common/`, most of `mxw/`) | John Kilburg's licence: non-commercial use, no fee. See `src/copyright.h` |
+| Chimera (`src/`, most of `mxw/`) | John Kilburg's licence: non-commercial use, no fee. See `src/copyright.h` |
 | `libhtmlw/` | NCSA Mosaic licence: academic, research and internal business use, no fee |
 | `mxw/ScrollText.*` | University of Newcastle upon Tyne: any purpose except commercial exploitation |
 | `xloadimage/`, `mxw/Porthole.c`, XawPlus | MIT / X Consortium style permissive licences |
-| `compat/` | University of California (BSD-style) |
 | `src/md5.c` | Public domain |
 | stb_image, stb_image_resize2, stb_image_write | Public domain |
 | NanoSVG | zlib licence |

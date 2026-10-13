@@ -1,2 +1,8 @@
-To reduce size of tifflib handling fax-format /tiff-3.7.0/libtiff/tif_fax3:_
-h:88:unsigned short Param; /* <--- Halves the data size for each and every table element */
+Local change to the bundled libtiff 3.7.0
+
+File:   tiff-3.7.0/libtiff/tif_fax3.h, line 88
+Change: TIFFFaxTabEnt.Param changed from uint32 to unsigned short, and the
+        struct marked __attribute__((packed)).
+Why:    halves the size of each entry in the fax decoding tables, which
+        makes the statically linked xvl smaller. The run lengths stored in
+        Param are at most 2560, so they fit in 16 bits.

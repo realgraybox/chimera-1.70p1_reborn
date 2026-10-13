@@ -2,14 +2,17 @@ include ../mk.config
 
 CFLAGS += -I.. -I../common -I../mxw
 
-TARGET = libmxw.a
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
+
+.PHONY: all clean
 
 all: libmxw.a
 
-libmxw.a: 
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c *.c
-	$(AR) rcs libmxw.a  *.o
+# make's built-in rule compiles each .c with CPPFLAGS and CFLAGS, and
+# only the files that changed. Headers are not tracked: run
+# "make clean" after editing a .h file.
+libmxw.a: $(OBJS)
+	$(AR) rcs $@ $(OBJS)
 
 clean:
 	rm -f *.o libmxw.a
-

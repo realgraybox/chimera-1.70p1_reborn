@@ -468,7 +468,7 @@ void clean_text(char *txt) {
             const char *tend = NULL;
             
             // We fast forward to see how the sequence is terminated
-            // (This maintains compatibility with your existing ExpandEscapes logic)
+            // (same rule as the original ExpandEscapes code)
             const char *check = src + 1;
             while (*check != ';' && !isspace((unsigned char)*check) && *check != '\0') {
                 check++;

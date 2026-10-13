@@ -245,13 +245,12 @@ MIMEType *mtlist;
   }
   else 
   {
-    /* If the command went well, we don't need the error message for anything. */
+    /* The command succeeded, so the error message is not needed */
     if (emsg != NULL) 
     {
-      XtFree(emsg); // Use free(emsg); if alloc_mem internally uses standard malloc
+      free_mem(emsg);
       emsg = NULL;
     }
-    /* ---------------------------- */
   }
 
   /*
