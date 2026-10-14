@@ -130,7 +130,9 @@ $(TARGET): $(CURL_SRC_BIN)
 	cp $(CURL_SRC_BIN) ./$(TARGET)
 
 clean:
-	if [ -d $(MBEDTLS_DIR) ]; then $(MAKE) -C $(MBEDTLS_DIR) clean; fi
+	@# only library/ is built; mbedTLS's own top-level clean uses
+	@# "find -exec ... {} +", which older find versions do not support
+	if [ -d $(MBEDTLS_DIR)/library ]; then $(MAKE) -C $(MBEDTLS_DIR)/library clean; fi
 	if [ -f $(CURL_DIR)/Makefile ]; then $(MAKE) -C $(CURL_DIR) clean; fi
 	rm -rf $(PREFIX_DIR) $(TARGET)
 
