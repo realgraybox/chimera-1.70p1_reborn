@@ -34,9 +34,13 @@
 #             (the static build from helpers/curl), otherwise curl.
 #   COOKIES   true: keep cookies in $HOME/chimera/cookies/cookies.txt
 #             false: no cookies are stored or sent
-#   INSECURE  true: do not check server certificates (curl -k). Only for
-#             systems without a certificate store. A CA bundle can be
-#             given instead with the CURL_CA_BUNDLE environment variable.
+#   CA_BUNDLE file with trusted root certificates, passed to curl with
+#             --cacert. Default: $HOME/chimera/cacert.pem if it exists,
+#             otherwise curl's own default store. Useful when the system
+#             store is missing or old; "make -C helpers/curl cacert"
+#             downloads a current one.
+#   INSECURE  true: do not check server certificates (curl -k). Last
+#             resort when no usable CA_BUNDLE is available.
 #   DEBUG     true: log each request, including form data, to $LOGFILE.
 #             Leave false in normal use.
 #
@@ -45,6 +49,9 @@ if [ -z "$CURL" ]; then
     CURL=$(command -v chimera-curl 2>/dev/null) || CURL=curl
 fi
 COOKIES=${COOKIES:-true}
+if [ -z "$CA_BUNDLE" ] && [ -f "$HOME/chimera/cacert.pem" ]; then
+    CA_BUNDLE="$HOME/chimera/cacert.pem"
+fi
 INSECURE=${INSECURE:-false}
 DEBUG=${DEBUG:-false}
 LOGFILE=${LOGFILE:-/tmp/chimera.log}
@@ -104,7 +111,7 @@ if [ "$METHOD" = "GET" ] && [ -n "$HOST" ]; then
     URI="https://$HOST$PATH_AND_QUERY"
 fi
 
-log "METHOD=[$METHOD] URI=[$URI]"
+log "METHOD=[$METHOD] URI=[$URI] CURL=[$CURL] CA_BUNDLE=[$CA_BUNDLE] INSECURE=[$INSECURE]"
 log "CONTENT_TYPE=[$CONTENT_TYPE] CONTENT_LENGTH=[$CONTENT_LENGTH]"
 log "BODY=[$BODY]"
 
@@ -153,6 +160,8 @@ fi
 
 if [ "$INSECURE" = true ]; then
     set -- "$@" -k
+elif [ -n "$CA_BUNDLE" ]; then
+    set -- "$@" --cacert "$CA_BUNDLE"
 fi
 
 if [ "$METHOD" = "POST" ]; then

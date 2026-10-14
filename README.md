@@ -114,6 +114,7 @@ Without a URL, Chimera opens the address in the `WWW_HOME` environment variable 
 | `protocol` | Protocol to helper program, used for `https` and `mailto` |
 | `cacheinfo` | Cache directories and limits |
 | `cookies/cookies.txt` | Cookie jar written by the HTTPS helper |
+| `cacert.pem` | Optional root certificates for the HTTPS helper |
 
 ## HTTPS
 
@@ -125,7 +126,8 @@ The script uses the system's `curl`, which checks server certificates against th
 |---|---|---|
 | `CURL` | `chimera-curl` if installed, else `curl` | curl program to run |
 | `COOKIES` | `true` | Keep cookies in `~/chimera/cookies/cookies.txt` |
-| `INSECURE` | `false` | `true` skips the certificate check (`curl -k`), for systems without a certificate store |
+| `CA_BUNDLE` | `~/chimera/cacert.pem` if it exists | File of trusted root certificates, passed to curl with `--cacert` |
+| `INSECURE` | `false` | `true` skips the certificate check (`curl -k`); last resort when no usable CA file is available |
 | `DEBUG` | `false` | `true` logs every request, including form data such as passwords, to `/tmp/chimera.log` |
 
 ### Static curl
@@ -137,7 +139,15 @@ make -C helpers/curl static-curl
 make -C helpers/curl install-static-curl
 ```
 
-The sources are not kept in this repository. `static-curl` downloads the curl release tarball and checks its SHA-256, and checks out the mbedTLS release tag with git and checks its commit, so it needs network access, `git` and `sha256sum` once. It installs the binary as `chimera-curl`, which the script then uses automatically. Without a certificate store on the target, either point `CURL_CA_BUNDLE` at a CA bundle file or set `INSECURE=true`. `make -C helpers/curl distclean` removes the downloaded sources.
+The sources are not kept in this repository. `static-curl` downloads the curl release tarball and checks its SHA-256, and checks out the mbedTLS release tag with git and checks its commit, so it needs network access, `git` and `sha256sum` once. It installs the binary as `chimera-curl`, which the script then uses automatically.
+
+chimera-curl checks certificates against the CA file found when it was built. On an older system that file lacks today's root certificates, and pages fail with `Cert verify failed: BADCERT_NOT_TRUSTED`. Fetch a current file with
+
+```sh
+make -C helpers/curl cacert
+```
+
+which downloads curl's [cacert.pem](https://curl.se/ca/cacert.pem) to `~/chimera/cacert.pem`, where the script picks it up. Run it on a machine with a working system curl and copy the file over if needed, and refresh it now and then. `make -C helpers/curl distclean` removes the downloaded sources.
 
 **Read this before using HTTPS for anything that matters:**
 
