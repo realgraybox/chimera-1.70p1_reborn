@@ -20,6 +20,8 @@ install:
 	@for f in $(DATAFILES); do \
 		install -m 644 $$f $(DESTDIR)$(USERDATADIR)/; \
 	done
+	@# the helper paths in protocol follow BINDIR
+	sed 's|/usr/bin/|$(BINDIR)/|' protocol > $(DESTDIR)$(USERDATADIR)/protocol
 	@mkdir -p $(DESTDIR)$(BINDIR)
 	@for f in $(SCRIPTS); do \
 		install -m 755 $$f $(DESTDIR)$(BINDIR)/; \

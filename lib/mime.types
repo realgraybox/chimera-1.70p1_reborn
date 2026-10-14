@@ -59,14 +59,23 @@ application/x-tar              tar
 application/x-ustar            ustar           
 application/x-compress         Z           
 application/x-gzip             gz           
+application/x-bzip2            bz2
+application/x-xz               xz
 audio/basic                    au snd          
 audio/x-aiff                   aif aiff aifc
 audio/x-wav                    wav             
+audio/mpeg                     mp3
+audio/ogg                      ogg oga
 image/gif                      gif             
 image/ief                      ief             
 image/jpeg                     jpeg jpg jpe
+image/png                      png
 image/tiff                     tiff tif
-image/x-ms-bmp     			   bmp x-ms-bmp
+image/bmp                      bmp
+image/webp                     webp
+image/x-tga                    tga
+image/vnd.adobe.photoshop      psd
+image/sgi                      sgi
 image/x-cmu-raster             ras
 image/x-portable-anymap        pnm             
 image/x-portable-bitmap        pbm             
@@ -77,7 +86,7 @@ image/x-xbitmap                xbm
 image/x-xpixmap                xpm             
 image/x-xwindowdump            xwd             
 image/x-fits                   fts fits fit
-image/svg+xml				   svg svg+xml
+image/svg+xml                  svg
 message/external-body
 message/news
 message/partial
@@ -87,12 +96,14 @@ multipart/appledouble
 multipart/digest
 multipart/mixed
 multipart/parallel
-text/html                      html
+text/html                      html htm
 text/plain                     txt
 text/richtext                  rtx             
 text/tab-separated-values      tsv             
 text/x-setext                  etx             
 video/mpeg                     mpeg mpg mpe    
+video/mp4                      mp4
+video/webm                     webm
 video/quicktime                qt mov          
 video/x-msvideo                avi             
 video/x-sgi-movie              movie           

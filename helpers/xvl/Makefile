@@ -57,7 +57,7 @@ $(WEBP_LIB):
 	$(MAKE) -C $(WEBP_DIR)/src install
 	
 #		--disable-ccitt \
-# --- BYG AF LOKAL LIBTIFF (KUN TIL UCLIBC) ---
+# --- build the local libtiff ---
 $(TIFF_LIB):
 	mkdir -p $(PREFIX_DIR)
 	cd $(TIFF_DIR) && ./configure \
@@ -85,6 +85,7 @@ $(TIFF_LIB):
 install: $(TARGET)
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 755 $(TARGET) $(DESTDIR)$(BINDIR)/
+	install -m 755 chimera-xvl $(DESTDIR)$(BINDIR)/
 
 clean:
 	rm -f $(TARGET) $(OBJS)

@@ -9,7 +9,8 @@
 #
 #nntp                /home/john/bin/access_nntp
 
-mailto		/usr/X11/bin/mailto.pl
-#https /usr/bin/https-helper_nocookie.sh
-https /usr/bin/https-helper_cookie.sh
+mailto		/usr/bin/mailto.pl
+# https: see the settings at the top of https-helper.sh (cookies, curl
+# program, debug log). The path must match where it was installed.
+https		/usr/bin/https-helper.sh
 

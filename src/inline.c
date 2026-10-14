@@ -514,9 +514,13 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 	RGBColor rgbc;
 	Document *x;
 	char *content;
+	char ctype[128];
 	char *data;
 	int datalen;
 	ImageInfo *iinfo = NULL;	/* unless proven otherwise */
+#ifdef IMAGENEW
+	int sw, sh, sc;
+#endif
 
 	if (d->ptext != NULL) {
 		data = d->ptext;
@@ -532,46 +536,52 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 	rgbc.green = bg->green;
 	rgbc.blue = bg->blue;
 
-	if (strcasecmp(content, "image/gif") == 0) {
-#ifdef IMAGENEW  
-		img = imgLoad(data, datalen, &rgbc, d->req_width, d->req_height);	//test if internalgif handling can be bypassed
-#else
-		img = gifLoad(data, datalen, &rgbc);
-#endif
-	}
-#ifdef IMAGENEW
-	else if (strcasecmp(content, "image/png") == 0||
-		strcasecmp(content, "image/x-ms-bmp") == 0 ||
-		strcasecmp(content, "image/jpeg") == 0 ||
-		strcasecmp(content, "image/tga") == 0 ||
-		strcasecmp(content, "image/vnd.adobe.photoshop") == 0 ||
-		strcasecmp(content, "image/x-photoshop") == 0 ||	
-		strcasecmp(content, "image/psd") == 0) 
+	/* Content type without parameters such as "; charset=binary" */
+	if (content == NULL) content = "";
 	{
-		//printf("DBG content to imgLoad: %s\n", content);
+		size_t n = strcspn(content, "; \t");
+		if (n >= sizeof(ctype)) n = sizeof(ctype) - 1;
+		memcpy(ctype, content, n);
+		ctype[n] = '\0';
+	}
+
+#ifdef IMAGENEW
+	/*
+	 * Let stb_image look at the data itself. Servers use many names for
+	 * the same format (image/bmp, image/x-ms-bmp, image/x-photoshop,
+	 * image/vnd.adobe.photoshop, application/octet-stream, ...), so the
+	 * bytes decide, not the name. stbi_info only reads the header.
+	 */
+	if (stbi_info_from_memory((unsigned char *)data, datalen, &sw, &sh, &sc))
+	{
 		img = imgLoad(data, datalen, &rgbc, d->req_width, d->req_height);
 	}
-	else if (strcasecmp(content, "image/svg+xml") == 0)
+	else if (strcasecmp(ctype, "image/svg+xml") == 0 ||
+		strcasecmp(ctype, "image/svg") == 0)
 	{
 		img = svgLoad(data, datalen, &rgbc, d->req_width, d->req_height);
 	}
-#endif      
- 	else if (strcasecmp(content, "image/x-xbitmap") == 0 ||
-		strcasecmp(content, "image/xbm") == 0 ||
-		strcasecmp(content, "image/x-xbm") == 0)
+#else
+	if (strcasecmp(ctype, "image/gif") == 0) {
+		img = gifLoad(data, datalen, &rgbc);
+	}
+#endif
+ 	else if (strcasecmp(ctype, "image/x-xbitmap") == 0 ||
+		strcasecmp(ctype, "image/xbm") == 0 ||
+		strcasecmp(ctype, "image/x-xbm") == 0)
 	{
 		img = xbitmapLoad(data, datalen, &rgbc);
 	}
-	else if (strcasecmp(content, "image/x-xpixmap") == 0 ||
-		strcasecmp(content, "image/xpm") == 0 ||
-		strcasecmp(content, "image/x-xpm") == 0)
+	else if (strcasecmp(ctype, "image/x-xpixmap") == 0 ||
+		strcasecmp(ctype, "image/xpm") == 0 ||
+		strcasecmp(ctype, "image/x-xpm") == 0)
 	{
 		img = xpixmapLoad(XtDisplay(w), DefaultScreen(XtDisplay(w)), data, datalen, &rgbc);
 	}
-	else if (strcasecmp(content, "image/x-portable-anymap") == 0 ||
-		strcasecmp(content, "image/x-portable-bitmap") == 0 ||
-		strcasecmp(content, "image/x-portable-graymap") == 0 ||
-		strcasecmp(content, "image/x-portable-pixmap") == 0)
+	else if (strcasecmp(ctype, "image/x-portable-anymap") == 0 ||
+		strcasecmp(ctype, "image/x-portable-bitmap") == 0 ||
+		strcasecmp(ctype, "image/x-portable-graymap") == 0 ||
+		strcasecmp(ctype, "image/x-portable-pixmap") == 0)
 	{
 		img = pbmLoad(data, datalen, &rgbc);
 	} else {
