@@ -11,22 +11,14 @@ helpers/text2pdf/text2pdf
 helpers/menu/menu
 helpers/fits2gif/fits2gif
 helpers/curl/build_target/
-helpers/curl/curl.7.47.0
+helpers/curl/chimera-curl
+helpers/curl/curl-7.47.0/
+helpers/curl/curl-7.47.0.tar.gz
+helpers/curl/mbedtls-mbedtls-2.16.0/
 
-# Output of ./configure and make in the bundled curl, libtiff and libwebp
+# Output of ./configure and make in the bundled libtiff and libwebp
 # sources. The helper makefiles run ./configure on every build, so none
 # of this belongs in the repository.
-helpers/curl/curl-7.47.0/**/Makefile
-helpers/curl/curl-7.47.0/curl-config
-helpers/curl/curl-7.47.0/libcurl.pc
-helpers/curl/curl-7.47.0/include/curl/curlbuild.h
-helpers/curl/curl-7.47.0/lib/curl_config.h
-helpers/curl/curl-7.47.0/lib/libcurl.vers
-helpers/curl/curl-7.47.0/packages/**/*.spec
-helpers/curl/curl-7.47.0/packages/EPM/curl.list
-helpers/curl/curl-7.47.0/src/curl
-helpers/curl/curl-7.47.0/src/tool_hugehelp.c
-helpers/curl/curl-7.47.0/tests/configurehelp.pm
 helpers/xvl/tiff-3.7.0/**/Makefile
 helpers/xvl/tiff-3.7.0/libtiff/tif_config.h
 helpers/xvl/tiff-3.7.0/libtiff/tiffconf.h

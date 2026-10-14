@@ -1,0 +1,199 @@
+#!/bin/sh
+#
+# Copyright (C) 2026 M. Glargaard, aka graybox
+#
+# This software is provided "as-is", without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would
+#    be appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not
+#    be misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source distribution.
+#
+
+#
+# https-helper.sh - HTTPS for Chimera through curl
+#
+# Chimera has no TLS code. The "protocol" file maps https to this script.
+# Chimera writes an HTTP/1.0 style request on stdin; the script fetches
+# the page with curl and writes a plain HTTP/1.0 response on stdout.
+#
+# Settings, each can also be given as an environment variable:
+#
+#   CURL      curl program to run. Default: chimera-curl if installed
+#             (the static build from helpers/curl), otherwise curl.
+#   COOKIES   true: keep cookies in $HOME/chimera/cookies/cookies.txt
+#             false: no cookies are stored or sent
+#   INSECURE  true: do not check server certificates (curl -k). Only for
+#             systems without a certificate store. A CA bundle can be
+#             given instead with the CURL_CA_BUNDLE environment variable.
+#   DEBUG     true: log each request, including form data, to $LOGFILE.
+#             Leave false in normal use.
+#
+
+if [ -z "$CURL" ]; then
+    CURL=$(command -v chimera-curl 2>/dev/null) || CURL=curl
+fi
+COOKIES=${COOKIES:-true}
+INSECURE=${INSECURE:-false}
+DEBUG=${DEBUG:-false}
+LOGFILE=${LOGFILE:-/tmp/chimera.log}
+
+URI=""
+HOST=""
+REQUEST_LINE=""
+METHOD="GET"
+CONTENT_TYPE="application/x-www-form-urlencoded"
+CONTENT_LENGTH=0
+
+log() {
+    [ "$DEBUG" = true ] && echo "$*" >> "$LOGFILE"
+}
+
+[ "$DEBUG" = true ] && : > "$LOGFILE"
+
+# --- Read the request headers from Chimera ---
+while IFS= read -r line
+do
+    line=$(printf "%s" "$line" | tr -d '\r')
+    log "HDR: [$line]"
+
+    [ -z "$line" ] && break
+
+    case "$line" in
+        GET\ *)
+            METHOD="GET"
+            REQUEST_LINE="$line"
+            ;;
+        POST\ *)
+            METHOD="POST"
+            REQUEST_LINE="$line"
+            ;;
+        URI:*)
+            URI=$(printf "%s" "$line" | sed 's/^URI: //')
+            ;;
+        X-hostname:*)
+            HOST=$(printf "%s" "$line" | sed 's/^X-hostname: //')
+            ;;
+        Content-type:*)
+            CONTENT_TYPE=$(printf "%s" "$line" | sed 's/^Content-type: //')
+            ;;
+        Content-length:*)
+            CONTENT_LENGTH=$(printf "%s" "$line" | sed 's/^Content-length: //')
+            ;;
+    esac
+done
+
+BODY=""
+if [ "$CONTENT_LENGTH" -gt 0 ] 2>/dev/null; then
+    BODY=$(dd bs=1 count="$CONTENT_LENGTH" 2>/dev/null)
+fi
+
+PATH_AND_QUERY=$(printf "%s\n" "$REQUEST_LINE" | awk '{print $2}')
+if [ "$METHOD" = "GET" ] && [ -n "$HOST" ]; then
+    URI="https://$HOST$PATH_AND_QUERY"
+fi
+
+log "METHOD=[$METHOD] URI=[$URI]"
+log "CONTENT_TYPE=[$CONTENT_TYPE] CONTENT_LENGTH=[$CONTENT_LENGTH]"
+log "BODY=[$BODY]"
+
+if [ -z "$URI" ]; then
+    printf "HTTP/1.0 500 Error\r\n"
+    printf "Content-Type: text/plain\r\n"
+    printf "\r\n"
+    printf "No URI provided\n"
+    exit 1
+fi
+
+# --- Block known tracking links without a network call ---
+# A 1x1 transparent GIF
+TRANSPARENT_GIF_B64="R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+
+send_transparent_gif() {
+    printf "HTTP/1.0 200 OK\r\n"
+    printf "Content-Type: image/gif\r\n"
+    printf "\r\n"
+    printf "%s" "$TRANSPARENT_GIF_B64" | base64 -d 2>/dev/null \
+        || printf "%s" "$TRANSPARENT_GIF_B64" | openssl enc -d -base64
+}
+
+case "$URI" in
+    *flattr*|*badge*|*counter*|*analytics*)
+        log "BLOCKED: $URI"
+        send_transparent_gif
+        exit 0
+        ;;
+esac
+
+# --- Fetch with curl ---
+# Temporary files, removed again on exit
+HEADER_DUMP=$(mktemp "${TMPDIR:-/tmp}/chimera_headers.XXXXXX") || exit 1
+BODY_DUMP=$(mktemp "${TMPDIR:-/tmp}/chimera_body.XXXXXX") || { rm -f "$HEADER_DUMP"; exit 1; }
+trap 'rm -f "$HEADER_DUMP" "$BODY_DUMP"' EXIT
+
+set -- -L -s -A "Chimera/1.70" --connect-timeout 3 --max-time 10 \
+       -D "$HEADER_DUMP" -o "$BODY_DUMP"
+
+if [ "$COOKIES" = true ]; then
+    COOKIEJAR="$HOME/chimera/cookies/cookies.txt"
+    mkdir -p "$HOME/chimera/cookies"
+    set -- "$@" -b "$COOKIEJAR" -c "$COOKIEJAR"
+fi
+
+if [ "$INSECURE" = true ]; then
+    set -- "$@" -k
+fi
+
+if [ "$METHOD" = "POST" ]; then
+    set -- "$@" -H "Content-Type: $CONTENT_TYPE" --data "$BODY"
+fi
+
+"$CURL" "$@" "$URI"
+CURL_EXIT=$?
+
+# HTTP status code of the last response (after redirects)
+HTTP_STATUS=$(tr -d '\r' < "$HEADER_DUMP" 2>/dev/null | awk '/^HTTP\// {print $2}' | tail -1)
+[ -z "$HTTP_STATUS" ] && HTTP_STATUS="000"
+
+# Content-Type of the last response (after redirects)
+CTYPE=$(tr -d '\r' < "$HEADER_DUMP" 2>/dev/null \
+    | awk -F': ' 'tolower($1) == "content-type" {print $2}' \
+    | tail -1)
+[ -z "$CTYPE" ] && CTYPE="application/octet-stream"
+
+log "CURL_EXIT=[$CURL_EXIT] HTTP_STATUS=[$HTTP_STATUS] CTYPE=[$CTYPE]"
+
+# --- A failed image request gets a transparent GIF instead of an error page ---
+if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_STATUS" -ge 400 ]; then
+    case "$URI" in
+        *.png*|*.gif*|*.jpg*|*.jpeg*|*.ico*)
+            log "RESCUE: image request failed, sending 1x1 GIF"
+            send_transparent_gif
+            exit 0
+            ;;
+    esac
+fi
+
+# --- Pass the response on to Chimera with its real status code ---
+if [ "$HTTP_STATUS" = "000" ]; then
+    printf "HTTP/1.0 504 Gateway Timeout\r\n"
+    printf "Content-Type: text/plain\r\n"
+    printf "\r\n"
+    printf "The server did not respond in time.\n"
+else
+    printf "HTTP/1.0 %s\r\n" "$(tr -d '\r' < "$HEADER_DUMP" | awk '/^HTTP\// {print substr($0, index($0,$2))}' | tail -1)"
+    printf "Content-Type: %s\r\n" "$CTYPE"
+    printf "\r\n"
+    cat "$BODY_DUMP"
+fi

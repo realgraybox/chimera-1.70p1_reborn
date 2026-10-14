@@ -18,5 +18,5 @@ esac
 TMPLINK="/tmp/chimera_viewer.$EXT"
 ln -sf "$INFILE" "$TMPLINK"
 
-# Call your existing xvl with the correct filename!
+# Run xvl on the link, which now has the right extension
 xvl "$TMPLINK"
