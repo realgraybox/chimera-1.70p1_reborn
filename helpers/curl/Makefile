@@ -12,6 +12,8 @@ include ../../mk.config
 #
 #   make static-curl          download, check, build ./chimera-curl
 #   make install-static-curl  install it as $(BINDIR)/chimera-curl
+#   make cacert               download curl's current CA bundle to
+#                             ~/chimera/cacert.pem, used by https-helper.sh
 #
 # https-helper.sh uses chimera-curl automatically when it is installed.
 # The sources are downloaded on demand instead of being kept in the
@@ -47,7 +49,7 @@ CURL_LDFLAGS = $(STATIC) -Wl,--gc-sections,--sort-common,-s
 MBEDTLS_LIBS = $(PREFIX_DIR)/lib/libmbedcrypto.a $(PREFIX_DIR)/lib/libmbedx509.a $(PREFIX_DIR)/lib/libmbedtls.a
 CURL_SRC_BIN = $(CURL_DIR)/src/curl
 
-.PHONY: all install static-curl install-static-curl clean distclean
+.PHONY: all install static-curl install-static-curl cacert clean distclean
 
 all:
 	@echo "helpers/curl: using the system curl; see 'make static-curl' for a static one"
@@ -60,6 +62,16 @@ static-curl: $(TARGET)
 
 install-static-curl: $(TARGET) install
 	install -m 755 $(TARGET) $(DESTDIR)$(BINDIR)/
+
+# Root certificates as published by the curl project (from Mozilla's
+# list). Fetched with the system curl over a verified connection; run it
+# again now and then, as root certificates change over the years.
+CACERT_URL = https://curl.se/ca/cacert.pem
+
+cacert:
+	install -d $(DESTDIR)$(USERDATADIR)
+	curl -fsSL -o $(DESTDIR)$(USERDATADIR)/cacert.pem $(CACERT_URL)
+	@echo "installed $(USERDATADIR)/cacert.pem"
 
 # 0a. curl: download the release tarball, check it, unpack it.
 #     ltmain.sh is patched so libtool passes -static on to the linker,
