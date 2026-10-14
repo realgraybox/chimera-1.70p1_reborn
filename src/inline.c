@@ -544,6 +544,8 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 		strcasecmp(content, "image/x-ms-bmp") == 0 ||
 		strcasecmp(content, "image/jpeg") == 0 ||
 		strcasecmp(content, "image/tga") == 0 ||
+		strcasecmp(content, "image/vnd.adobe.photoshop") == 0 ||
+		strcasecmp(content, "image/x-photoshop") == 0 ||	
 		strcasecmp(content, "image/psd") == 0) 
 	{
 		//printf("DBG content to imgLoad: %s\n", content);

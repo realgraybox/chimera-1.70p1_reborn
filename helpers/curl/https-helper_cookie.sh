@@ -120,7 +120,7 @@ esac
 
 # Run the curl request itself and dump the headers to a file separately
 if [ "$METHOD" = "POST" ]; then
-    curl.7.47.0 -k -L -s \
+    ${CURL:-curl} -L -s \
         -A "Chimera/1.70" \
         --connect-timeout 3 --max-time 10 \
         -b "$COOKIEJAR" \
@@ -131,7 +131,7 @@ if [ "$METHOD" = "POST" ]; then
         -o "$BODY_DUMP" \
         "$URI"
 else
-    curl.7.47.0 -k -L -s \
+    ${CURL:-curl} -L -s \
         -A "Chimera/1.70" \
         --connect-timeout 3 --max-time 10 \
         -b "$COOKIEJAR" \

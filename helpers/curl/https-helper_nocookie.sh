@@ -96,7 +96,7 @@ if [ -z "$URI" ]; then
     exit 1
 fi
 
-CTYPE=$(curl.7.47.0 -k -L -s -I \
+CTYPE=$(${CURL:-curl} -L -s -I \
     -A "Chimera/1.70" \
     "$URI" \
     | tr -d '\r' \
@@ -112,8 +112,7 @@ printf "Content-Type: %s\r\n" "$CTYPE"
 printf "\r\n"
 
 if [ "$METHOD" = "POST" ]; then
-    curl.7.47.0 \
-        -k \
+    ${CURL:-curl} \
         -L \
         -s \
         -A "Chimera/1.70" \
@@ -121,8 +120,7 @@ if [ "$METHOD" = "POST" ]; then
         --data "$BODY" \
         "$URI"
 else
-    curl.7.47.0 \
-        -k \
+    ${CURL:-curl} \
         -L \
         -s \
         -A "Chimera/1.70" \
