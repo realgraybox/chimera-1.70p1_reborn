@@ -12,7 +12,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **HTML:** the NCSA Mosaic HTML widget, covering headings, lists, text styles, forms, tables and inline images.
 - **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image, recognised from the image data whatever type name the server sends), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with xloadimage's median-cut reducer; images with 256 colours or fewer keep their exact colours.
 - **Inline images through converters:** TIFF, WebP and SGI (converted to PNG by `xvl -c`), FITS, PostScript and PDF, using the rules in the `convert` file.
-- **External viewers:** anything else is passed to the program named in `mailcap`. `xvl`, a small image viewer included here, handles most image formats, including TIFF and WebP.
+- **External viewers:** anything else is passed to the program named in `mailcap`. The default `mailcap` hands images, audio, video, PDF and other documents to `chimera-open`, which opens a copy of the file with the desktop's default program (`xdg-open`), or with `xvl`, the small image viewer included here, when there is none.
 - **Printing:** the print dialog pipes the page to `chimera_print.sh`, which turns plain text into a PDF with the bundled `text2pdf`.
 
 ## What does not work
@@ -168,7 +168,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | `common/` | `common.h`, shared by all parts: memory helper macros mapped onto Xt's allocator |
 | `XawPlus-2.0.2/` | Bundled XawPlus widget set |
 | `lib/` | Runtime data files installed to `~/chimera`, and `chimera_print.sh` |
-| `util/` | Original helper scripts (telnet, 3270, audio, mailto, bookmark conversion) |
+| `util/` | Helper scripts: `chimera-open`, and the original telnet, 3270, mailto and bookmark conversion scripts |
 | `helpers/curl/` | The HTTPS helper script, and a makefile that can build a static curl |
 | `helpers/xvl/` | `xvl` image viewer, with libtiff 3.7.0 and libwebp 0.4.4 |
 | `helpers/fits2gif/` | Converter for inline FITS images |
@@ -179,6 +179,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 
 - `make install` writes the helper paths in `~/chimera/protocol` for the chosen `PREFIX`, but the commands in `mailcap` and `convert` are found through `PATH`.
 - Some of the original scripts in `util/` expect Perl or programs that are rare today.
+- A `mailcap` command ends at the next `;` and can contain `%s` only once; Chimera deletes the downloaded file as soon as the command returns. `chimera-open` exists for that reason.
 
 ## Licensing
 

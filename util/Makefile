@@ -1,6 +1,6 @@
 include ../mk.config
 
-SCRIPTS = dotelnet do3270 pstopxm playaudio mailto.pl
+SCRIPTS = dotelnet do3270 pstopxm mailto.pl chimera-open
 
 all:
 	@echo "Nothing to build (only script install)"
