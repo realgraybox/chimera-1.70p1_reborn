@@ -30,9 +30,10 @@ MBEDTLS_TAG    = mbedtls-2.16.0
 MBEDTLS_REPO   = https://github.com/Mbed-TLS/mbedtls.git
 MBEDTLS_COMMIT = fb1972db23da39bd11d4f9c9ea6266eee665605b
 
-CURL_DIR    = $(CURDIR)/curl-$(CURL_VERSION)
-MBEDTLS_DIR = $(CURDIR)/mbedtls-mbedtls-2.16.0
-PREFIX_DIR  = $(CURDIR)/build_target
+# Relative paths, since make cannot handle spaces in target names.
+CURL_DIR    = curl-$(CURL_VERSION)
+MBEDTLS_DIR = mbedtls-mbedtls-2.16.0
+PREFIX_DIR  = build_target
 
 TARGET = chimera-curl
 
@@ -43,8 +44,17 @@ ifneq ($(IS_UCLIBC), 1)
     TARGET_CFLAGS += -fPIC
 endif
 
-# Only the flags curl needs, not Chimera's own libraries
-CURL_LDFLAGS = $(STATIC) -Wl,--gc-sections,--sort-common,-s
+# Only the flags curl needs, not Chimera's own libraries.
+#
+# mbedTLS is passed to curl's configure as plain -I and -L flags rather
+# than --with-mbedtls=DIR: configure splits DIR at spaces, so in a
+# directory like "Linux ext2" it would not find mbedTLS and quietly build
+# a curl without HTTPS. The paths are relative: configure runs its tests
+# in $(CURL_DIR) and the build runs in $(CURL_DIR)/lib and $(CURL_DIR)/src,
+# so a link $(CURL_DIR)/$(PREFIX_DIR) -> ../$(PREFIX_DIR) makes the same
+# "../$(PREFIX_DIR)" valid from both levels.
+MBEDTLS_CPPFLAGS = -I../$(PREFIX_DIR)/include
+CURL_LDFLAGS = $(HELPER_LDFLAGS) -L../$(PREFIX_DIR)/lib
 
 MBEDTLS_LIBS = $(PREFIX_DIR)/lib/libmbedcrypto.a $(PREFIX_DIR)/lib/libmbedx509.a $(PREFIX_DIR)/lib/libmbedtls.a
 CURL_SRC_BIN = $(CURL_DIR)/src/curl
@@ -102,10 +112,11 @@ $(MBEDTLS_LIBS): $(MBEDTLS_DIR)/Makefile
 
 # 2. configure and build curl against the local mbedTLS, HTTP and HTTPS only
 $(CURL_SRC_BIN): $(CURL_DIR)/configure $(MBEDTLS_LIBS)
+	ln -sfn ../$(PREFIX_DIR) $(CURL_DIR)/$(PREFIX_DIR)
 	cd $(CURL_DIR) && ./configure \
 		--disable-shared \
 		--enable-static \
-		--with-mbedtls=$(PREFIX_DIR) \
+		--with-mbedtls \
 		--disable-ftp \
 		--disable-file \
 		--disable-ldap \
@@ -133,12 +144,17 @@ $(CURL_SRC_BIN): $(CURL_DIR)/configure $(MBEDTLS_LIBS)
 		--disable-mqtt \
 		--without-ssl \
 		CFLAGS="$(TARGET_CFLAGS)" \
+		CPPFLAGS="$(MBEDTLS_CPPFLAGS)" \
 		LDFLAGS="$(CURL_LDFLAGS)" \
 		CC="$(CC)"
 	$(MAKE) -C $(CURL_DIR)
 
-# 3. copy the binary here under its installed name
+# 3. copy the binary here under its installed name, after checking that
+#    it really has HTTPS: configure carries on without it if mbedTLS is
+#    not found.
 $(TARGET): $(CURL_SRC_BIN)
+	@$(CURL_SRC_BIN) -V | grep -q '^Protocols:.* https' \
+		|| { echo "helpers/curl: curl was built without HTTPS (mbedTLS not found)" >&2; exit 1; }
 	cp $(CURL_SRC_BIN) ./$(TARGET)
 
 clean:
