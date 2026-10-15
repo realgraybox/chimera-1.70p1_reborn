@@ -52,7 +52,9 @@ sudo apt install build-essential libx11-dev libxt-dev libxmu-dev libxext-dev \
                  libxpm-dev libsm-dev libice-dev libgif-dev zlib1g-dev
 ```
 
-XawPlus, libtiff and libwebp are built from the sources in this repository.
+XawPlus, libtiff and libwebp are built from the sources in this repository. The default XawPlus build does not need `libxaw7-dev`: the `X11/Xaw/...` includes in libhtmlw, mxw and src are mapped to the XawPlus headers. Only the Xaw and Xaw3d builds (see `mk.config`) need the system's Xaw headers.
+
+The source tree may live in a directory whose path contains spaces, such as `/media/user/Linux ext2/src`. `DESTDIR` and the install directories must not contain spaces.
 
 ### Build
 
