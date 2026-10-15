@@ -179,7 +179,7 @@ static MailCap mclist[] =
   { "image/x-fits", "saoimage %s" },
   { "image/*", "xv %s" },
   { "video/mpeg", "mpeg_play -loop %s" },
-  { "audio/basic", "playaudio %s" },
+  { "audio/basic", "chimera-open %s" },
   { NULL, NULL },
 };
 

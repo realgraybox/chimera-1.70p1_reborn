@@ -1,32 +1,30 @@
-#this is a comment - all to often forgot to comment and later forgot why entry was as it was...
-
-application/x-telnet; xterm -e sh -c "dotelnet %s"
-application/x-tn3270; xterm -e sh -c "do3270 %s"
-
-# below deactivated - who use dvi in 2026?
-text/x-dvi;		xdvi %s 2> /dev/null
-application/x-dvi;	xdvi %s 2> /dev/null
-
 #
-application/postscript; gv %s 2> /dev/null
-application/pdf; xpdf %s 2> /dev/null
-
+# mailcap - external programs for content Chimera does not show itself
 #
-image/x-fits;           saoimage -fits %s 2> /dev/null
-#xvl take care of most image formats - 147k static linked imageviewer (xv-light)...
-image/x-xwindowdump;	xvl %s 2> /dev/null
-image/x-xbitmap;		xv %s 2> /dev/null
-image/x-portable-anymap        xvl %s 2> /dev/null             
-image/x-portable-bitmap        xvl %s 2> /dev/null             
-image/x-portable-graymap       xvl %s 2> /dev/null             
-image/x-portable-pixmap        xvl %s 2> /dev/null
-          
-image/x-xpixmap                xvl %s 2> /dev/null   
-
-image/*;		xvl %s 2> /dev/null
-
-# works - mpegplayer small 130k static linked mpegplayer!
-video/mpeg;		mpegplayer %s 1>&2 2> /dev/null
-
+# Format: content-type; command
 #
-audio/basic;		playaudio %s 2> /dev/null
+# The command is everything after the first ';' up to the next ';' or
+# the end of the line, so it cannot contain a further ';'. %s is
+# replaced by the downloaded file, and may appear only once. Chimera
+# deletes that file as soon as the command returns.
+#
+# chimera-open copies the file and hands the copy to the desktop's
+# default program (xdg-open), so it works with programs that return at
+# once. Without xdg-open it falls back to xvl for images. FITS images
+# are converted to GIF first.
+#
+# The first matching line wins, so specific types go before wildcards.
+#
+
+application/x-telnet;	xterm -e sh -c "dotelnet %s"
+application/x-tn3270;	xterm -e sh -c "do3270 %s"
+
+image/*;		chimera-open %s
+video/*;		chimera-open %s
+audio/*;		chimera-open %s
+
+application/postscript;	chimera-open %s
+application/pdf;	chimera-open %s
+
+# anything else, for example office documents and archives
+application/*;		chimera-open %s

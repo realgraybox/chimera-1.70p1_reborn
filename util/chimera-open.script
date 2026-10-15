@@ -1,0 +1,112 @@
+#!/bin/sh
+#
+# Copyright (C) 2026 M. Glargaard, aka graybox
+#
+# This software is provided "as-is", without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would
+#    be appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not
+#    be misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source distribution.
+#
+
+#
+# chimera-open FILE
+#
+# Opens a file Chimera has downloaded with the desktop's default program,
+# for use in mailcap:
+#
+#   image/*;  chimera-open %s
+#
+# Chimera deletes the downloaded file as soon as the mailcap command
+# returns. xdg-open returns at once, before the program it starts has
+# read the file, so this script works on a copy instead:
+#
+#   1. copy the file to a private temporary directory, with an extension
+#      matching its type, since some programs need one;
+#   2. FITS images, which few programs open, are converted to GIF first
+#      with fits2gif;
+#   3. open the copy with $OPENER (default xdg-open), or with xvl for
+#      images when no opener is installed;
+#   4. remove the copy after $KEEP seconds (default 120), in the
+#      background. A program that already has the file open keeps
+#      reading it after that.
+#
+
+OPENER=${OPENER:-xdg-open}
+KEEP=${KEEP:-120}
+
+IN="$1"
+if [ -z "$IN" ] || [ ! -f "$IN" ]; then
+    echo "usage: chimera-open FILE" >&2
+    exit 1
+fi
+
+MIME=""
+if command -v file >/dev/null 2>&1; then
+    MIME=$(file -b --mime-type "$IN" 2>/dev/null)
+fi
+
+case "$MIME" in
+    image/jpeg)                 EXT=jpg ;;
+    image/png)                  EXT=png ;;
+    image/gif)                  EXT=gif ;;
+    image/bmp|image/x-ms-bmp)   EXT=bmp ;;
+    image/webp)                 EXT=webp ;;
+    image/tiff)                 EXT=tif ;;
+    image/svg+xml)              EXT=svg ;;
+    image/vnd.adobe.photoshop)  EXT=psd ;;
+    image/x-xpixmap)            EXT=xpm ;;
+    image/x-xbitmap)            EXT=xbm ;;
+    image/x-portable-*)         EXT=pnm ;;
+    image/fits|application/fits|image/x-fits) EXT=fits ;;
+    application/pdf)            EXT=pdf ;;
+    application/postscript)     EXT=ps ;;
+    audio/mpeg)                 EXT=mp3 ;;
+    audio/ogg)                  EXT=ogg ;;
+    audio/x-wav|audio/wav)      EXT=wav ;;
+    audio/basic)                EXT=au ;;
+    video/mp4)                  EXT=mp4 ;;
+    video/webm)                 EXT=webm ;;
+    video/mpeg)                 EXT=mpg ;;
+    video/quicktime)            EXT=mov ;;
+    video/x-msvideo)            EXT=avi ;;
+    text/plain)                 EXT=txt ;;
+    text/html)                  EXT=html ;;
+    *)                          EXT="" ;;
+esac
+
+DIR=$(mktemp -d "${TMPDIR:-/tmp}/chimera-open.XXXXXX") || exit 1
+OUT="$DIR/file${EXT:+.$EXT}"
+
+if [ "$EXT" = fits ] && command -v fits2gif >/dev/null 2>&1; then
+    OUT="$DIR/file.gif"
+    MIME=image/gif
+    fits2gif "$IN" "$OUT" >/dev/null 2>&1 || cp "$IN" "$DIR/file.fits"
+    [ -s "$OUT" ] || OUT="$DIR/file.fits"
+else
+    cp "$IN" "$OUT" || { rmdir "$DIR"; exit 1; }
+fi
+
+# remove the copy later, detached from Chimera
+( sleep "$KEEP"; rm -rf "$DIR" ) >/dev/null 2>&1 &
+
+if command -v "$OPENER" >/dev/null 2>&1; then
+    "$OPENER" "$OUT" >/dev/null 2>&1
+elif command -v xvl >/dev/null 2>&1 && [ "${MIME#image/}" != "$MIME" ]; then
+    xvl "$OUT"
+else
+    echo "chimera-open: no program to open $OUT (set OPENER)" >&2
+    exit 1
+fi
