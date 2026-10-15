@@ -1,2 +1,8 @@
 #!/bin/sh
-menu /root/chimera/sendto "$@" &
+#
+# sendto URL-or-FILE
+#
+# Run by Chimera on a right-click on a link: pops up the menu in
+# $HOME/chimera/sendto, with the link available to the entries as "$F".
+#
+exec chimera-menu "$HOME/chimera/sendto" "$1"

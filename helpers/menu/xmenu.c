@@ -271,9 +271,17 @@ readMenu(int argc, char *argv[]) {
 	}
 
 	if (param) {  /* 'param' set to argv[2] */
-		char sb[BUFSIZ];
-		sprintf(sb,"F=%s\n",param);
-		fputs(sb,shell);	/* pass argv[2] as string variable '$F' */
+		/*
+		 * Pass argv[2] as shell variable $F, in single quotes so spaces,
+		 * '&' and ';' stay part of it. A ' inside is written as '\''.
+		 */
+		const char *p;
+		fputs("F='", shell);
+		for (p = param; *p; p++) {
+			if (*p == '\'') fputs("'\\''", shell);
+			else fputc(*p, shell);
+		}
+		fputs("'\n", shell);
 		fflush(shell);
 	}
 
