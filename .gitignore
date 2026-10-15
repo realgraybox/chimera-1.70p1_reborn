@@ -8,7 +8,7 @@ helpers/xvl/private/
 helpers/xvl/build_target/
 helpers/xvl/xvl
 helpers/text2pdf/text2pdf
-helpers/menu/menu
+helpers/menu/chimera-menu
 helpers/fits2gif/fits2gif
 helpers/curl/build_target/
 helpers/curl/chimera-curl

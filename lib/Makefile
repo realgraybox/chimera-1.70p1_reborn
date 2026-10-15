@@ -7,7 +7,8 @@ DATAFILES = \
 	mime.types \
 	mailcap \
 	protocol \
-	cacheinfo
+	cacheinfo \
+	sendto
 	
 SCRIPTS = \
 	chimera_print.sh

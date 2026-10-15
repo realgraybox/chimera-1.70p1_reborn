@@ -13,6 +13,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image, recognised from the image data whatever type name the server sends), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with xloadimage's median-cut reducer; images with 256 colours or fewer keep their exact colours.
 - **Inline images through converters:** TIFF, WebP and SGI (converted to PNG by `xvl -c`), FITS, PostScript and PDF, using the rules in the `convert` file.
 - **External viewers:** anything else is passed to the program named in `mailcap`. The default `mailcap` hands images, audio, video, PDF and other documents to `chimera-open`, which opens a copy of the file with the desktop's default program (`xdg-open`), or with `xvl`, the small image viewer included here, when there is none.
+- **Right-click menu:** a right-click on a link runs `sendto`, which pops up the menu defined in `~/chimera/sendto` with the link available as `"$F"` (a local path for `file:` links). Edit that file to change the entries; label and command are separated by a single tab.
 - **Printing:** the print dialog pipes the page to `chimera_print.sh`, which turns plain text into a PDF with the bundled `text2pdf`.
 
 ## What does not work
@@ -32,7 +33,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **Resizing:** window resize events are debounced so the page is not reformatted on every intermediate size (compile flag `REBOUNCH`).
 - **Parser:** faster tag matching in the HTML parser, found by profiling (compile flag `GPROFOPT`).
 - **Locale:** the browser calls `setlocale()` at startup so the system character set is used.
-- **Helpers:** new small programs `xvl` (image viewer, and converter for inline images with `-c`) and `fits2gif`, plus bundled `text2pdf` and `menu`.
+- **Helpers:** new small programs `xvl` (image viewer, and converter for inline images with `-c`) and `fits2gif`, plus bundled `text2pdf` and Terry Loveall's `menu`, installed as `chimera-menu`.
 
 ## Building
 
@@ -40,7 +41,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 
 - GNU make and a C compiler that accepts `-std=gnu99`.
 - X11 development headers and libraries: `libX11`, `libXt`, `libXmu`, `libXext`, `libXpm`, `libSM`, `libICE`.
-- `giflib` for `fits2gif` and `menu`.
+- `giflib` for `fits2gif`.
 - `zlib` for `xvl`.
 - At run time, `curl` for HTTPS.
 
@@ -113,6 +114,7 @@ Without a URL, Chimera opens the address in the `WWW_HOME` environment variable 
 | `convert` | Conversion rules, including converters for inline images |
 | `protocol` | Protocol to helper program, used for `https` and `mailto` |
 | `cacheinfo` | Cache directories and limits |
+| `sendto` | Entries of the right-click menu for links |
 | `cookies/cookies.txt` | Cookie jar written by the HTTPS helper |
 | `cacert.pem` | Optional root certificates for the HTTPS helper |
 
@@ -173,7 +175,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | `helpers/xvl/` | `xvl` image viewer, with libtiff 3.7.0 and libwebp 0.4.4 |
 | `helpers/fits2gif/` | Converter for inline FITS images |
 | `helpers/text2pdf/` | text2pdf 1.1, used for printing |
-| `helpers/menu/` | Small Xlib pop-up menu |
+| `helpers/menu/` | Small Xlib pop-up menu (`chimera-menu`) and the `sendto` script for the right-click menu |
 
 ## Known rough edges
 
@@ -199,7 +201,7 @@ This repository combines code under several licences. **Chimera itself is not op
 | libtiff 3.7.0 | libtiff licence (BSD style) |
 | libwebp 0.4.4 | BSD 3-clause |
 | text2pdf 1.1 | Free redistribution; modification only with the author's permission |
-| `menu` | GPL v2 or later |
+| `menu` (`chimera-menu`) | GPL v2 or later |
 | `xvl`, `fits2gif`, HTTPS helper scripts | zlib licence |
 | `XawPlus-2.0.2/XmuStrToPixmap.c` | MIT |
 

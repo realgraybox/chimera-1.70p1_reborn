@@ -1,0 +1,17 @@
+# sendto - the right-click menu for links in Chimera
+#
+# Each line is: label<TAB>shell command
+# Label and command must be separated by one TAB character, not spaces.
+# "$F" is the link that was clicked: a local path for file: links,
+# otherwise the URL. Keep it in double quotes so spaces and & are safe.
+# A line starting with a TAB is run once when the menu is loaded.
+# The default... programs are the ones Puppy Linux provides; change them
+# to whatever the system has.
+#
+Open	xdg-open "$F" &
+Exec	"$F" &
+Terminal Here	d="$F"; [ -d "$d" ] || d=$(dirname "$d"); defaultterminal --working-directory="$d" &
+Open Archive	defaultarchiver "$F" &
+Open As Text	defaulttexteditor "$F" &
+Edit This Menu	defaulttexteditor "$HOME/chimera/sendto" &
+Cancel	

@@ -57,6 +57,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <ctype.h>
 #include "HTMLP.h"
 #include "DrawingArea.h"
 #include <X11/Xmu/StdSel.h>
@@ -3698,35 +3702,57 @@ Cardinal *num_params;	/* unused */
 }
 
 /*
- * Execute cmd string in a forked process.
- */
-int SYSTEM (char *cmd)
-{
-	#define SHELL   "/bin/sh"
-	pid_t pid;
-//	printf ("Exec: %s \n",(cmd));
-	switch(pid=fork()) {
-		case 0:
-			execl(SHELL,"sh","-c",cmd,(char *) 0);
-			printf("System Error: Execl failed!\n");
-			_exit(127);
-		case -1: printf("fork error\n");
-		default: return(0);
-	}
-}
-
-/*
  * Call external sendto: pop up menu with cursor designated URL.
+ *
+ * The link is passed as one argument, without a shell, so characters
+ * such as '&', ';' and spaces in it reach sendto unchanged. A file: URL
+ * is turned into a plain local path: the "file:" and "//localhost"
+ * prefixes are removed and %XX escapes such as %20 are decoded.
  */
 static void HtmlPopMenu(Widget w, char *u)
 {
-	char b[1024] = "";
-	char cmdstr[1280];
-	if (u) {
-		if (u) strcpy(b, u);
-		if(strstr(b,"file:/")) memmove(b,b+5,strlen(b)-4);
-		sprintf(cmdstr,"sendto %s &",b);
-		SYSTEM(cmdstr);
+	char b[1024];
+	char *s, *d;
+
+	if (u == NULL) return;
+
+	s = u;
+	if (strncasecmp(s, "file:", 5) == 0)
+	{
+		s += 5;
+		if (strncasecmp(s, "//localhost/", 12) == 0) s += 11;
+		else if (strncmp(s, "///", 3) == 0) s += 2;
+
+		for (d = b; *s != '\0' && d < b + sizeof(b) - 1; s++)
+		{
+			if (s[0] == '%' && isxdigit((unsigned char)s[1]) &&
+			    isxdigit((unsigned char)s[2]))
+			{
+				char hex[3] = { s[1], s[2], '\0' };
+				*d++ = (char)strtol(hex, NULL, 16);
+				s += 2;
+			}
+			else *d++ = *s;
+		}
+		*d = '\0';
+	}
+	else
+	{
+		strncpy(b, s, sizeof(b) - 1);
+		b[sizeof(b) - 1] = '\0';
+	}
+
+	switch (fork())
+	{
+		case 0:
+			execlp("sendto", "sendto", b, (char *) 0);
+			fprintf(stderr, "Chimera: could not run sendto\n");
+			_exit(127);
+		case -1:
+			fprintf(stderr, "Chimera: fork failed\n");
+			break;
+		default:
+			break;
 	}
 }
 
