@@ -213,7 +213,15 @@ typedef struct tbl_info {
      * span_bottom[c] is that cell's lowest y. Both hold span_cap entries.
      */
     int *span_left, *span_bottom, span_cap;
+    int *span_width;		/* colspan of a rowspan cell, at its first column */
     int cur_rowspan, cur_colspan;	/* of the cell being laid out */
+    /*
+     * border=: cell outlines (E_TBLBORDER elements) of the open row; their
+     * height is set when the row closes, their width when the table does.
+     */
+    int border;
+    struct ele_rec **row_borders;
+    int nrow_borders, row_borders_cap;
     # define INITIAL_TBL_COLS 32
     int col_x0[INITIAL_TBL_COLS+1];  /* saved column starting points */
     /* col_x0 is a variable length array; XtRealloc used to expand */
@@ -2371,11 +2379,54 @@ int n;
     ((char *) CurrentTable->span_left, CurrentTable->span_cap * sizeof(int));
   CurrentTable->span_bottom = (int *) XtRealloc
     ((char *) CurrentTable->span_bottom, CurrentTable->span_cap * sizeof(int));
+  CurrentTable->span_width = (int *) XtRealloc
+    ((char *) CurrentTable->span_width, CurrentTable->span_cap * sizeof(int));
   for (i = cap;  i < CurrentTable->span_cap;  i++)
   {
     CurrentTable->span_left[i] = 0;
     CurrentTable->span_bottom[i] = 0;
+    CurrentTable->span_width[i] = 0;
   }
+}
+
+/*
+ * Add the outline of a cell, or of one row's part of a rowspan cell, for
+ * a table with border=. It covers columns col..endcol-1 and starts at
+ * the top of the current row; the sides to draw are given in "sides".
+ * The element moves with column col when columns are widened; its
+ * height is set by Table_Row_Close and its width by Table_Close.
+ */
+static void
+TableCellBorder (hw, col, endcol, x0, sides)
+HTMLWidget hw;
+int col, endcol, x0, sides;
+{
+  Boolean empty = EmptyRegion;	/* AddFElement clears it */
+  Boolean at_context_start = (PrevContextEnd == Current);
+  TBL_INFO *t = CurrentTable;
+
+  AddFElement (hw, E_TBLBORDER, currentFont, x0 - 2, t->rows_y0 - 2,
+	       (char *) NULL);
+  EmptyRegion = empty;
+  /*
+   * The outline is not part of the cell's text: keep it out of the
+   * regions that baseline adjustment and alignment move afterwards.
+   */
+  if (at_context_start)  PrevContextEnd = Current;
+  Current->tblcol = col;
+  Current->width = - endcol;	/* marker; see Table_Close */
+  Current->line_height = 0;	/* set in Table_Row_Close */
+  Current->border_sides = sides;
+  Current->internal = True;	/* not text: skipped by selection etc. */
+  Current->fg = hw->html.foreground;
+
+  if (t->nrow_borders >= t->row_borders_cap)
+  {
+    t->row_borders_cap += 16;
+    t->row_borders = (struct ele_rec **) XtRealloc
+      ((char *) t->row_borders, t->row_borders_cap * sizeof(struct ele_rec *));
+  }
+  t->row_borders[t->nrow_borders++] = Current;
 }
 
 /* #define TABLE_DEBUG 1 */
@@ -2446,8 +2497,22 @@ memset(newtable, 0, sizeof(TBL_INFO));
     CurrentTable->caption = NULL;
     CurrentTable->span_left = NULL;
     CurrentTable->span_bottom = NULL;
+    CurrentTable->span_width = NULL;
     CurrentTable->span_cap = 0;
     TableSpanRoom (INITIAL_TBL_COLS);
+
+    /* border, border=N: outline the cells; border=0: no outlines */
+    CurrentTable->border = 0;
+    CurrentTable->row_borders = NULL;
+    CurrentTable->nrow_borders = CurrentTable->row_borders_cap = 0;
+    tptr = ParseMarkTag (opstr, MT_TABLE, "border");
+    if (tptr != NULL)
+    {
+      int b = 1;
+      sscanf (tptr, " %d", &b);
+      CurrentTable->border = (b > 0);
+      XtFree (tptr);
+    }
 
     /* interpret cellpadding as N spaces, and spaces as 4 wide */
     tptr = ParseMarkTag (opstr, MT_TABLE, "cellpadding");
@@ -2562,6 +2627,20 @@ int *x, *y;
 	 }
 	 eptr->width = w;
        }
+       else if (eptr->type == E_TBLBORDER  &&  (w = eptr->width) <= 0)
+       {
+	 int right;
+
+	 w = -w;
+	 if (w > CurrentTable->ncols)  w = CurrentTable->ncols;
+	 /* a boundary never set: use the next one that is */
+	 while (w < CurrentTable->ncols  &&  CurrentTable->col_x0[w] < 0)  w++;
+	 right = CurrentTable->col_x0[w];
+	 if (right < 0)  right = CurrentTable->Xmax + pad;
+	 /* right side just inside the start of the following column */
+	 w = right - pad + 2 - eptr->x;
+	 eptr->width = (w > 1) ?  w : 1;
+       }
        eptr->tblcol = CurrentTblColumn;
      }
 
@@ -2579,6 +2658,9 @@ int *x, *y;
      }
      XtFree ((char *) CurrentTable->span_left);
      XtFree ((char *) CurrentTable->span_bottom);
+     XtFree ((char *) CurrentTable->span_width);
+     if (CurrentTable->row_borders != NULL)
+       XtFree ((char *) CurrentTable->row_borders);
 
      if (prev == NULL)		/* exiting outermost table */
      {
@@ -2643,20 +2725,29 @@ int *x, *y;
     CurrentTable->Ymax = *y;
     CharsInLine = 0;
     CurrentTable->state = TBL_ROW_OPEN;
-#ifdef TABLE_NEW
-       /* FIX: Læg en vandret streg i toppen af rækken med luft under */
-    if (CurrentTable->ncols > 0) {
-        int table_width = CurrentTable->col_x0[CurrentTable->ncols] - CurrentTable->tbl_x0;
-        if (table_width > 0) {
-            HRulePlace(hw, x, y, table_width);
-            
-            // PADDING: Skub Y-koordinaten ned for at give luft under stregen,
-            // så den næste tekstcelle ikke klistrer sig op ad den.
-            *y += 6; 
-            if (CurrentTable->Ymax < *y) CurrentTable->Ymax = *y;
-        }
+    CurrentTable->nrow_borders = 0;
+
+    /*
+     * Each row a rowspan cell covers gets its own piece of the outline,
+     * so that the row is redrawn with its part of the cell.
+     */
+    if (CurrentTable->border)
+    {
+      int c;
+
+      for (c = 0;  c < CurrentTable->span_cap;  c++)
+      {
+	if (CurrentTable->span_left[c] > 0  &&  CurrentTable->span_width[c] > 0)
+	{
+	  int x0 = CurrentTable->col_x0[c];
+
+	  if (x0 < CurrentTable->tbl_x0)  x0 = CurrentTable->tbl_x0;
+	  TableCellBorder (hw, c, c + CurrentTable->span_width[c], x0,
+			   BORDER_LEFT | BORDER_RIGHT |
+			   (CurrentTable->span_left[c] == 1 ? BORDER_BOTTOM : 0));
+	}
+      }
     }
-#endif
 #ifdef TABLE_DEBUG
     printf("%s D%d, L#%d @[%d,%d]\n", opstr, TableDepth, LineNumber, *y, *x);
 #endif
@@ -2693,6 +2784,16 @@ int *x, *y;
 	CurrentTable->Ymax = CurrentTable->span_bottom[loc];
     }
 
+    /* the row's height is known now: give it to its cell outlines */
+    for (loc = 0;  loc < CurrentTable->nrow_borders;  loc++)
+    {
+      struct ele_rec *b = CurrentTable->row_borders[loc];
+      int h = CurrentTable->Ymax + 1 - b->y;
+
+      b->line_height = (h > 0) ?  h : 1;
+    }
+    CurrentTable->nrow_borders = 0;
+
     TextIndent = CurrentTable->tbl_x0;  /* start of row */
     /*
      * LF, if this is the outermost table and we actually need one
@@ -2703,16 +2804,6 @@ int *x, *y;
       LineNumber++;   
     }
     if (*y < CurrentTable->Ymax)  *y = CurrentTable->Ymax;
-#ifdef TABLE_NEW     
-        /* FIX: Læg en vandret streg i bunden af rækken, inden den lukkes */
-    int table_width = CurrentTable->col_x0[CurrentTable->ncols] - CurrentTable->tbl_x0;
-    if (table_width > 0) {
-		HRulePlace(hw, x, y, table_width);
-        
-        // Giv yderligere luft efter selve stregen, inden næste række starter
-        *y += 4; 
-    }
-#endif
     
     CurrentTable->state = TBL_OPEN;
 #ifdef TABLE_DEBUG
@@ -2742,15 +2833,6 @@ int *x, *y;
     CurrentTable->curcol = mycol;
     CurrentTblColumn = mycol;
     *y = CurrentTable->rows_y0;
-#ifdef TABLE_NEW   
-    /* FIX: Skub cellens tekstindhold ned, så det ikke rører top-stregen */
-    *y += 6; 
-    
-    // Opdatér tabellens Ymax, så layoutet ved, at rækken nu fylder mere i højden
-    if (CurrentTable->Ymax < *y) {
-        CurrentTable->Ymax = *y;
-    }
- #endif   
     loc = CellMaxX + CurrentTable->cellpadding;
     if (mycol > 0  &&  loc > myx0)
     {
@@ -2908,7 +2990,15 @@ int *x, *y;
       {
 	CurrentTable->span_left[sx] = rowspan;
 	CurrentTable->span_bottom[sx] = 0;
+	CurrentTable->span_width[sx] = (sx == mycol) ?  span : 0;
       }
+    }
+
+    if (CurrentTable->border)
+    {
+      TableCellBorder (hw, mycol, nextcol, myx0,
+		       BORDER_TOP | BORDER_LEFT | BORDER_RIGHT |
+		       (rowspan > 1 ?  0 : BORDER_BOTTOM));
     }
 
 #ifdef TABLE_DEBUG
@@ -5346,6 +5436,36 @@ struct ele_rec *eptr;
 	     x1, y1 + 1, (int) (x1 + width), y1 + 1);
 }
 
+/*
+ * Redraw the outline of a table cell (E_TBLBORDER)
+ */
+static void
+TableBorderRefresh (hw, eptr)
+HTMLWidget hw;
+struct ele_rec *eptr;
+{
+  Display *dpy = XtDisplay (hw->html.view);
+  Window win = XtWindow (hw->html.view);
+  GC gc = hw->html.drawGC;
+  int x1 = eptr->x - hw->html.scroll_x;
+  int y1 = eptr->y - hw->html.scroll_y;
+  int x2 = x1 + eptr->width;
+  int y2 = y1 + eptr->line_height;
+
+  if (eptr->width <= 0  ||  eptr->line_height <= 0)  return;
+
+  XSetLineAttributes (dpy, gc, 1, LineSolid, CapButt, JoinMiter);
+  XSetForeground (dpy, gc, eptr->fg);
+  if (eptr->border_sides & BORDER_TOP)
+    XDrawLine (dpy, win, gc, x1, y1, x2, y1);
+  if (eptr->border_sides & BORDER_BOTTOM)
+    XDrawLine (dpy, win, gc, x1, y2, x2, y2);
+  if (eptr->border_sides & BORDER_LEFT)
+    XDrawLine (dpy, win, gc, x1, y1, x1, y2);
+  if (eptr->border_sides & BORDER_RIGHT)
+    XDrawLine (dpy, win, gc, x2, y1, x2, y2);
+}
+
 static int DummyXErrorHandler(Display *dpy, XErrorEvent *err)
 {
     /* Gør ingenting - ignorerer fejlen lydløst */
@@ -5577,6 +5697,9 @@ int line, x0, y0, xmax, ymax;
 	    break;
 	  case E_HRULE:
 	    HRuleRefresh (hw, eptr);
+	    break;
+	  case E_TBLBORDER:
+	    TableBorderRefresh (hw, eptr);
 	    break;
 	  case E_LINEFEED:
 	    LinefeedRefresh (hw, eptr);

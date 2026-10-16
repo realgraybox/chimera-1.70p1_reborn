@@ -188,6 +188,11 @@ typedef ImageInfo *(*resolveImageProc)();
 #define E_IMAGE		4
 #define E_WIDGET	5
 #define E_HRULE		6
+#define E_TBLBORDER	7	/* one cell outline of a table with border= */
+#define BORDER_TOP	1
+#define BORDER_BOTTOM	2
+#define BORDER_LEFT	4
+#define BORDER_RIGHT	8
 
 struct ele_rec {
 	int type;
@@ -214,6 +219,7 @@ struct ele_rec {
 	int underline_number;
 	Boolean dashed_underline;
 	Boolean strikeout;
+	int border_sides;	/* E_TBLBORDER: BORDER_TOP | ... */
 	unsigned long fg;
 	unsigned long bg;
 	char *anchorName;
