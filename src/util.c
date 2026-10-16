@@ -88,6 +88,7 @@ char *filename;
   }
   else
   {
+    if (strlen(filename) > MAXPATHLEN) return(NULL);
     strcpy(newfilename, filename);
   }
 

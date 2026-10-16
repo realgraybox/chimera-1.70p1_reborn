@@ -41,7 +41,7 @@ usage: Start.menu [[menu-file] parameter]
 
 Optional menu-file path and file-name. With no menu-file defaults to '.menu'
 in the current dir. If no menu-file found then defaults to a single menu
-option of 'localhost' which fires up an xterm.
+option of 'localhost' which opens a terminal window (chimera-term).
 
 Optional: _one_ filespec parameter, _requires_ menu-file to be specified.
 Parameter is passed on to menu options that contain the string '$F' in the

@@ -10,7 +10,7 @@
 #
 Open	xdg-open "$F" &
 Exec	"$F" &
-Terminal Here	d="$F"; [ -d "$d" ] || d=$(dirname "$d"); defaultterminal --working-directory="$d" &
+Terminal Here	d="$F"; [ -d "$d" ] || d=$(dirname "$d"); chimera-term -d "$d" &
 Open Archive	defaultarchiver "$F" &
 Open As Text	defaulttexteditor "$F" &
 Edit This Menu	defaulttexteditor "$HOME/chimera/sendto" &

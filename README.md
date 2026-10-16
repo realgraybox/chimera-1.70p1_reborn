@@ -43,7 +43,8 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - X11 development headers and libraries: `libX11`, `libXt`, `libXmu`, `libXext`, `libXpm`, `libSM`, `libICE`.
 - `giflib` for `fits2gif`.
 - `zlib` for `xvl`.
-- At run time, `curl` for HTTPS.
+- At run time, `curl` for HTTPS, and a terminal program for telnet links and "Terminal Here" (see `chimera-term` below).
+- Only for `make -C helpers/curl static-curl`: `git`, `sha256sum` and network access.
 
 On Debian or Ubuntu:
 
@@ -87,6 +88,8 @@ make CC=i386-linux-uclibc-gcc
 | `mk.config` | Compiler, flags, install prefix, widget set (`XAW_LIB_TYPE`: `XAWPLUS`, `XAW3D` or plain Xaw); detects the target and uClibc |
 | `options.h` | User-Agent string, print command, mail command, network timeouts. `options.h.dist` is the original |
 | `src/fallback.c` | Built-in X resources (colours, labels, fonts) |
+| `lib/Chimera` | X resources installed as `~/Chimera`: colours, fonts, sizes, labels, scroll wheel |
+| `src/Chimera.ad` | The original, annotated list of all resources and their defaults, for reference; not installed |
 
 ### Install
 
@@ -94,7 +97,7 @@ make CC=i386-linux-uclibc-gcc
 make install
 ```
 
-Programs go to `$(PREFIX)/bin` (default `/usr/bin`). The data files go to `$HOME/chimera`.
+Programs go to `$(PREFIX)/bin` (default `/usr/bin`). The data files go to `$HOME/chimera`, and the X resources (`lib/Chimera`) to `$HOME/Chimera`, where Xt finds them without further setup. `make install` overwrites these files, so keep a copy of any you have changed.
 
 **The data directory is fixed at build time.** `mk.config` expands `$HOME` while compiling, so the paths to `home.html`, `help.html`, `mime.types`, `mailcap`, `convert`, `protocol` and `cacheinfo` are compiled in for the user who ran `make`. Build as the user who will run the browser. If you install with `sudo`, check that the data files ended up in that user's `~/chimera` and not in root's home directory.
 
@@ -172,7 +175,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 | `common/` | `common.h`, shared by all parts: memory helper macros mapped onto Xt's allocator |
 | `XawPlus-2.0.2/` | Bundled XawPlus widget set |
 | `lib/` | Runtime data files installed to `~/chimera`, and `chimera_print.sh` |
-| `util/` | Helper scripts: `chimera-open`, and the original telnet, 3270, mailto and bookmark conversion scripts |
+| `util/` | Helper scripts: `chimera-open`, `chimera-term`, and the original telnet, 3270, mailto and bookmark conversion scripts |
 | `helpers/curl/` | The HTTPS helper script, and a makefile that can build a static curl |
 | `helpers/xvl/` | `xvl` image viewer, with libtiff 3.7.0 and libwebp 0.4.4 |
 | `helpers/fits2gif/` | Converter for inline FITS images |
@@ -184,6 +187,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 - `make install` writes the helper paths in `~/chimera/protocol` for the chosen `PREFIX`, but the commands in `mailcap` and `convert` are found through `PATH`.
 - Some of the original scripts in `util/` expect Perl or programs that are rare today.
 - A `mailcap` command ends at the next `;` and can contain `%s` only once; Chimera deletes the downloaded file as soon as the command returns. `chimera-open` exists for that reason.
+- `chimera-term` opens a terminal window for telnet links and the sendto menu's "Terminal Here", so xterm is not required. It uses `$TERMINAL` if set, otherwise the first of `x-terminal-emulator`, `defaultterminal`, `xterm`, `urxvt`, `rxvt`, `lxterminal`, `xfce4-terminal`, `mate-terminal`, `konsole` and `gnome-terminal` it finds.
 
 ## Licensing
 

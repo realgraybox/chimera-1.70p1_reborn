@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# Copyright (C) 2026 M. Glargaard, aka graybox
+#
+# This software is provided "as-is", without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would
+#    be appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not
+#    be misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source distribution.
+#
+
+#
+# chimera-term [-d DIR] [-f FILE] [COMMAND [ARG...]]
+#
+# Runs COMMAND in a new terminal window, or a shell when no command is
+# given. Used by mailcap (telnet links) and the sendto menu, so that they
+# do not depend on xterm being installed.
+#
+#   -d DIR   start in directory DIR
+#   -f FILE  copy FILE first and pass the copy to COMMAND as its last
+#            argument. Chimera deletes a downloaded file as soon as the
+#            mailcap command returns, and many terminals return at once,
+#            before the command in them has read it. The copy is removed
+#            when COMMAND ends.
+#
+# The terminal is $TERMINAL if set, otherwise the first one found of:
+# x-terminal-emulator (Debian, Ubuntu, Mint), defaultterminal (Puppy),
+# xterm, urxvt, rxvt, lxterminal, xfce4-terminal, mate-terminal, konsole,
+# gnome-terminal.
+#
+# The window waits for Return when COMMAND ends, so its output can be read.
+#
+
+DIR=""
+FILE=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -d) DIR="$2"; shift 2 ;;
+        -f) FILE="$2"; shift 2 ;;
+        --) shift; break ;;
+        *)  break ;;
+    esac
+done
+
+# quote one argument for the shell: 'it'\''s'
+quote() {
+    printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+TMPD=$(mktemp -d "${TMPDIR:-/tmp}/chimera-term.XXXXXX") || exit 1
+SCRIPT="$TMPD/run"
+
+{
+    echo '#!/bin/sh'
+    [ -n "$DIR" ] && echo "cd $(quote "$DIR") || exit 1"
+    if [ $# -eq 0 ]; then
+        echo "rm -rf $(quote "$TMPD")"
+        echo "exec \"\${SHELL:-/bin/sh}\""
+    else
+        CMD=""
+        for a in "$@"; do CMD="$CMD $(quote "$a")"; done
+        if [ -n "$FILE" ]; then
+            cp "$FILE" "$TMPD/file" || { rm -rf "$TMPD"; exit 1; }
+            CMD="$CMD $(quote "$TMPD/file")"
+        fi
+        echo "$CMD"
+        echo "rm -rf $(quote "$TMPD")"
+        echo 'printf "\n[press Return to close] "; read dummy'
+    fi
+} > "$SCRIPT"
+chmod 700 "$SCRIPT"
+
+if [ -z "$TERMINAL" ]; then
+    for t in x-terminal-emulator defaultterminal xterm urxvt rxvt \
+             lxterminal xfce4-terminal mate-terminal konsole gnome-terminal; do
+        if command -v "$t" >/dev/null 2>&1; then TERMINAL=$t; break; fi
+    done
+fi
+
+if [ -z "$TERMINAL" ]; then
+    echo "chimera-term: no terminal program found (set TERMINAL)" >&2
+    rm -rf "$TMPD"
+    exit 1
+fi
+
+# The script is passed as a single program name, which every terminal
+# accepts after -e; gnome-terminal wants "--" instead.
+case "$(basename "$TERMINAL")" in
+    gnome-terminal*) exec "$TERMINAL" -- "$SCRIPT" ;;
+    *)               exec "$TERMINAL" -e "$SCRIPT" ;;
+esac

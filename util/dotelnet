@@ -1,17 +1,27 @@
 #!/bin/sh
-if [ ! "$1" = "" ]
+#
+# Connects to the host in a telnet: link. Chimera writes
+# "hostname port username password" to a file and passes its name; run
+# from mailcap through chimera-term, which opens the terminal window.
+#
+if [ -n "$1" ]
 then
-        read hostname portno username password < $1
-        if [ ! "$username" = "" ]
+        read hostname portno username password < "$1"
+        if ! command -v telnet >/dev/null 2>&1
         then
-                if [ "$password" = "" ]
+                echo "telnet is not installed, so $hostname cannot be reached."
+                exit 1
+        fi
+        if [ -n "$username" ]
+        then
+                if [ -z "$password" ]
                 then
-                        echo When connected, login as $username
+                        echo "When connected, login as $username"
                 else
-                        echo When connected, login as $username with password $password
+                        echo "When connected, login as $username with password $password"
                 fi
         fi
-        echo You may need to press Return to "wake up" the other computer
-        echo when you are connected.
-        telnet $hostname $portno
+        echo 'You may need to press Return to "wake up" the other computer'
+        echo "when you are connected."
+        telnet "$hostname" $portno
 fi
