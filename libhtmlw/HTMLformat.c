@@ -1,3 +1,10 @@
+/*
+ * MODIFIED VERSION. This file is part of the HTML widget of NCSA Mosaic
+ * for the X Window System 2.x, as modified for Chimera 1.70 (1997) and
+ * for Chimera 1.70p1 reborn (2026,
+ * https://github.com/realgraybox/chimera-1.70p1_reborn). It is not the
+ * original NCSA Mosaic distributed by the University of Illinois.
+ */
 
 /* Nearly completely rewritten by WBE, Spring 1997, for Chimera 1.70. */
 

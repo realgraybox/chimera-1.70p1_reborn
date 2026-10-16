@@ -196,7 +196,7 @@ This repository combines code under several licences. **Chimera itself is not op
 | Component | Licence, as stated in its files |
 |---|---|
 | Chimera (`src/`, most of `mxw/`) | John Kilburg's licence: non-commercial use, no fee. See `src/copyright.h` |
-| `libhtmlw/` | NCSA Mosaic licence: academic, research and internal business use, no fee |
+| `libhtmlw/` | NCSA Mosaic licence: academic, research and internal business use, no fee. As the licence requires, the files are marked as a modified version, not the original NCSA Mosaic |
 | `libhtmlw/HTML-PSformat.c` | Public domain (US Government work) |
 | `libhtmlw/DrawingArea.*` | Gustaf Neumann, 1993; no licence notice |
 | `mxw/ScrollText.*` | University of Newcastle upon Tyne: any purpose except commercial exploitation |

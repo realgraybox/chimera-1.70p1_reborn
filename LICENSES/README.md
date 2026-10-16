@@ -43,8 +43,9 @@ Files with no licence notice of their own:
 - `XawPlus-2.0.2/Add3dExt.*`, `DrawingArea.*`: written by Roland Krause
   for XawPlus.
 - `XawPlus-2.0.2/TextTr.c`: the X Consortium's Xaw text translation table.
-- Changes made for Chimera 1.70 in 1997 by its contributors (marked "WBE"
-  and "GN" in the source).
+- Changes made for Chimera 1.70 in 1997 by its contributors, marked "WBE"
+  (Winston Edmond, who put 1.70 together) and "GN" (Gustaf Neumann) in
+  the source.
 
 They are distributed here as part of Chimera, as they were originally.
 

@@ -172,10 +172,49 @@ int tlen;
 char **h;
 int *hlen;
 {
-  *hlen = tlen + 12;
-  *h = alloc_mem(*hlen);
-  strcpy(*h, "<plaintext>");
-  strcat(*h, t);
+  /*
+   * Lines longer than PLAIN_WRAP characters are wrapped, at a space in
+   * the last PLAIN_WRAP_SEEK characters if there is one. Without this a
+   * single line of minified script in Source view can be millions of
+   * pixels wide, and the horizontal scrollbar then moves too little to
+   * be of use.
+   */
+#define PLAIN_WRAP      100
+#define PLAIN_WRAP_SEEK 30
+  static const char *tag = "<plaintext>";
+  char *o;
+  int n = strlen(tag), line_start, i;
+
+  o = alloc_mem(n + tlen + tlen / (PLAIN_WRAP - PLAIN_WRAP_SEEK) + 2);
+  strcpy(o, tag);
+  line_start = n;
+
+  for (i = 0; i < tlen; i++)
+  {
+    if (n - line_start >= PLAIN_WRAP && t[i] != '\n')
+    {
+      int k;
+
+      for (k = n - 1; k > n - PLAIN_WRAP_SEEK && o[k] != ' '; k--)
+	;
+      if (o[k] == ' ')
+      {
+	o[k] = '\n';
+	line_start = k + 1;
+      }
+      else
+      {
+	o[n++] = '\n';
+	line_start = n;
+      }
+    }
+    o[n++] = t[i];
+    if (t[i] == '\n') line_start = n;
+  }
+  o[n] = '\0';
+
+  *h = o;
+  *hlen = n + 1;
 
   return(0);
 }
