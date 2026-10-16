@@ -207,6 +207,13 @@ typedef struct tbl_info {
     struct ele_rec *head;	/* head->next = first element in table */
     unsigned short curcol, nextcol, ncols, spans, maxcols;
     char *caption;		/* set if <caption>text</caption> seen */
+    /*
+     * rowspan: span_left[c] is the number of rows, counting the current
+     * one, that column c is still taken by a cell from an earlier row;
+     * span_bottom[c] is that cell's lowest y. Both hold span_cap entries.
+     */
+    int *span_left, *span_bottom, span_cap;
+    int cur_rowspan, cur_colspan;	/* of the cell being laid out */
     # define INITIAL_TBL_COLS 32
     int col_x0[INITIAL_TBL_COLS+1];  /* saved column starting points */
     /* col_x0 is a variable length array; XtRealloc used to expand */
@@ -2349,6 +2356,28 @@ int col, deltax0;
     CurrentTable->Xmax += deltax0;
 }
 
+/*
+ * Make room in the rowspan arrays of CurrentTable for columns 0..n.
+ */
+static void
+TableSpanRoom (n)
+int n;
+{
+  int i, cap = CurrentTable->span_cap;
+
+  if (n < cap)  return;
+  CurrentTable->span_cap = n + 16;
+  CurrentTable->span_left = (int *) XtRealloc
+    ((char *) CurrentTable->span_left, CurrentTable->span_cap * sizeof(int));
+  CurrentTable->span_bottom = (int *) XtRealloc
+    ((char *) CurrentTable->span_bottom, CurrentTable->span_cap * sizeof(int));
+  for (i = cap;  i < CurrentTable->span_cap;  i++)
+  {
+    CurrentTable->span_left[i] = 0;
+    CurrentTable->span_bottom[i] = 0;
+  }
+}
+
 /* #define TABLE_DEBUG 1 */
 
 static void
@@ -2415,6 +2444,10 @@ memset(newtable, 0, sizeof(TBL_INFO));
     CurrentTable->nextcol = 0;	/* for LineFeedPlace and HRulePlace */
     CurrentTable->TextIndent = TextIndent;
     CurrentTable->caption = NULL;
+    CurrentTable->span_left = NULL;
+    CurrentTable->span_bottom = NULL;
+    CurrentTable->span_cap = 0;
+    TableSpanRoom (INITIAL_TBL_COLS);
 
     /* interpret cellpadding as N spaces, and spaces as 4 wide */
     tptr = ParseMarkTag (opstr, MT_TABLE, "cellpadding");
@@ -2537,6 +2570,16 @@ int *x, *y;
        XtFree (CurrentTable->caption);
      }
 
+     /* a rowspan that runs past the last row still needs its room */
+     for (col = 0;  col < CurrentTable->span_cap;  col++)
+     {
+       if (CurrentTable->span_left[col] > 0  &&
+	   CurrentTable->span_bottom[col] > *y)
+	 *y = CurrentTable->span_bottom[col];
+     }
+     XtFree ((char *) CurrentTable->span_left);
+     XtFree ((char *) CurrentTable->span_bottom);
+
      if (prev == NULL)		/* exiting outermost table */
      {
        /*
@@ -2638,6 +2681,18 @@ int *x, *y;
     if (CurrentTable->col_x0[CurrentTable->ncols] < loc)
 	CurrentTable->col_x0[CurrentTable->ncols] = loc;
 
+    /*
+     * One row less for each rowspan in progress. A rowspan cell's height
+     * counts for the last row it spans, not the first.
+     */
+    for (loc = 0;  loc < CurrentTable->span_cap;  loc++)
+    {
+      if (CurrentTable->span_left[loc] > 0  &&
+	  --CurrentTable->span_left[loc] == 0  &&
+	  CurrentTable->span_bottom[loc] > CurrentTable->Ymax)
+	CurrentTable->Ymax = CurrentTable->span_bottom[loc];
+    }
+
     TextIndent = CurrentTable->tbl_x0;  /* start of row */
     /*
      * LF, if this is the outermost table and we actually need one
@@ -2672,11 +2727,17 @@ HTMLWidget hw;
 char *opstr;
 int *x, *y;
 {
-  int sx, loc, w, span, nextcol;
+  int sx, loc, w, span, nextcol, rowspan;
   int mycol = CurrentTable->nextcol;  /* advance to next column */
-  int myx0 = CurrentTable->col_x0[mycol];
+  int myx0;
   const int pad = CurrentTable->cellpadding;
   char *tptr;
+
+    /* skip columns taken by rowspan cells from earlier rows */
+    while (mycol < CurrentTable->ncols  &&  mycol < CurrentTable->span_cap
+	   &&  CurrentTable->span_left[mycol] > 0)
+      mycol++;
+    myx0 = CurrentTable->col_x0[mycol];
 
     CurrentTable->curcol = mycol;
     CurrentTblColumn = mycol;
@@ -2734,6 +2795,16 @@ int *x, *y;
       if (span <= 0  ||  span > 40)   span = 1;	 /* ignore unlikely values */
       XtFree (tptr);
     }
+    rowspan = 1;
+    tptr = ParseMarkTag (opstr, MT_TABLE_ITEM, "rowspan");
+    if (tptr != NULL)
+    {
+      sscanf (tptr, " %d", &rowspan);
+      if (rowspan == 0)  rowspan = 1000;	/* "to the end of the table" */
+      if (rowspan < 0  ||  rowspan > 1000)  rowspan = 1;
+      XtFree (tptr);
+    }
+
     nextcol = mycol + span;
     if (nextcol > CurrentTable->ncols)
     {
@@ -2828,6 +2899,18 @@ int *x, *y;
     CurrentTable->state = TBL_ITEM_OPEN;
     CurrentTable->nextcol = nextcol;
 
+    CurrentTable->cur_rowspan = rowspan;
+    CurrentTable->cur_colspan = span;
+    if (rowspan > 1)
+    {
+      TableSpanRoom (nextcol);
+      for (sx = mycol;  sx < nextcol;  sx++)
+      {
+	CurrentTable->span_left[sx] = rowspan;
+	CurrentTable->span_bottom[sx] = 0;
+      }
+    }
+
 #ifdef TABLE_DEBUG
     printf("%s D%d#%d*%d @[%d,%d-%d]  W%d\n",
 	   opstr, TableDepth, mycol+1, span, *y, *x,
@@ -2847,7 +2930,16 @@ int *x, *y;
 
     LineBottom = 0;
     BaseLine = -100;
-    if (CurrentTable->Ymax < max_y)   CurrentTable->Ymax = max_y;
+    if (CurrentTable->cur_rowspan > 1)
+    {
+      /* counted when the last row it spans is closed */
+      int c, last = CurrentTable->curcol + CurrentTable->cur_colspan;
+
+      for (c = CurrentTable->curcol;  c < last && c < CurrentTable->span_cap; c++)
+	if (CurrentTable->span_bottom[c] < max_y)
+	  CurrentTable->span_bottom[c] = max_y;
+    }
+    else if (CurrentTable->Ymax < max_y)   CurrentTable->Ymax = max_y;
     if (*x > CellMaxX)
     {
       CellMaxX = *x;
