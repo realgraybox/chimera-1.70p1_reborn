@@ -4859,6 +4859,43 @@ struct ele_rec *eptr;
 }
 
 
+
+/*
+ * DrawLongString
+ *
+ * XDrawString/XDrawImageString for text of any length. One X request
+ * may be at most 256 KB on servers without the BIG-REQUESTS extension,
+ * and a longer string (a single line of script in "Source" view can be
+ * hundreds of KB) makes the server reply BadLength, which ends the
+ * program. The text is drawn in pieces, and pieces outside the range X
+ * coordinates can reach (16 bits) are skipped.
+ */
+#define DRAW_CHUNK 512
+static void
+DrawLongString (HTMLWidget hw, XFontStruct *font, int image,
+		int x, int y, char *s, int len)
+{
+  Display *dpy = XtDisplay (hw->html.view);
+  Window win = XtWindow (hw->html.view);
+
+  while (len > 0 && x <= 32767)
+  {
+    int n = (len > DRAW_CHUNK) ? DRAW_CHUNK : len;
+    int w = XTextWidth (font, s, n);
+
+    if (x + w >= 0)
+    {
+      if (image)
+	XDrawImageString (dpy, win, hw->html.drawGC, x, y, s, n);
+      else
+	XDrawString (dpy, win, hw->html.drawGC, x, y, s, n);
+    }
+    x += w;
+    s += n;
+    len -= n;
+  }
+}
+
 /*
  * Redraw part of a formatted text element, in the passed fg and bg
  */
@@ -4985,15 +5022,9 @@ int sip;			/* selection-in-progress --GN 1997May05 */
   XSetBackground (XtDisplay (hw), hw->html.drawGC, bg);
 
   if (sip > 0)
-    XDrawImageString (XtDisplay (hw->html.view), XtWindow (hw->html.view),
-		      hw->html.drawGC,
-		      x, y + ascent,
-		      (char *) tdata, tlen);
+    DrawLongString (hw, eptr->font, 1, x, y + ascent, (char *) tdata, tlen);
   if (sip != 1)
-    XDrawString (XtDisplay (hw->html.view), XtWindow (hw->html.view),
-		      hw->html.drawGC,
-		      x, y + ascent,
-		      (char *) tdata, tlen);
+    DrawLongString (hw, eptr->font, 0, x, y + ascent, (char *) tdata, tlen);
 
   if (eptr->underline_number)
   {
