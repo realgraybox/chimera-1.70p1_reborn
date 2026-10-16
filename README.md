@@ -193,6 +193,8 @@ This repository combines code under several licences. **Chimera itself is not op
 |---|---|
 | Chimera (`src/`, most of `mxw/`) | John Kilburg's licence: non-commercial use, no fee. See `src/copyright.h` |
 | `libhtmlw/` | NCSA Mosaic licence: academic, research and internal business use, no fee |
+| `libhtmlw/HTML-PSformat.c` | Public domain (US Government work) |
+| `libhtmlw/DrawingArea.*` | Gustaf Neumann, 1993; no licence notice |
 | `mxw/ScrollText.*` | University of Newcastle upon Tyne: any purpose except commercial exploitation |
 | `xloadimage/`, `mxw/Porthole.c`, XawPlus | MIT / X Consortium style permissive licences |
 | `src/md5.c` | Public domain |
@@ -207,7 +209,7 @@ This repository combines code under several licences. **Chimera itself is not op
 | `xvl`, `fits2gif`, HTTPS helper scripts | zlib licence |
 | `XawPlus-2.0.2/XmuStrToPixmap.c` | MIT |
 
-Check the individual files before redistributing a build.
+Both Chimera's and NCSA's licences allow binaries and source to be distributed free of charge, provided the copyright notices come with every copy. The full licence texts, with a list of which program contains what, are in [`LICENSES/`](LICENSES/README.md): ship that folder with any binary. It also covers the X libraries, zlib, giflib and uClibc (LGPL 2.1), which a static build links in.
 
 ## Credits
 
