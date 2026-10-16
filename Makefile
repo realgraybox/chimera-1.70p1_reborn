@@ -26,6 +26,8 @@ install:
 			helpers/menu helpers/text2pdf helpers/xvl; do \
 		$(MAKE) -C $$dir install DESTDIR=$(DESTDIR); \
 	done
+	install -d $(DESTDIR)$(USERDATADIR)/LICENSES
+	install -m 644 LICENSES/* $(DESTDIR)$(USERDATADIR)/LICENSES/
 
 # run with make dist 
 dist: clean

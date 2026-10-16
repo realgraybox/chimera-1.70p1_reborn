@@ -1,0 +1,41 @@
+Public domain code in Chimera
+=============================
+
+src/md5.c
+---------
+This code implements the MD5 message-digest algorithm.
+The algorithm is due to Ron Rivest.  This code was
+written by Colin Plumb in 1993, no copyright is claimed.
+This code is in the public domain; do with it what you wish.
+
+src/stb_image.h, helpers/xvl/stb_image.h
+----------------------------------------
+By Sean Barrett and contributors:
+
+This software is in the public domain. Where that dedication is not
+recognized, you are granted a perpetual, irrevocable license to copy,
+distribute, and modify this file as you see fit.
+
+src/stb_image_resize2.h, helpers/xvl/stb_image_write.h
+------------------------------------------------------
+By Sean Barrett and contributors. These files offer a choice between the
+MIT licence and a public domain dedication (the Unlicense); the full text
+of both is at the end of each file. Chimera uses them under the public
+domain dedication.
+
+libhtmlw/HTML-PSformat.c
+------------------------
+PostScript output for the NCSA HTML widget, by Ameet A. Raval and
+Frans van Hoesel, 1993:
+
+Copyright:   This work is the product of the United States Government,
+             and is precluded from copyright protection.  It is hereby
+             released into the public domain.
+
+WE MAKE NO REPRESENTATIONS ABOUT THE SUITABILITY OF THIS SOFTWARE FOR
+ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR IMPLIED
+WARRANTY. WE SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY THE
+USERS OF THIS SOFTWARE.
+
+             pieces of code are taken from xvps by kind
+             permission of John Bradley.
