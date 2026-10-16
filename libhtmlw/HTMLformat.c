@@ -2580,6 +2580,30 @@ int *x, *y;
        else prevx0 = x0;
      }
 
+     /*
+      * A rowspan running past the last row: outline the rest of the cell
+      * below the last row.
+      */
+     if (CurrentTable->border)
+     {
+       for (col = 0;  col < CurrentTable->span_cap;  col++)
+       {
+	 if (CurrentTable->span_left[col] > 0  &&
+	     CurrentTable->span_width[col] > 0  &&
+	     CurrentTable->span_bottom[col] > *y)
+	 {
+	   int x0 = CurrentTable->col_x0[col];
+
+	   if (x0 < CurrentTable->tbl_x0)  x0 = CurrentTable->tbl_x0;
+	   CurrentTable->rows_y0 = *y + 3;	/* outline starts at *y + 1 */
+	   CurrentTable->nrow_borders = 0;
+	   TableCellBorder (hw, col, col + CurrentTable->span_width[col], x0,
+			    BORDER_LEFT | BORDER_RIGHT | BORDER_BOTTOM);
+	   Current->line_height = CurrentTable->span_bottom[col] + 1 - Current->y;
+	 }
+       }
+     }
+
      CurrentTblColumn = prev ?  prev->curcol : -1;
 
      /*
@@ -3028,6 +3052,11 @@ int *x, *y;
       for (c = CurrentTable->curcol;  c < last && c < CurrentTable->span_cap; c++)
 	if (CurrentTable->span_bottom[c] < max_y)
 	  CurrentTable->span_bottom[c] = max_y;
+      /*
+       * Back to the top of the row: if this was the row's last cell, the
+       * row must not end at the bottom of a cell that spans further down.
+       */
+      *y = CurrentTable->rows_y0;
     }
     else if (CurrentTable->Ymax < max_y)   CurrentTable->Ymax = max_y;
     if (*x > CellMaxX)
