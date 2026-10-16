@@ -16,8 +16,10 @@
 # The first matching line wins, so specific types go before wildcards.
 #
 
-application/x-telnet;	xterm -e sh -c "dotelnet %s"
-application/x-tn3270;	xterm -e sh -c "do3270 %s"
+# telnet and tn3270 links open in a terminal window (chimera-term picks
+# the terminal; set TERMINAL to choose one)
+application/x-telnet;	chimera-term -f %s dotelnet
+application/x-tn3270;	chimera-term -f %s do3270
 
 image/*;		chimera-open %s
 video/*;		chimera-open %s

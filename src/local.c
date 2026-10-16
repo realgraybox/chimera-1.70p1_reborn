@@ -10,6 +10,7 @@
 #include "options.h"
 
 #include <stdio.h>
+#include <ctype.h>
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -164,76 +165,148 @@ const void *a, *b;
 }
 
 /*
- * add_list_entry adds one HTML table based long directory to file list.
+ * dir_entry_path
+ *
+ * The path of entry "name" in directory "dir". "." and ".." are resolved
+ * to the directory itself and its parent, so that going up from a listing
+ * gives "/a" rather than "/a/b/..", "/a/b/../..", and so on.
+ * Returns allocated memory.
  */
-void add_list_entry (char *current_dir, char *filename, int count, char **sa, char *filetype)
+static char *
+dir_entry_path(const char *dir, const char *name)
 {
-	char naam[2048] = "";	// complete
-	char rowdata[7][2048];	// for 1024 path+table overhead
-	int i, j=0;
-	struct stat buf;
+  char *p;
+  size_t len = strlen(dir);
 
-	strncpy(naam, current_dir, 2047);
-	//if (filetype == "dir") {
-	if (strcmp(filetype, "dir") == 0) {
-		strncat(naam, filename, 2047 - strlen(naam));
-	} else {
-		strcat(naam, "/");
-		strncat(naam, filename, 2047 - strlen(naam));
-	}
-	lstat (naam, &buf);
-	
-	rowdata[0][0] = 0;	/* file name */
-	rowdata[1][0] = 0;	/* mode */
-	rowdata[2][0] = 0;	/* owner */
-	rowdata[3][0] = 0;	/* group ID */
-	rowdata[4][0] = 0;	/* file size */
-	rowdata[5][0] = 0;	/* type */
-	rowdata[6][0] = 0;	/* last modified */
+  p = (char *)alloc_mem(len + strlen(name) + 2);
+  strcpy(p, dir);
+  while (len > 1 && p[len - 1] == '/') p[--len] = '\0';  /* "/a/b/" -> "/a/b" */
 
-//	filename
-	sprintf (rowdata[j],"<DT><tr><td width=\"150\"><a href=\"%s\">%s</a></td> ",naam,filename);
-	j++;
+  if (strcmp(name, ".") == 0)
+    return(p);
 
-//	SUID
-	sprintf (rowdata[j],"<td width=\"025\"> %3i</td>",((int)buf.st_mode  & 0xf000) >> 13);
-	j++;
+  if (strcmp(name, "..") == 0)
+  {
+    char *slash = strrchr(p, '/');
 
-//	perms
-	sprintf (rowdata[j],"<td width=\"050\"> %5o</td>",buf.st_mode & 0xfff0fff);
-	j++;
+    if (slash == NULL || slash == p) strcpy(p, "/");
+    else *slash = '\0';
+    return(p);
+  }
 
-//	uid
-	sprintf (rowdata[j],"<td width=\"050\"> %5i</td>",buf.st_uid);
-	j++;
+  if (len > 1 || p[0] != '/') strcat(p, "/");
+  strcat(p, name);
+  return(p);
+}
 
-//	gid
-	sprintf (rowdata[j],"<td width=\"050\"> %5i</td>",buf.st_gid);
-	j++;
+/*
+ * escape_path
+ *
+ * %-encodes a local path for use in a file: URL. ParseURL drops spaces
+ * from URLs, and '#', '?', '%' and quotes have their own meaning, so
+ * everything except letters, digits, '/' and "-_." is encoded.
+ * file() decodes it again. Returns allocated memory.
+ */
+static char *
+escape_path(const char *path)
+{
+  static const char *hex = "0123456789ABCDEF";
+  const unsigned char *cp;
+  char *s, *n;
 
-//	size
-	sprintf (rowdata[j],"<td width=\"100\"> %11i</td>",(int)buf.st_size);
-	j++;
+  s = n = (char *)alloc_mem(strlen(path) * 3 + 1);
+  for (cp = (const unsigned char *)path; *cp; cp++)
+  {
+    if (isalnum(*cp) || strchr("/-_.", *cp) != NULL) *n++ = *cp;
+    else
+    {
+      *n++ = '%';
+      *n++ = hex[*cp / 16];
+      *n++ = hex[*cp % 16];
+    }
+  }
+  *n = '\0';
+  return(s);
+}
 
-//	modified date/time
-	{	// decode date/time in sortable format: 'yyyy/mm/dd hh:mm;ss'
-		char ret[22];
-		struct tm *tmb = (localtime(&buf.st_mtime));
-		sprintf (ret," 1%03i/%02i/%02i %02i:%02i:%02i",
-					tmb->tm_year, tmb->tm_mon+1, tmb->tm_mday, 
-					tmb->tm_hour, tmb->tm_min, tmb->tm_sec);
-		// sprintf returns 103 for year 2003, 95 for 1995
-		if(ret[2]=='1')
-			{ret[1] = '2';ret[2]='0';}
-		else
-			{ret[2]='9';}
-		sprintf (rowdata[j],"<td width=\"150\"> %s</td></tr>\n",ret);
-		j++;
-	}
-	naam[0] = '\0';
-	for(i=0; i < j; i++ ) strncat(naam, rowdata[i], 2047 - strlen(naam));
-	sa[count] =  alloc_string(naam);
-	return;
+/*
+ * escape_html
+ *
+ * Makes a file name safe to show as HTML text. Returns allocated memory.
+ */
+static char *
+escape_html(const char *text)
+{
+  const char *cp;
+  char *s, *n;
+
+  s = n = (char *)alloc_mem(strlen(text) * 6 + 1);
+  for (cp = text; *cp; cp++)
+  {
+    switch (*cp)
+    {
+      case '&': strcpy(n, "&amp;"); n += 5; break;
+      case '<': strcpy(n, "&lt;"); n += 4; break;
+      case '>': strcpy(n, "&gt;"); n += 4; break;
+      case '"': strcpy(n, "&quot;"); n += 6; break;
+      default: *n++ = *cp; break;
+    }
+  }
+  *n = '\0';
+  return(s);
+}
+
+/*
+ * add_list_entry
+ *
+ * Builds one row of the HTML table for a directory listing and stores
+ * it in sa[count].
+ */
+static void
+add_list_entry(char *current_dir, char *filename, int count, char **sa)
+{
+  struct stat buf;
+  char *path, *href, *label, *row;
+  char date[32];
+  struct tm *tmb;
+  size_t rowlen;
+
+  path = dir_entry_path(current_dir, filename);
+  if (lstat(path, &buf) != 0) memset(&buf, 0, sizeof(buf));
+
+  href = escape_path(path);
+  label = escape_html(filename);
+
+  tmb = localtime(&buf.st_mtime);
+  if (tmb != NULL)
+    snprintf(date, sizeof(date), "%04d/%02d/%02d %02d:%02d:%02d",
+	     tmb->tm_year + 1900, tmb->tm_mon + 1, tmb->tm_mday,
+	     tmb->tm_hour, tmb->tm_min, tmb->tm_sec);
+  else
+    date[0] = '\0';
+
+  rowlen = strlen(href) + strlen(label) + 512;
+  row = (char *)alloc_mem(rowlen);
+  snprintf(row, rowlen,
+	   "<DT><tr><td width=\"150\"><a href=\"file:%s\">%s</a></td> "
+	   "<td width=\"025\"> %3i</td>"
+	   "<td width=\"050\"> %5o</td>"
+	   "<td width=\"050\"> %5i</td>"
+	   "<td width=\"050\"> %5i</td>"
+	   "<td width=\"100\"> %11ld</td>"
+	   "<td width=\"150\"> %s</td></tr>\n",
+	   href, label,
+	   ((int)buf.st_mode & 0xf000) >> 13,
+	   (unsigned int)(buf.st_mode & 0xfff0fff),
+	   (int)buf.st_uid,
+	   (int)buf.st_gid,
+	   (long)buf.st_size,
+	   date);
+
+  sa[count] = row;
+  free_mem(path);
+  free_mem(href);
+  free_mem(label);
 }
 
 /*
@@ -250,21 +323,16 @@ MIMEType *mtlist;
   Document *d;
   DIR *dp;
   DIRSTUFF *de;
-  int flen;
-  int filelen;
-  int formlen;
+  size_t flen;
   int count, size;
   int i;
-  char *f;
-  static char *format = "<li><a href=\"file:%s/%s\">%s</a>\n";
-  static char *rformat = "<li><a href=\"file:%s%s\">%s</a>\n";
+  char *f, *title;
+  static char *tablehead = "\n<table border=\"0\">\n<DT><tr><td width=\"150\">Filename</td> <td width=\"025\">SUID</td><td width=\"050\">Perms</td><td width=\"050\">UID</td><td width=\"050\">GID</td><td width=\"050\">Size</td><td width=\"150\">Last Mod</td></tr>\n";
   char *header = GetFromStringDB("localheader");
-  char *useformat = (filename[strlen(filename) - 1] == '/')? rformat: format;
   char *useshtfmt = (filename[strlen(filename) - 1] == '/')? "%s%s": "%s/%s";
   char **sa;
   char **lifn;
   struct stat s;
-  char *filetype = (filename[strlen(filename) - 1] == '/')? "dir": "file";
    
   /*
    * First see if there is a welcome or index file.  If you don't like this
@@ -311,8 +379,8 @@ MIMEType *mtlist;
       sa = (char **)realloc_mem((char *)sa, size * sizeof(char *));
     }
 
-    // construct table based long directory entry for each file
-	add_list_entry(filename, (char*) &de->d_name, count, sa, filetype);
+    /* one table row for each file */
+    add_list_entry(filename, de->d_name, count, sa);
     count += 1;
   }
   closedir(dp);
@@ -329,24 +397,20 @@ MIMEType *mtlist;
 
   qsort(sa, count, sizeof(char *), &local_strcmp);
 
-  filelen = strlen(filename);
-  formlen = strlen(useformat);
+  title = escape_html(filename);
+  flen = strlen(header) + 2 * strlen(title) + strlen(tablehead) + 32;
+  for (i = 0; i < count; i++) flen += strlen(sa[i]);
 
-  // hack string length for loooong table field header, e.g.:
-  // Filename SUID Perms UID GID Size Last-Mod
-  flen = strlen(header) - 2 * 2 + 2 * filelen + 1 + 236;
   f = (char *)alloc_mem(flen);
-  sprintf (f, header, filename, filename, "\n<table border=\"0\">\n<DT><tr><td width=\"150\">Filename</td> <td width=\"025\">SUID</td><td width=\"050\">Perms</td><td width=\"050\">UID</td><td width=\"050\">GID</td><td width=\"050\">Size</td><td width=\"150\">Last Mod</td></tr>\n");
+  snprintf(f, flen, header, title, title, tablehead);
+  free_mem(title);
 
   for (i = 0; i < count; i++)
   {
-    flen += formlen + 2 * strlen(sa[i]) + filelen - 3 * 2;
-    f = (char *)realloc_mem(f, flen);
-   // sprintf(f + strlen(f), sa[i]);
-   sprintf(f + strlen(f), "%s", sa[i]);
+    strcat(f, sa[i]);
     free_mem(sa[i]);
   }
-  sprintf(f + strlen(f), "\n</table>\n");
+  strcat(f, "\n</table>\n");
   free_mem((char *)sa);
 
   return(BuildDocument(f, strlen(f), "text/html", 0, 0));
@@ -391,7 +455,13 @@ MIMEType *mtlist;
     }
   }
 
-  filename = FixFilename(up->filename);
+  /* file: URLs are %-encoded, see escape_path() */
+  {
+    char *plain = UnescapeURL(up->filename);
+
+    filename = (plain != NULL) ? FixFilename(plain) : NULL;
+    if (plain != NULL) free_mem(plain);
+  }
   if (filename == NULL || stat(filename, &s) < 0)
   {
     char *msg = GetFromStringDB("localaccess");

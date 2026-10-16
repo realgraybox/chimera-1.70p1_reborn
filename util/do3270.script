@@ -1,18 +1,27 @@
 #!/bin/sh
-
-if [ ! "$1" = "" ]
+#
+# Connects to the host in a tn3270: link. Chimera writes
+# "hostname port username password" to a file and passes its name; run
+# from mailcap through chimera-term, which opens the terminal window.
+#
+if [ -n "$1" ]
 then
-        read hostname portno username password < $1
-        if [ ! "$username" = "" ]
+        read hostname portno username password < "$1"
+        if ! command -v tn3270 >/dev/null 2>&1
         then
-		if [ "$password" = "" ]
-		then
-                	echo When connected, login as $username
-		else
-                	echo When connected, login as $username with password $password
-		fi
+                echo "tn3270 is not installed, so $hostname cannot be reached."
+                exit 1
         fi
-        echo You may need to press Return to "wake up" the other computer
-        echo when you are connected.
-        tn3270 $hostname $portno
+        if [ -n "$username" ]
+        then
+                if [ -z "$password" ]
+                then
+                        echo "When connected, login as $username"
+                else
+                        echo "When connected, login as $username with password $password"
+                fi
+        fi
+        echo 'You may need to press Return to "wake up" the other computer'
+        echo "when you are connected."
+        tn3270 "$hostname" $portno
 fi

@@ -171,8 +171,8 @@ char *ext;
 
 static MailCap mclist[] =
 {
-  { "application/x-telnet", "xterm -e dotelnet %s" },
-  { "application/x-tn3270", "xterm -e do3270 %s" },
+  { "application/x-telnet", "chimera-term -f %s dotelnet" },
+  { "application/x-tn3270", "chimera-term -f %s do3270" },
   { "text/x-dvi", "xdvi %s" },
   { "application/postscript", "ghostview %s" },
   { "application/x-dvi", "xdvi %s" },

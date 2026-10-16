@@ -287,7 +287,7 @@ readMenu(int argc, char *argv[]) {
 
 	fp = fopen(f, "r");
 	if (fp == 0) {
-		addMenuItem("localhost", "exec xterm");
+		addMenuItem("localhost", "exec chimera-term");
 		return;
 	}
 	
