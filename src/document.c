@@ -532,6 +532,14 @@ int reload;
 	if (url != NULL) free_mem(url);
       }
     }
+    else if (d->status == DS_NOTHING)
+    {
+      /*
+       * "204 No Content" (or 304): nothing to show, and HandleDoc keeps
+       * the current page. Used by protocol helpers such as chimera-mailto
+       * that hand the URL to another program.
+       */
+    }
     else if (d->text == NULL)
     {
       char *text, *urlt;

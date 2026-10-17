@@ -1088,6 +1088,8 @@ int download;
   if (d->status == DS_NOTHING)
   {
     DestroyDocument(d);
+    /* stay on the current page: put its URL back in the URL field */
+    SetURL(root.dlist ? root.dlist->up : NULL);
     return;
   }
 
