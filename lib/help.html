@@ -201,10 +201,9 @@ file:~/chimera/mailcap            - Retrieve and display your own mailcap
 https://github.com/realgraybox/chimera-1.70p1_reborn
                                   - The home page of this restoration.
 
-mailto:someone@example.com        - Send email, either using an external
-                                    mailer or via a form appearing in
-                                    chimera's own window.  (This will work
-                                    only if you have perl installed.)
+mailto:someone@example.com        - Write an email to someone@example.com
+                                    with the desktop's mail program (or
+                                    the one named in MAIL_CLIENT).
 </pre>
 
 <h3>Environment variables</h3>
@@ -225,26 +224,11 @@ PRINTER                This is used by chimera to determine the default
 EMAIL                  Email address used for anonymous FTP.  This is needed
                        for users of TERM.
 
-HOME                   Used by the mailto helper script to find out where
-                       to store a dead.letter if necessary.
-
-MAIL_CLIENT            Used to tell the mailto helper script which external
-                       mail program to run, if any.  Could be something like
-                       'xterm -e pine'.  The recipient address will be passed
-                       to the client as a commandline argument.  If this
-                       variable is not set in the environment, the mailto
-                       script will bring up a mail composition form in the
-                       chimera window itself.
-
-REPLYTO                Used by the mailto helper script to obtain a default
-                       value for the Reply-To mail header when it brings up
-                       the form.
-
-SIGNATURE              Used by the mailto script to find the user's signature
-                       file when it brings up a form.  If SIGNATURE is not set
-                       and a file $HOME/.signature exists, it will be used.
-                       You can always discard the signature when filling in
-                       the form.
+MAIL_CLIENT            The mail program for mailto: links, for example
+                       'chimera-term mutt'.  The recipient address is passed
+                       to it as an argument.  If MAIL_CLIENT is not set, the
+                       whole mailto: link is handed to xdg-open, which starts
+                       the desktop's default mail program.
 
 http_proxy             This is used to specify the server to use for
                        proxied HTTP requests.  The format is the
