@@ -75,6 +75,7 @@
 #endif
 
 #include <X11/Intrinsic.h>
+#include <X11/Xutil.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Toggle.h>
 #include <X11/Xaw/AsciiText.h>
@@ -364,9 +365,8 @@ char ***value_list;
 	  }
 	  break;
 	case W_PASSWORD:
-	  XtVaGetValues (GetAsciiTextWidget(wptr->w), XtNstring,
-			 &(cbdata.attribute_values[cnt]),
-			 NULL);
+	  /* the field shows '*'s; the real text is kept in wptr->password */
+	  cbdata.attribute_values[cnt] = wptr->password;
 	  if ((cbdata.attribute_values[cnt] != NULL) &&
 	      (cbdata.attribute_values[cnt][0] == '\0'))
 	  {
@@ -1825,6 +1825,104 @@ FormInfo *fptr;			/* not used */
             buf);
 }*/
 
+/*
+ * Password fields
+ *
+ * The field shows one '*' per character; the real text is kept in
+ * wptr->password. Typed characters and BackSpace/Delete go through the
+ * actions below, which always work at the end of the text. Other editing
+ * keys and pasting are ignored, so field and real text stay in step.
+ */
+static WidgetInfo *
+PasswordInfo (w)
+Widget w;			/* the AsciiText widget of the field */
+{
+  Widget p;
+  WidgetInfo *wptr;
+
+  for (p = w;  p != NULL  &&  !XtIsSubclass (p, htmlWidgetClass);  p = XtParent (p))
+    ;
+  if (p == NULL)  return (NULL);
+
+  for (wptr = ((HTMLWidget) p)->html.widget_list;  wptr != NULL;  wptr = wptr->next)
+  {
+    if (wptr->type == W_PASSWORD  &&  wptr->w != NULL  &&
+	GetAsciiTextWidget (wptr->w) == w)
+      return (wptr);
+  }
+  return (NULL);
+}
+
+static void
+PasswordInsert (w, event, params, num_params)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *num_params;
+{
+  WidgetInfo *wptr;
+  char buf[8];
+  KeySym ks;
+  int n, len;
+  XawTextBlock blk;
+
+  if (event == NULL  ||  event->type != KeyPress)  return;
+  n = XLookupString (&event->xkey, buf, sizeof (buf), &ks, NULL);
+  if (n != 1  ||  (unsigned char) buf[0] < 32  ||  buf[0] == 127)  return;
+  if ((wptr = PasswordInfo (w)) == NULL)  return;
+
+  len = (wptr->password != NULL) ?  strlen (wptr->password) : 0;
+  blk.firstPos = 0;
+  blk.length = 1;
+  blk.ptr = "*";
+  blk.format = FMT8BIT;
+  /* refused when the field is full (maxlength) */
+  if (XawTextReplace (w, len, len, &blk) != XawEditDone)  return;
+
+  wptr->password = XtRealloc (wptr->password, len + 2);
+  wptr->password[len] = buf[0];
+  wptr->password[len + 1] = '\0';
+  XawTextSetInsertionPoint (w, len + 1);
+}
+
+static void
+PasswordDelete (w, event, params, num_params)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *num_params;
+{
+  WidgetInfo *wptr;
+  int len;
+  XawTextBlock blk;
+
+  if ((wptr = PasswordInfo (w)) == NULL  ||  wptr->password == NULL)  return;
+  len = strlen (wptr->password);
+  if (len == 0)  return;
+
+  blk.firstPos = 0;
+  blk.length = 0;
+  blk.ptr = "";
+  blk.format = FMT8BIT;
+  XawTextReplace (w, len - 1, len, &blk);
+  wptr->password[len - 1] = '\0';
+  XawTextSetInsertionPoint (w, len - 1);
+}
+
+static XtActionsRec password_actions[] = {
+  { "htmlwPasswordInsert", (XtActionProc) PasswordInsert },
+  { "htmlwPasswordDelete", (XtActionProc) PasswordDelete },
+};
+
+static char password_translations[] =
+  "<Key>Return:     no-op()\n\
+   <Key>Linefeed:   no-op()\n\
+   <Key>BackSpace:  htmlwPasswordDelete()\n\
+   <Key>Delete:     htmlwPasswordDelete()\n\
+   <Key>:           htmlwPasswordInsert()\n\
+   <Btn2Down>:      no-op()\n\
+   <Btn2Up>:        no-op()";
+
 static WidgetInfo *
 MakePasswordWidget (name, hw, text, x, y, id, fptr)
 char *name;
@@ -1840,6 +1938,7 @@ FormInfo *fptr;			/* not used */
   Cardinal argcnt;
   char *tptr;
   char *value;
+  char *stars;
   Pixel bg;
 
   value = ParseMarkTag (text, MT_INPUT, "VALUE");
@@ -1917,8 +2016,16 @@ FormInfo *fptr;			/* not used */
             (unsigned long)bg,
             str ? str : "(null)");
 }*/
-  //XtSetArg (arg[argcnt], XtNforeground, bg); argcnt++;
-  XtSetArg (arg[argcnt], XtNstring, value); argcnt++;
+  /* show one '*' per character of a preset value; the real value goes
+   * to wptr->password through AddNewWidget */
+  {
+    int i, len = strlen (value);
+
+    stars = XtMalloc (len + 1);
+    for (i = 0;  i < len;  i++)  stars[i] = '*';
+    stars[len] = '\0';
+  }
+  XtSetArg (arg[argcnt], XtNstring, stars); argcnt++;
   XtSetArg (arg[argcnt], XtNeditType, XawtextEdit); argcnt++;
   //XtSetValues (GetAsciiTextWidget(w), arg, argcnt);
  /*   fprintf(stderr,
@@ -1927,6 +2034,21 @@ FormInfo *fptr;			/* not used */
         (int)argcnt);*/
         
   XtSetValues (GetAsciiTextWidget(w), arg, argcnt);
+  XtFree (stars);		/* the text widget keeps its own copy */
+
+  {
+    static Boolean actions_added = False;
+    static XtTranslations trans = NULL;
+
+    if (!actions_added)
+    {
+      XtAppAddActions (XtWidgetToApplicationContext (w),
+		       password_actions, XtNumber (password_actions));
+      trans = XtParseTranslationTable (password_translations);
+      actions_added = True;
+    }
+    XtOverrideTranslations (GetAsciiTextWidget (w), trans);
+  }
    
   /*{
     XawTextEditType et;
