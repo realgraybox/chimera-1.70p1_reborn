@@ -1645,37 +1645,59 @@ FormInfo *fptr;			/* not used */
 /*
  * maxlength for text fields
  *
- * Called by the text source after every change. Text beyond maxlength
- * (typed or pasted) is removed again. Athena's own XtNlength only works
+ * The text source calls CBTextLimit after every change. Text beyond
+ * maxlength (typed or pasted) is removed again, but not from inside the
+ * callback: the text widget is still in the middle of its own edit then,
+ * and changing the text under it confuses its cursor and positions
+ * (differently in each Athena variant). A zero timeout does the trimming
+ * as soon as the widget has finished. Athena's own XtNlength only works
  * with a string edited in place, which is not safe here.
  */
+static Boolean text_limit_busy = False;
+static WidgetInfo *text_limit_pending = NULL;
+
+static void
+TextLimitTrim (client_data, id)
+XtPointer client_data;
+XtIntervalId *id;
+{
+  WidgetInfo *wptr = (WidgetInfo *) client_data;
+  Widget tw;
+  String str = NULL;
+  int len;
+  XawTextPosition ins;
+  XawTextBlock blk;
+
+  text_limit_pending = NULL;
+  if (wptr == NULL  ||  wptr->w == NULL  ||  wptr->maxlength <= 0)  return;
+  tw = GetAsciiTextWidget (wptr->w);
+  XtVaGetValues (tw, XtNstring, &str, NULL);
+  if (str == NULL  ||  (len = strlen (str)) <= wptr->maxlength)  return;
+
+  ins = XawTextGetInsertionPoint (tw);
+  text_limit_busy = True;	/* the Replace below calls CBTextLimit */
+  blk.firstPos = 0;
+  blk.length = 0;
+  blk.ptr = "";
+  blk.format = FMT8BIT;
+  XawTextReplace (tw, wptr->maxlength, len, &blk);
+  XawTextSetInsertionPoint (tw, ins > wptr->maxlength ?  wptr->maxlength : ins);
+  text_limit_busy = False;
+}
+
 static void
 CBTextLimit (src, client_data, call_data)
 Widget src;
 XtPointer client_data;
 XtPointer call_data;
 {
-  static Boolean busy = False;
   WidgetInfo *wptr = (WidgetInfo *) client_data;
-  Widget tw;
-  String str = NULL;
-  int len;
-  XawTextBlock blk;
 
-  if (busy  ||  wptr == NULL  ||  wptr->maxlength <= 0)  return;
-  tw = GetAsciiTextWidget (wptr->w);
-  XtVaGetValues (tw, XtNstring, &str, NULL);
-  if (str == NULL  ||  (len = strlen (str)) <= wptr->maxlength)  return;
-
-  busy = True;			/* the Replace below calls us again */
-  blk.firstPos = 0;
-  blk.length = 0;
-  blk.ptr = "";
-  blk.format = FMT8BIT;
-  XawTextReplace (tw, wptr->maxlength, len, &blk);
-  if (XawTextGetInsertionPoint (tw) > wptr->maxlength)
-    XawTextSetInsertionPoint (tw, wptr->maxlength);
-  busy = False;
+  if (text_limit_busy  ||  wptr == NULL  ||  wptr->maxlength <= 0)  return;
+  if (text_limit_pending == wptr)  return;	/* already scheduled */
+  text_limit_pending = wptr;
+  XtAppAddTimeOut (XtWidgetToApplicationContext (wptr->w), 0,
+		   TextLimitTrim, (XtPointer) wptr);
 }
 
 static WidgetInfo *
