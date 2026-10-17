@@ -154,6 +154,7 @@ typedef struct wid_rec {
 	char *name;
 	char *value;
 	char *password;
+	int maxlength;		/* text and password fields: max characters, or -1 */
 	char **mapping;
 	Boolean checked;
 	Boolean mapped;
