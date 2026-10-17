@@ -111,15 +111,13 @@ if ! command -v "$1" >/dev/null 2>&1; then
     exit 0
 fi
 
-# Start it detached from Chimera's pipe. Give it two seconds to fail
-# (xdg-open exits with an error when no mail program is configured);
-# one still running then has started a mail program.
+# Start it detached from Chimera's pipe. Give it a second to fail
+# (xdg-open exits with an error at once when no mail program is
+# configured); one still running then has started a mail program.
+# Chimera shows its busy cursor meanwhile, so keep this short.
 "$@" </dev/null >/dev/null 2>&1 &
 pid=$!
-for i in 1 2; do
-    kill -0 "$pid" 2>/dev/null || break
-    sleep 1
-done
+sleep 1
 if ! kill -0 "$pid" 2>/dev/null; then
     if ! wait "$pid"; then
         page "The mail program <b>$(html_escape "$1")</b> could not be started."
