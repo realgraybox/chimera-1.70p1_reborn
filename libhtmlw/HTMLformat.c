@@ -3524,6 +3524,18 @@ int *x, *y;
       if (tptr != NULL)
       {
 	/*
+	 * A link that follows the end of another link with no white space
+	 * between them (<a ...>one</a><a ...>two</a>, which pages lay out
+	 * with CSS margins) gets a space, so the two do not run together.
+	 * NeedSpace < 0 means "white space seen": one space is inserted.
+	 */
+	if (NeedSpace > 0  &&  Current != NULL  &&  Current->type == E_TEXT
+	    &&  Current->anchorHRef != NULL)
+	{
+	  NeedSpace = -NeedSpace;
+	}
+
+	/*
 	 * Have we visited it before?
 	 */
 	if (hw->html.previously_visited_test != NULL)
