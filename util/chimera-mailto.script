@@ -1,0 +1,130 @@
+#!/bin/sh
+#
+# Copyright (C) 2026 M. Glargaard, aka graybox
+#
+# This software is provided "as-is", without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would
+#    be appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not
+#    be misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source distribution.
+#
+
+#
+# chimera-mailto - mailto: links for Chimera
+#
+# The "protocol" file maps mailto to this script. Chimera writes an
+# HTTP/1.0 style request on stdin, with the link in a "URI:" header, and
+# reads an HTTP response from stdout.
+#
+# The link is handed to a mail program:
+#
+#   MAIL_CLIENT  if set: this command is run with the recipient address
+#                as its argument, for example
+#                  MAIL_CLIENT='chimera-term mutt'
+#   otherwise    xdg-open is run with the whole mailto: link, so the
+#                desktop's mail program also gets subject= and body=.
+#
+# On success the answer is "204 No Content" and Chimera stays on the
+# page. If no mail program can be started, a short page shows the
+# address so it can be copied.
+#
+
+URI=""
+while IFS= read -r line
+do
+    line=$(printf "%s" "$line" | tr -d '\r')
+    [ -z "$line" ] && break
+    case "$line" in
+        URI:*) URI=$(printf "%s" "$line" | sed 's/^URI: *//') ;;
+    esac
+done
+
+# %xx decoding in plain POSIX sh (dash and busybox have no printf \x)
+urldecode() {
+    s=$1
+    out=""
+    while [ -n "$s" ]; do
+        case "$s" in
+            %[0-9A-Fa-f][0-9A-Fa-f]*)
+                hh=${s#%}
+                hh=${hh%"${hh#??}"}
+                out="$out$(printf "\\$(printf '%03o' "0x$hh")")"
+                s=${s#%??}
+                ;;
+            *)
+                out="$out${s%"${s#?}"}"
+                s=${s#?}
+                ;;
+        esac
+    done
+    printf "%s" "$out"
+}
+
+# the address alone: without "mailto:" and "?subject=...", %xx decoded
+ADDR=$(printf "%s" "$URI" | sed -e 's/^[Mm][Aa][Ii][Ll][Tt][Oo]://' -e 's/?.*//')
+ADDR=$(urldecode "$ADDR")
+
+html_escape() {
+    printf "%s" "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
+}
+
+page() {
+    printf "HTTP/1.0 200 OK\r\n"
+    printf "Content-Type: text/html\r\n"
+    printf "\r\n"
+    printf "<html><head><title>Send mail</title></head><body>\n"
+    printf "<h2>Send mail</h2>\n<p>%s</p>\n" "$1"
+    printf "<p>Address: <b>%s</b></p>\n" "$(html_escape "$ADDR")"
+    printf "<p>Set MAIL_CLIENT to the mail program to use, or install xdg-open\n"
+    printf "(xdg-utils) and choose a default mail program for the desktop.</p>\n"
+    printf "</body></html>\n"
+}
+
+case "$URI" in
+    [Mm][Aa][Ii][Ll][Tt][Oo]:*) ;;
+    *) page "This is not a mailto: link."; exit 0 ;;
+esac
+
+if [ -n "$MAIL_CLIENT" ]; then
+    set -- $MAIL_CLIENT "$ADDR"
+elif command -v xdg-open >/dev/null 2>&1; then
+    set -- xdg-open "$URI"
+else
+    page "No mail program was found."
+    exit 0
+fi
+
+if ! command -v "$1" >/dev/null 2>&1; then
+    page "The mail program <b>$(html_escape "$1")</b> was not found."
+    exit 0
+fi
+
+# Start it detached from Chimera's pipe. Give it two seconds to fail
+# (xdg-open exits with an error when no mail program is configured);
+# one still running then has started a mail program.
+"$@" </dev/null >/dev/null 2>&1 &
+pid=$!
+for i in 1 2; do
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 1
+done
+if ! kill -0 "$pid" 2>/dev/null; then
+    if ! wait "$pid"; then
+        page "The mail program <b>$(html_escape "$1")</b> could not be started."
+        exit 0
+    fi
+fi
+
+printf "HTTP/1.0 204 No Content\r\n\r\n"

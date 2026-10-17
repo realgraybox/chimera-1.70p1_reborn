@@ -1,6 +1,6 @@
 include ../mk.config
 
-SCRIPTS = dotelnet do3270 pstopxm mailto.pl chimera-open chimera-term
+SCRIPTS = dotelnet do3270 pstopxm chimera-mailto chimera-open chimera-term
 
 all:
 	@echo "Nothing to build (only script install)"
