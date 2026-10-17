@@ -76,6 +76,7 @@
 
 #include <X11/Intrinsic.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Toggle.h>
 #include <X11/Xaw/AsciiText.h>
@@ -1171,6 +1172,7 @@ Boolean checked;
   wptr->name = name;
   wptr->value = value;
   wptr->password = NULL;
+  wptr->maxlength = -1;
   wptr->mapping = mapping;
   wptr->checked = checked;
   wptr->mapped = False;
@@ -1640,6 +1642,42 @@ FormInfo *fptr;			/* not used */
 /*
  * MakeTextFieldWidget
  */
+/*
+ * maxlength for text fields
+ *
+ * Called by the text source after every change. Text beyond maxlength
+ * (typed or pasted) is removed again. Athena's own XtNlength only works
+ * with a string edited in place, which is not safe here.
+ */
+static void
+CBTextLimit (src, client_data, call_data)
+Widget src;
+XtPointer client_data;
+XtPointer call_data;
+{
+  static Boolean busy = False;
+  WidgetInfo *wptr = (WidgetInfo *) client_data;
+  Widget tw;
+  String str = NULL;
+  int len;
+  XawTextBlock blk;
+
+  if (busy  ||  wptr == NULL  ||  wptr->maxlength <= 0)  return;
+  tw = GetAsciiTextWidget (wptr->w);
+  XtVaGetValues (tw, XtNstring, &str, NULL);
+  if (str == NULL  ||  (len = strlen (str)) <= wptr->maxlength)  return;
+
+  busy = True;			/* the Replace below calls us again */
+  blk.firstPos = 0;
+  blk.length = 0;
+  blk.ptr = "";
+  blk.format = FMT8BIT;
+  XawTextReplace (tw, wptr->maxlength, len, &blk);
+  if (XawTextGetInsertionPoint (tw) > wptr->maxlength)
+    XawTextSetInsertionPoint (tw, wptr->maxlength);
+  busy = False;
+}
+
 static WidgetInfo *
 MakeTextFieldWidget (name, hw, text, x, y, id, fptr)
 char *name;
@@ -1798,7 +1836,18 @@ FormInfo *fptr;			/* not used */
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
 
-  return (AddNewWidget (hw, w, type, id, x, y, name, value, NULL, False));
+  {
+    WidgetInfo *nw = AddNewWidget (hw, w, type, id, x, y, name, value,
+				   NULL, False);
+
+    if (type == W_TEXTFIELD  &&  maxlength > 0)
+    {
+      nw->maxlength = maxlength;
+      XtAddCallback (XawTextGetSource (GetAsciiTextWidget (w)), XtNcallback,
+		     CBTextLimit, (XtPointer) nw);
+    }
+    return (nw);
+  }
 }
 
 /*static void DebugKeyPress(Widget w,
@@ -1853,6 +1902,37 @@ Widget w;			/* the AsciiText widget of the field */
   return (NULL);
 }
 
+/*
+ * Add one character to the end of a password field: '*' in the field,
+ * the character itself in wptr->password. Returns False when it cannot
+ * be added (not printable, or the field is full).
+ */
+static Boolean
+PasswordAppend (w, wptr, c)
+Widget w;
+WidgetInfo *wptr;
+int c;
+{
+  int len;
+  XawTextBlock blk;
+
+  if (c < 32  ||  c == 127)  return (False);
+  len = (wptr->password != NULL) ?  strlen (wptr->password) : 0;
+  if (wptr->maxlength > 0  &&  len >= wptr->maxlength)  return (False);
+
+  blk.firstPos = 0;
+  blk.length = 1;
+  blk.ptr = "*";
+  blk.format = FMT8BIT;
+  if (XawTextReplace (w, len, len, &blk) != XawEditDone)  return (False);
+
+  wptr->password = XtRealloc (wptr->password, len + 2);
+  wptr->password[len] = (char) c;
+  wptr->password[len + 1] = '\0';
+  XawTextSetInsertionPoint (w, len + 1);
+  return (True);
+}
+
 static void
 PasswordInsert (w, event, params, num_params)
 Widget w;
@@ -1863,26 +1943,66 @@ Cardinal *num_params;
   WidgetInfo *wptr;
   char buf[8];
   KeySym ks;
-  int n, len;
-  XawTextBlock blk;
 
   if (event == NULL  ||  event->type != KeyPress)  return;
-  n = XLookupString (&event->xkey, buf, sizeof (buf), &ks, NULL);
-  if (n != 1  ||  (unsigned char) buf[0] < 32  ||  buf[0] == 127)  return;
+  if (XLookupString (&event->xkey, buf, sizeof (buf), &ks, NULL) != 1)  return;
   if ((wptr = PasswordInfo (w)) == NULL)  return;
+  PasswordAppend (w, wptr, (unsigned char) buf[0]);
+}
 
-  len = (wptr->password != NULL) ?  strlen (wptr->password) : 0;
-  blk.firstPos = 0;
-  blk.length = 1;
-  blk.ptr = "*";
-  blk.format = FMT8BIT;
-  /* refused when the field is full (maxlength) */
-  if (XawTextReplace (w, len, len, &blk) != XawEditDone)  return;
+/*
+ * Pasting: the selection (PRIMARY for the middle mouse button, CLIPBOARD
+ * for Ctrl+V) is requested as text and added character by character,
+ * so the field shows '*'s and the text itself never appears. Line ends
+ * and other control characters are skipped; pasting stops when the
+ * field is full.
+ */
+static void
+PasswordPasteDone (w, client_data, selection, type, value, length, format)
+Widget w;
+XtPointer client_data;
+Atom *selection, *type;
+XtPointer value;
+unsigned long *length;
+int *format;
+{
+  WidgetInfo *wptr;
+  unsigned long i;
 
-  wptr->password = XtRealloc (wptr->password, len + 2);
-  wptr->password[len] = buf[0];
-  wptr->password[len + 1] = '\0';
-  XawTextSetInsertionPoint (w, len + 1);
+  if (value == NULL)  return;
+  if (*type == XA_STRING  &&  *format == 8  &&
+      (wptr = PasswordInfo (w)) != NULL)
+  {
+    for (i = 0;  i < *length;  i++)
+    {
+      int c = ((unsigned char *) value)[i];
+
+      if (!PasswordAppend (w, wptr, c)  &&  c >= 32  &&  c != 127)
+	break;			/* field full */
+    }
+  }
+  XtFree ((char *) value);
+}
+
+static void
+PasswordPaste (w, event, params, num_params)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *num_params;
+{
+  Atom selection = XA_PRIMARY;
+  Time t = CurrentTime;
+
+  if (*num_params > 0  &&  strcmp (params[0], "CLIPBOARD") == 0)
+    selection = XInternAtom (XtDisplay (w), "CLIPBOARD", False);
+  if (event != NULL  &&
+      (event->type == ButtonPress  ||  event->type == ButtonRelease))
+    t = event->xbutton.time;
+  else if (event != NULL  &&  event->type == KeyPress)
+    t = event->xkey.time;
+
+  XtGetSelectionValue (w, selection, XA_STRING, PasswordPasteDone, NULL, t);
 }
 
 static void
@@ -1912,6 +2032,7 @@ Cardinal *num_params;
 static XtActionsRec password_actions[] = {
   { "htmlwPasswordInsert", (XtActionProc) PasswordInsert },
   { "htmlwPasswordDelete", (XtActionProc) PasswordDelete },
+  { "htmlwPasswordPaste",  (XtActionProc) PasswordPaste },
 };
 
 static char password_translations[] =
@@ -1919,9 +2040,10 @@ static char password_translations[] =
    <Key>Linefeed:   no-op()\n\
    <Key>BackSpace:  htmlwPasswordDelete()\n\
    <Key>Delete:     htmlwPasswordDelete()\n\
+   Ctrl<Key>v:      htmlwPasswordPaste(CLIPBOARD)\n\
    <Key>:           htmlwPasswordInsert()\n\
    <Btn2Down>:      no-op()\n\
-   <Btn2Up>:        no-op()";
+   <Btn2Up>:        htmlwPasswordPaste(PRIMARY)";
 
 static WidgetInfo *
 MakePasswordWidget (name, hw, text, x, y, id, fptr)
@@ -2067,8 +2189,13 @@ FormInfo *fptr;			/* not used */
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
 
-  return (AddNewWidget (hw, w, W_PASSWORD, id, x, y,
-			name, value, NULL, False));
+  {
+    WidgetInfo *nw = AddNewWidget (hw, w, W_PASSWORD, id, x, y,
+				   name, value, NULL, False);
+
+    nw->maxlength = maxlength;
+    return (nw);
+  }
 }
 
 /*
