@@ -1889,6 +1889,27 @@ int width, height;
    */
   if (hw->html.drawGC != NULL)
   {
+    /*
+     * A table cell spanning several rows (rowspan) belongs to the line of
+     * its first row, but reaches down beside the rows below. Look back a
+     * little for earlier lines with elements that reach into the area;
+     * PlaceLine draws only the elements that actually overlap it.
+     */
+#define SPAN_LOOKBACK 64
+    for (i = start - 1;  i >= 0  &&  i >= start - SPAN_LOOKBACK;  i--)
+    {
+      struct ele_rec *eptr = hw->html.line_array[i];
+
+      for (;  eptr != NULL  &&  eptr->line_number == i + 1;  eptr = eptr->next)
+      {
+	if (eptr->y + eptr->y_offset + eptr->line_height >= doc_y)
+	{
+	  PlaceLine (hw, i, doc_x, doc_y, doc_x + width, doc_y + height);
+	  break;
+	}
+      }
+    }
+
     for (i = start; i <= end; i++)
     {
       PlaceLine (hw, i, doc_x, doc_y, doc_x + width, doc_y + height);
