@@ -119,8 +119,10 @@ fi
 pid=$!
 sleep 1
 if ! kill -0 "$pid" 2>/dev/null; then
-    if ! wait "$pid"; then
-        page "The mail program <b>$(html_escape "$1")</b> could not be started."
+    wait "$pid"
+    status=$?
+    if [ "$status" -ne 0 ]; then
+        page "The mail program <b>$(html_escape "$1")</b> could not be started (exit status $status). Try <b>$(html_escape "$*")</b> in a terminal to see why."
         exit 0
     fi
 fi
