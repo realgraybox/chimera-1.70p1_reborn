@@ -6,7 +6,7 @@ SRCS = \
 	cache.c url.c net.c ftp.c convert.c gopher.c http.c  \
     util.c inline.c \
     document.c local.c widget.c main.c mime.c input.c md5.c chimera_auth.c \
-    fallback.c lang.c stringdb.c
+    fallback.c lang.c stringdb.c charset.c
 
 OBJS = $(SRCS:.c=.o)
 TARGET = chimera
