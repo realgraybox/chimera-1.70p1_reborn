@@ -559,6 +559,7 @@ int reload;
     else /* if the document seems to be OK then copy the URL stuff over */
     {
       d->up = DupURLParts(up);
+      DocumentToLatin1(d);	/* UTF-8 etc. for the Latin-1 fonts */
     }
   }
 
