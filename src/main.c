@@ -6,6 +6,7 @@
  * See copyright.h for details.
  */
 #include "copyright.h"
+#include "charset.h"
 #include "options.h"
 
 #include <stdio.h>
@@ -2804,7 +2805,7 @@ XtPointer cldata, cbdata;
   char *url;
   Document *d;
   URLParts *up;
-  int i;
+  int i, utf8;
   WbFormCallbackData *formdata;
 
   formdata = (WbFormCallbackData *)cbdata;
@@ -2824,6 +2825,12 @@ XtPointer cldata, cbdata;
   up->method = formdata->method != NULL ?
       alloc_string(formdata->method):alloc_string("GET");
 
+  /*
+   * Pages that were UTF-8 are shown converted to Latin-1 (charset.c);
+   * their servers expect form data in UTF-8, so convert it back.
+   */
+  utf8 = (root.dlist != NULL  &&  DocumentWasUTF8(root.dlist->doc));
+
   up->attribute_count = formdata->attribute_count;
   if (up->attribute_count > 0)
   {
@@ -2832,12 +2839,15 @@ XtPointer cldata, cbdata;
     up->attribute_values = (char **)alloc_mem(sizeof(char **) *
 					      formdata->attribute_count);
 
-        for (i = 0; i < up->attribute_count; i++)
+    for (i = 0; i < up->attribute_count; i++)
     {
-      up->attribute_names[i] = formdata->attribute_names[i] != NULL ?
-	  alloc_string(formdata->attribute_names[i]):NULL;
-      up->attribute_values[i] = formdata->attribute_values[i] != NULL ?
-	  alloc_string(formdata->attribute_values[i]):NULL;
+      char *n = formdata->attribute_names[i];
+      char *v = formdata->attribute_values[i];
+
+      up->attribute_names[i] = n == NULL ? NULL :
+	  utf8 ? Latin1ToUTF8(n) : alloc_string(n);
+      up->attribute_values[i] = v == NULL ? NULL :
+	  utf8 ? Latin1ToUTF8(v) : alloc_string(v);
     }
   }
 // HTMLSetText is called inside HandleDoc, which cleans up form data automatically

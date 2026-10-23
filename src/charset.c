@@ -46,6 +46,10 @@
  * Characters outside Latin-1 become a readable substitute where there is
  * one (quotes, dashes, "...", "EUR", accented letters of Central European
  * languages without their accent), otherwise '?'.
+ *
+ * A converted UTF-8 document gets "x-chimera-from=utf-8" in its
+ * Content-Type, so that forms on it can send their text back as UTF-8,
+ * which is what the server expects (DocumentWasUTF8, Latin1ToUTF8).
  */
 
 #include <stdio.h>
@@ -396,12 +400,53 @@ Document *d;
 
   if (utf8)
   {
-    char *c = alloc_mem (strlen ("text/plain; charset=iso-8859-1") + 1);
+    static const char *html = "text/html; charset=iso-8859-1; x-chimera-from=utf-8";
+    static const char *plain = "text/plain; charset=iso-8859-1; x-chimera-from=utf-8";
+    char *c = alloc_mem (strlen (plain) + 1);
 
-    strcpy (c, is_html ?  "text/html; charset=iso-8859-1"
-		       :  "text/plain; charset=iso-8859-1");
+    strcpy (c, is_html ?  html : plain);
     free_mem (d->content);
     d->content = c;
   }
 }
+
+/*
+ * True if d was converted from UTF-8 by DocumentToLatin1.
+ */
+int
+DocumentWasUTF8 (d)
+Document *d;
+{
+  const char *c;
+
+  if (d == NULL  ||  d->content == NULL)  return (0);
+  for (c = d->content;  *c;  c++)
+    if (strncasecmp (c, "x-chimera-from=utf-8", 20) == 0)  return (1);
+  return (0);
+}
 #endif
+
+/*
+ * UTF-8 copy of a Latin-1 string (alloc_mem). Used for form data sent
+ * from pages that were UTF-8.
+ */
+char *
+Latin1ToUTF8 (const char *s)
+{
+  const unsigned char *p;
+  char *o, *r;
+
+  r = o = alloc_mem (strlen (s) * 2 + 1);
+  for (p = (const unsigned char *) s;  *p;  p++)
+  {
+    if (*p < 0x80)
+      *o++ = (char) *p;
+    else
+    {
+      *o++ = (char) (0xC0 | (*p >> 6));
+      *o++ = (char) (0x80 | (*p & 0x3F));
+    }
+  }
+  *o = '\0';
+  return (r);
+}

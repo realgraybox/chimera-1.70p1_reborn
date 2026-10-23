@@ -10,5 +10,6 @@
 
 int LooksLikeUTF8 (const char *text, int len);
 char *Latin1Text (const char *text, int len, int utf8, int is_html, int *outlen);
+char *Latin1ToUTF8 (const char *s);
 
 #endif
