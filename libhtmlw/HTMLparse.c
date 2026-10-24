@@ -67,6 +67,7 @@ struct timezone Tz;
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "HTML.h"
 #include "HTMLamp.h"
@@ -114,6 +115,7 @@ unsigned char map_table[256] =
  */
 #ifdef GPROFOPT
 #include <ctype.h>
+#include <string.h>
 #include <stddef.h>
 
 /*
@@ -762,6 +764,44 @@ char **endp;
 #endif	//GPROFOPT
 
 /*
+ * TagClose
+ *
+ * The '>' that ends the tag whose text starts at p (or the end of the
+ * string). A '>' inside a quoted attribute value does not end the tag:
+ * pages such as CNN's carry whole pieces of HTML in attributes
+ * (data-source-html="<span>...</span>"), and stopping at the first '>'
+ * spilled the rest of the attribute onto the page as text. A quote only
+ * starts a value right after '=' (spaces allowed), so a stray apostrophe
+ * elsewhere in a tag does no harm. A quote that is never closed is
+ * ignored, and the first '>' ends the tag as before.
+ */
+static const char *
+TagClose (const char *p)
+{
+  const char *q;
+  char prev = '\0';
+
+  for (q = p;  *q != '\0'  &&  *q != '>';  q++)
+  {
+    if ((*q == '"'  ||  *q == '\'')  &&  prev == '=')
+    {
+      const char *close = strchr (q + 1, *q);
+
+      if (close == NULL)	/* unterminated: old behaviour */
+      {
+	while (*p != '\0'  &&  *p != '>')  p++;
+	return (p);
+      }
+      q = close;
+      prev = '"';
+      continue;
+    }
+    if (!isspace ((unsigned char) *q))  prev = *q;
+  }
+  return (q);
+}
+
+/*
  * Get the mark text between '<' and '>'.  From the text, determine
  * its type, and fill in a mark_up structure to return.  Also returns
  * endp pointing to the trailing '>' in the original string.
@@ -839,9 +879,7 @@ struct mark_up *get_mark(const char *start, const char **endp) {
         }
     }
     else {
-        while (*ptr != '>' && *ptr != '\0') {
-            ptr++;
-        }
+        ptr = TagClose(ptr);
     }
     
     *endp = ptr;
@@ -1051,10 +1089,7 @@ char **endp;
   }
   else				/* ordinary SGML tag */
   {
-    while ((*ptr != '>') && (*ptr != '\0'))
-    {
-      ptr++;
-    }
+    ptr = (char *) TagClose (ptr);
   }
   *endp = ptr;
 
