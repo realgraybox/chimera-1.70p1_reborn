@@ -50,7 +50,9 @@ own width= and uses the cell widths.</p>
 <tr><td><td>e<td>
 </table>
 <p>Expected: two rows of three columns; the empty cells still have
-outlines and do not shift the others.</p>
+outlines and do not shift the others. Leaving out </td> and </tr> is
+valid HTML, but Chimera counts it, so the status line reports an HTML
+violation for this page.</p>
 
 <h3>7. Without border</h3>
 <table>

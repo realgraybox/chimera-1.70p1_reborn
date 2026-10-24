@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON Browser Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .test-boks {
+            border: 2px solid #000;
+            padding: 15px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Testing JSON filtering</h1>
+    <p>If the browser fails, you will be able to see raw JSON data (name, age, city) as body text just below:</p>
+
+    <div class="test-boks">
+        <!-- JSON DATA START -->
+        <script type="application/json" id="test-json-data">
+        {
+            "user": "Name Name",
+            "age": <42>,
+            "city": "København",
+            "status": "This should be hidden from the user"
+        }
+        </script>
+        <!-- JSON DATA END -->
+    </div>
+
+    <p>End of test area 1.</p>
+    
+
+    <h1>Testing for broken HTML attribute (CNN error) - Recreating CNN JSON Error</h1>
+    
+    <div class="forklaring">
+        <p><strong>Expected result in a modern browser:</strong> You only see the text "CNN" (as a link). All subsequent JSON and data text is hidden inside the tag.</p>
+        <p><strong>Result in the affected browser:</strong> You will see the text <em>" Source: CNN " data-fave-thumbnails=...</em> spit out onto the screen as raw body text.</p>
+    </div>
+
+    
+<div data-uri="cms.cnn.com/_components/video-resource/instances/cmm1e6xqg00023b6rgme1m5po@published"
+
+  data-duration=""
+ 
+  data-source-html="<span>Source:
+                
+                    <a target=&quot;_self&quot; href=&quot;https://www.cnn.com/&quot; class=&quot;video-resource__source-url&quot;>CNN</a>
+        </span>"
+  
+  data-fave-thumbnails='{"big": { "uri": "https://cnn.com" }, "small": { "uri": "https://cnn.com" } }'
+  
+  
+  data-vr-video="false"
+  data-show-html="<!-- unable to render partial show without a supplied context -->"
+  data-byline-html="<div
+  data-uri=&quot;cms.cnn.com/_components/byline/instances/clnm1qpnk00053b6iy89y3nbx@published&quot;
+  data-component-name=&quot;byline&quot;
+  class=&quot;vossi-byline byline&quot;
+  data-editable=&quot;settings&quot;
+>
+        <div class=&quot;vossi-byline__images byline__images&quot;>
+        </div>
+        <div class=&quot;vossi-byline__names byline__names&quot;>
+          By <span class=&quot;byline__name vossi-byline__name&quot;>CNN Staff</span>
+        </div>
+</div>"
+
+  data-timestamp-html="<!-- unable to render partial timestamp without a supplied context -->"
+  data-unselectable="true"
+  data-details="">
+
+
+
+</body>
+</html>
