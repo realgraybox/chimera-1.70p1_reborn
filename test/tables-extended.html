@@ -1,0 +1,78 @@
+<html><head><title>tables extended test</title></head>
+<body>
+<h2>Tables: beyond rowspan</h2>
+
+<h3>1. colspan</h3>
+<table border=1>
+<tr><td colspan=3>spans three columns</td></tr>
+<tr><td>a</td><td>b</td><td>c</td></tr>
+<tr><td colspan=2>spans two</td><td>c</td></tr>
+</table>
+<p>Expected: the first row as wide as a b c; "spans two" over a and b.</p>
+
+<h3>2. Header cells</h3>
+<table border=1>
+<tr><th>Name</th><th>Age</th></tr>
+<tr><td>Kim</td><td>42</td></tr>
+<tr><td>Anne</td><td>37</td></tr>
+</table>
+<p>Expected: a header row, then two rows under it in the same columns.</p>
+
+<h3>3. Table inside a table</h3>
+<table border=1>
+<tr><td>outer left</td>
+<td><table border=1><tr><td>in 1</td><td>in 2</td></tr>
+<tr><td>in 3</td><td>in 4</td></tr></table></td>
+<td>outer right</td></tr>
+</table>
+<p>Expected: a 2x2 table in the middle cell, each with its own outlines.</p>
+
+<h3>4. cellpadding</h3>
+<table border=1 cellpadding=0><tr><td>padding 0</td><td>x</td></tr></table>
+<table border=1 cellpadding=4><tr><td>padding 4</td><td>x</td></tr></table>
+<p>Expected: more space between the columns in the second table.</p>
+
+<h3>5. Cell widths</h3>
+<table border=1>
+<tr><td width=200>width=200</td><td>rest</td></tr>
+<tr><td>a</td><td>b</td></tr>
+</table>
+<table border=1 width="80%">
+<tr><td width="25%">25%</td><td width="75%">75%</td></tr>
+</table>
+<p>Expected: a 200 pixel first column. In the second table the first
+column is about a quarter of the window width: Chimera ignores a table's
+own width= and uses the cell widths.</p>
+
+<h3>6. Empty cells and missing end tags</h3>
+<table border=1>
+<tr><td>a<td><td>c
+<tr><td><td>e<td>
+</table>
+<p>Expected: two rows of three columns; the empty cells still have
+outlines and do not shift the others.</p>
+
+<h3>7. Without border</h3>
+<table>
+<tr><td>no</td><td>outlines</td></tr>
+<tr><td>at</td><td>all</td></tr>
+</table>
+<table border=0>
+<tr><td>border=0</td><td>also none</td></tr>
+</table>
+<p>Expected: no lines in either table.</p>
+
+<h3>8. Long text in a cell</h3>
+<table border=1>
+<tr><td>short</td><td>This cell holds a long paragraph of text that has to
+wrap over several lines inside the cell rather than running off to the
+right of the window, so the table stays readable.</td></tr>
+</table>
+<p>Expected: the long text wraps inside its cell.</p>
+
+<h3>9. Image in a cell</h3>
+<table border=1>
+<tr><td>before</td><td><img src="https://picsum.photos/80/60" alt="image"></td><td>after</td></tr>
+</table>
+<p>Expected: the image inside the outline of the middle cell.</p>
+</body></html>

@@ -1,0 +1,39 @@
+<html><head><meta charset="utf-8"><title>mailto test</title></head>
+<body>
+<h2>mailto: links</h2>
+<p>Each link should open the mail program (xdg-open, or the one in
+MAIL_CLIENT) with the fields shown, and Chimera should stay on this page.
+Without a mail program, a short page shows the address instead.</p>
+
+<h3>1. Plain address</h3>
+<p><a href="mailto:someone@example.com">mailto:someone@example.com</a></p>
+<p>Expected: a new message to someone@example.com.</p>
+
+<h3>2. Subject and body</h3>
+<p><a href="mailto:someone@example.com?subject=Hello%20from%20Chimera&amp;body=First%20line%0ASecond%20line">subject and two-line body</a></p>
+<p>Expected: subject "Hello from Chimera", body on two lines.
+(With MAIL_CLIENT set, only the address is passed.)</p>
+
+<h3>3. Danish letters in the subject</h3>
+<p><a href="mailto:someone@example.com?subject=R%C3%B8dgr%C3%B8d%20med%20fl%C3%B8de">subject Rødgrød med fløde</a></p>
+<p>Expected: subject "Rødgrød med fløde" (sent %-encoded as UTF-8).</p>
+
+<h3>4. Several recipients and Cc</h3>
+<p><a href="mailto:one@example.com,two@example.com?cc=three@example.com">two recipients, one Cc</a></p>
+<p>Expected: To one@example.com and two@example.com, Cc three@example.com.</p>
+
+<h3>5. Unusual but valid addresses</h3>
+<p><a href="mailto:first.last+tag@example.com">first.last+tag@example.com</a> |
+<a href="mailto:%22quoted%20name%22@example.com">"quoted name"@example.com</a></p>
+<p>Expected: the address exactly as shown.</p>
+
+<h3>6. Typed in the Open dialog</h3>
+<p>Open (o) and type <code>mailto:someone@example.com</code>.</p>
+<p>Expected: as test 1.</p>
+
+<h3>7. No mail program</h3>
+<p>Start Chimera with <code>MAIL_CLIENT=nosuchmailer chimera</code> and click
+test 1.</p>
+<p>Expected: a page saying the mail program nosuchmailer was not found,
+with the address.</p>
+</body></html>

@@ -1,0 +1,69 @@
+<html><head><meta charset="utf-8"><title>forms extended test</title></head>
+<body>
+<h2>Forms: all controls</h2>
+<p>This page is UTF-8. Forms send to httpbin.org, which shows what arrived:
+"args" for GET, "form" for POST.</p>
+
+<h3>1. Checkboxes and radio buttons</h3>
+<form action="https://httpbin.org/get">
+<input type="checkbox" name="fruit" value="apple" checked> Apple
+<input type="checkbox" name="fruit" value="pear"> Pear
+<input type="checkbox" name="fruit" value="plum" checked> Plum<br>
+<input type="radio" name="size" value="small"> Small
+<input type="radio" name="size" value="medium" checked> Medium
+<input type="radio" name="size" value="large"> Large<br>
+<input type="submit" value="Send">
+</form>
+<p>Expected: only one radio button on at a time; "args" shows the checked
+fruits and the chosen size.</p>
+
+<h3>2. Select lists</h3>
+<form action="https://httpbin.org/get">
+Colour: <select name="colour">
+<option>red<option selected>green<option>blue
+</select>
+Values: <select name="code">
+<option value="dk">Danmark<option value="se">Sverige<option value="no" selected>Norge
+</select><br>
+Several: <select name="many" multiple size=3>
+<option selected>one<option>two<option selected>three
+</select><br>
+<input type="submit" value="Send">
+</form>
+<p>Expected: "colour" green, "code" no (the value, not the text), "many"
+one and three.</p>
+
+<h3>3. Text area with Danish letters (POST)</h3>
+<form action="https://httpbin.org/post" method="post">
+<textarea name="text" rows=4 cols=40>Første linje med æøå.
+Anden linje: ÆØÅ.</textarea><br>
+<input type="submit" value="Send">
+</form>
+<p>Expected: Return makes a new line in the text area (it does not send);
+"form" shows both lines with æøå intact.</p>
+
+<h3>4. Hidden field, maxlength and reset</h3>
+<form action="https://httpbin.org/get">
+<input type="hidden" name="secret" value="hidden value">
+Six characters at most: <input type="text" name="short" maxlength=6 value="abc">
+<input type="submit" value="Send"> <input type="reset" value="Reset">
+</form>
+<p>Expected: the field stops at six characters, also when pasting; Reset
+puts back "abc"; "args" includes "secret": "hidden value".</p>
+
+<h3>5. Two submit buttons</h3>
+<form action="https://httpbin.org/get">
+Item: <input type="text" name="item" value="book">
+<input type="submit" name="action" value="Buy">
+<input type="submit" name="action" value="Sell">
+</form>
+<p>Expected: clicking Buy sends "action": "Buy", Sell sends "Sell".
+Pressing Enter in the field sends the form without an "action".</p>
+
+<h3>6. Form without action</h3>
+<form>
+Word: <input type="text" name="word" value="test">
+</form>
+<p>Expected: Enter sends the form to this page itself; for a local file
+that just reloads it (a web server would get ?word=test).</p>
+</body></html>
