@@ -1643,6 +1643,72 @@ FormInfo *fptr;			/* not used */
  * MakeTextFieldWidget
  */
 /*
+ * Enter in a text or password field submits its form, as in other
+ * browsers. This is also what makes <isindex> searches (and Chimera's
+ * gopher search prompt, which uses one) work: the field has no submit
+ * button. The original code had a callback for this, CBActivateField,
+ * which nothing called; Return was bound to no-op.
+ *
+ * The form is looked up when Enter is pressed, from the widget's id,
+ * since the FormInfo records are rebuilt when the page is laid out again.
+ */
+static void
+FieldActivate (w, event, params, num_params)
+Widget w;			/* the AsciiText widget of the field */
+XEvent *event;
+String *params;
+Cardinal *num_params;
+{
+  Widget p;
+  HTMLWidget hw;
+  WidgetInfo *wptr;
+  FormInfo *fptr;
+
+  for (p = w;  p != NULL  &&  !XtIsSubclass (p, htmlWidgetClass);  p = XtParent (p))
+    ;
+  if (p == NULL)  return;
+  hw = (HTMLWidget) p;
+
+  for (wptr = hw->html.widget_list;  wptr != NULL;  wptr = wptr->next)
+  {
+    if ((wptr->type == W_TEXTFIELD  ||  wptr->type == W_PASSWORD)  &&
+	wptr->w != NULL  &&  GetAsciiTextWidget (wptr->w) == w)
+      break;
+  }
+  if (wptr == NULL)  return;
+
+  /* a form holds the widgets with start < id <= end (end -1: open) */
+  for (fptr = hw->html.form_list;  fptr != NULL;  fptr = fptr->next)
+  {
+    if (wptr->id > fptr->start  &&  (fptr->end == -1  ||  wptr->id <= fptr->end))
+    {
+      CBSubmitForm (wptr->w, (XtPointer) fptr, NULL);
+      return;
+    }
+  }
+}
+
+static void
+RegisterFieldActivate (w)
+Widget w;
+{
+  static Boolean added = False;
+  static XtActionsRec action[] = {
+    { "htmlwFieldActivate", (XtActionProc) FieldActivate },
+  };
+
+  if (!added)
+  {
+    XtAppAddActions (XtWidgetToApplicationContext (w), action, 1);
+    added = True;
+  }
+}
+
+static char field_translations[] =
+  "<Key>Return:     htmlwFieldActivate()\n\
+   <Key>KP_Enter:   htmlwFieldActivate()";
+
+/*
  * maxlength for text fields
  *
  * The text source calls CBTextLimit after every change. Text beyond
@@ -1795,6 +1861,13 @@ FormInfo *fptr;			/* not used */
     XtSetArg (arg[argcnt], XtNstring, value); argcnt++;
     XtSetArg (arg[argcnt], XtNeditType, XawtextEdit); argcnt++;
     XtSetValues (GetAsciiTextWidget(w), arg, argcnt);
+    {
+      static XtTranslations trans = NULL;
+
+      RegisterFieldActivate (w);
+      if (trans == NULL)  trans = XtParseTranslationTable (field_translations);
+      XtOverrideTranslations (GetAsciiTextWidget (w), trans);
+    }
     
    /* {
     Widget txt = GetAsciiTextWidget(w);
@@ -2058,7 +2131,8 @@ static XtActionsRec password_actions[] = {
 };
 
 static char password_translations[] =
-  "<Key>Return:     no-op()\n\
+  "<Key>Return:     htmlwFieldActivate()\n\
+   <Key>KP_Enter:   htmlwFieldActivate()\n\
    <Key>Linefeed:   no-op()\n\
    <Key>BackSpace:  htmlwPasswordDelete()\n\
    <Key>Delete:     htmlwPasswordDelete()\n\
@@ -2184,6 +2258,7 @@ FormInfo *fptr;			/* not used */
     static Boolean actions_added = False;
     static XtTranslations trans = NULL;
 
+    RegisterFieldActivate (w);
     if (!actions_added)
     {
       XtAppAddActions (XtWidgetToApplicationContext (w),

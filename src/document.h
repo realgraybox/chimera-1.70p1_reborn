@@ -51,4 +51,5 @@ Document *BuildDocument _ArgProto((char *, int, char *, int, int));
 void ParseMIMEField _ArgProto((Document *, MIMEField *));
 char *BuildDocumentInfo _ArgProto((Document *));
 void DocumentToLatin1 _ArgProto((Document *));  /* charset.c */
+int DocumentWasUTF8 _ArgProto((Document *));     /* charset.c */
 
