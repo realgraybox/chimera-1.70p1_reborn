@@ -285,6 +285,15 @@ int main(int argc, char *argv[])
   
   // Sets the program to use the operating system's language/character set (e.g. da_DK.UTF-8)
   setlocale(LC_ALL, ""); 
+
+  /*
+   * ...except for characters. Chimera's text fields and fonts are Latin-1
+   * (ISO 8859-1), and pages are converted to it (charset.c). Xlib turns
+   * key presses into text in the encoding of LC_CTYPE, so in a UTF-8
+   * locale a typed "ø" arrived as the two bytes of its UTF-8 form and
+   * showed as "Ã¸". In the C locale Xlib uses ISO 8859-1.
+   */
+  setlocale(LC_CTYPE, "C");
     
   // Then the X system must be told to accept this locale
   if (!XSupportsLocale()) {
