@@ -1,0 +1,30 @@
+<html><head><meta charset="utf-8"><title>Forms test</title></head>
+<body>
+<h2>Forms: Enter and UTF-8</h2>
+<p>This page is UTF-8. The forms send to httpbin.org, which shows what
+arrived (look at "args" or "form").</p>
+
+<h3>1. One field, no button: type and press Enter</h3>
+<form action="https://httpbin.org/get">
+Search: <input type="text" name="q" value="Rødgrød med fløde">
+</form>
+<p>Expected: Enter sends the form; "args" shows "q": "Rødgrød med fløde"
+with ø as ø (not � or Ã¸).</p>
+
+<h3>2. Several fields and a button: Enter in any field sends</h3>
+<form action="https://httpbin.org/post" method="post">
+Name: <input type="text" name="name" value="Søren Ærø"><br>
+Code: <input type="password" name="pw" value="å1"><br>
+<input type="submit" value="Send">
+</form>
+<p>Expected: Enter in either field, or the button, sends; "form" shows
+"name": "Søren Ærø" and "pw": "å1".</p>
+
+<h3>3. isindex (the old searchable index)</h3>
+<isindex action="https://httpbin.org/get">
+<p>Expected: type words, press Enter; "args" shows them as the key.</p>
+
+<h3>4. Gopher search (uses the same prompt)</h3>
+<p><a href="gopher://gopher.floodgap.com/7/v2/vs">Veronica-2 search at Floodgap</a>:
+the prompt page should accept a word and Enter, and show results.</p>
+</body></html>

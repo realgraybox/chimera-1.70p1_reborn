@@ -1,0 +1,53 @@
+<html>
+<head><title>rowspan / colspan test</title></head>
+<body>
+<h2>rowspan / colspan test</h2>
+
+<h3>1. rowspan in the first column</h3>
+<p>Expected: A spans both rows on the left; B and C stacked on the right.</p>
+<table border=1>
+<tr><td rowspan=2>A<br>(rowspan=2)</td><td>B</td></tr>
+<tr><td>C</td></tr>
+</table>
+
+<h3>2. rowspan in a middle column</h3>
+<p>Expected: 1 2 3 on the first row; 4 under 1, 5 under 3; 2 spans down between them.</p>
+<table border=1>
+<tr><td>1</td><td rowspan=2>2<br>(rowspan=2)</td><td>3</td></tr>
+<tr><td>4</td><td>5</td></tr>
+</table>
+
+<h3>3. Tall rowspan cell</h3>
+<p>Expected: row 1 and row 2 stay close together at the top; the cell of row 3 stretches down to the bottom of the tall cell; the table ends below the tall cell.</p>
+<table border=1>
+<tr><td rowspan=3>line 1<br>line 2<br>line 3<br>line 4<br>line 5<br>line 6<br>line 7</td><td>row 1</td></tr>
+<tr><td>row 2</td></tr>
+<tr><td>row 3</td></tr>
+</table>
+<p>Text after table 3.</p>
+
+<h3>4. rowspan and colspan together</h3>
+<p>Expected: X covers two columns and two rows in the top left; a b on the right; c d e on the last row.</p>
+<table border=1>
+<tr><td rowspan=2 colspan=2>X<br>(2x2)</td><td>a</td></tr>
+<tr><td>b</td></tr>
+<tr><td>c</td><td>d</td><td>e</td></tr>
+</table>
+
+<h3>5. Schedule</h3>
+<table border=1>
+<tr><th>Time</th><th>Monday</th><th>Tuesday</th></tr>
+<tr><td>09-10</td><td rowspan=2>Workshop<br>(two hours)</td><td>Meeting</td></tr>
+<tr><td>10-11</td><td>Coffee</td></tr>
+<tr><td>11-12</td><td>Lunch</td><td>Lunch</td></tr>
+</table>
+
+<h3>6. rowspan running past the last row</h3>
+<p>Expected: q directly under p; Z continues below q in one outline, and the text after the table starts below Z.</p>
+<table border=1>
+<tr><td>p</td><td rowspan=5>Z<br>Z<br>Z<br>Z<br>Z<br>Z</td></tr>
+<tr><td>q</td></tr>
+</table>
+<p>Text after table 6.</p>
+</body>
+</html>
