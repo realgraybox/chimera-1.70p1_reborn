@@ -24,6 +24,9 @@
 #include "convert.h"
 #include "util.h"
 #include "inline.h"
+#include "chtime.h"
+
+ImgTiming img_timing;
 
 #ifdef IMAGENEW
 #include <math.h>
@@ -163,6 +166,7 @@ static Image *rgbaToImage(unsigned char *rgba, int width, int height, RGBColor *
 	freeImage(img);
 
 	/* 3. Too many colours: median cut, leaving one entry free for bg */
+	img_timing.reduced = 1;
 	img = reduce(timg, have_transparent ? RGBA_MAXCOLORS - 1 : RGBA_MAXCOLORS, 0);
 	if (img == timg) return(img);	/* reduce() declined, caller copes with true colour */
 
@@ -205,6 +209,7 @@ Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     unsigned char *raw_rgba;
 	Image *image;
 	int is_scaled = 0;
+	double t0 = ChTimeMs(), t1;
     
 	orig_rgba = stbi_load_from_memory((unsigned char*)data, datalen, &width, &height, &n, 4);
 	if(orig_rgba == NULL) {
@@ -213,6 +218,11 @@ Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
 	}
   
     raw_rgba = orig_rgba;
+	t1 = ChTimeMs();
+	img_timing.decode = t1 - t0;
+	img_timing.src_w = width;
+	img_timing.src_h = height;
+	img_timing.how = "stb";
 
 	// --- scaling logic ---
 	const int MAX_WIDTH = 600;
@@ -296,8 +306,12 @@ Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
 		stbi_image_free(orig_rgba);
 	}
      
+	t0 = ChTimeMs();
+	img_timing.scale = t0 - t1;
+
     // 3. Blend against the page background and reduce to 256 colours
 	image = rgbaToImage(raw_rgba, width, height, bg);
+	img_timing.colour = ChTimeMs() - t0;
 
 	if (is_scaled) {
 		free_mem(raw_rgba);
@@ -316,6 +330,9 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     int             width, height;
     float           scale = 1.0f;
     char            *svg_copy;
+    double          t0 = ChTimeMs(), t1;
+
+    img_timing.how = "svg";
 
     /* nanosvg requires a null-terminated string. We'll make a quick copy. */
     svg_copy = (char *)alloc_mem(datalen + 1);
@@ -393,8 +410,14 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     nsvgDeleteRasterizer(rast);
     nsvgDelete(svg_img);
 
+    t1 = ChTimeMs();
+    img_timing.decode = t1 - t0;
+    img_timing.src_w = orig_w;
+    img_timing.src_h = orig_h;
+
     /* Blend against the page background and reduce to 256 colors */
     image = rgbaToImage(raw_rgba, width, height, bg);
+    img_timing.colour = ChTimeMs() - t1;
 
     free_mem(raw_rgba);
 
@@ -521,6 +544,10 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 #ifdef IMAGENEW
 	int sw, sh, sc;
 #endif
+	double t_start = ChTimeMs();
+
+	memset(&img_timing, 0, sizeof(img_timing));
+	img_timing.how = "?";
 
 	if (d->ptext != NULL) {
 		data = d->ptext;
@@ -587,6 +614,7 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 	} else {
 		if (d->ptext != NULL) return(NULL);
 		//printf("DBG content to external load: %s\n", content);
+		img_timing.how = "external";
 		x = ConvertDocument(d, clist, "inline", path);
 		if (x != NULL) {
 			if (x->ptext != NULL && x->pcontent != NULL && strncasecmp(x->pcontent, "image/", 6) == 0) {
@@ -594,7 +622,16 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 			}
 			if (x != d) DestroyDocument(x);
 		}
+		/* the recursive call filled in the rest */
+		img_timing.how = "external";
+		img_timing.total = ChTimeMs() - t_start;
 		return(iinfo);
+	}
+
+	if (img_timing.decode == 0.0) {
+		/* xbm, xpm, pbm: the whole load counts as decoding */
+		img_timing.decode = ChTimeMs() - t_start;
+		img_timing.how = "xlib";
 	}
 
 	if (img != NULL) {
@@ -615,7 +652,6 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 				freeImage(img);
 				img = nimg;
 			} else if (img->rgb.used > maxcolors) {
-				printf("DBG chimera: triggering reduce\n");	  
 				nimg = reduce(img, maxcolors, 0);
 				freeImage(img);
 				img = nimg;
@@ -642,5 +678,11 @@ ImageInfo *CreateImageInfo(Widget w, Document *d, Convert *clist, char *path, in
 			free_mem((char *)img); /* probably need to free more than this. */
 		}
 	}
+	if (iinfo != NULL) {
+		img_timing.w = iinfo->width;
+		img_timing.h = iinfo->height;
+		img_timing.ncolors = iinfo->num_colors;
+	}
+	img_timing.total = ChTimeMs() - t_start;
 	return(iinfo);
 }

@@ -66,6 +66,7 @@
 
 #include <string.h>
 
+#include "chtime.h"
 #include "HTMLP.h"
 #include "NoImage.xbm"
 #include "DelayedImage.xbm"
@@ -646,8 +647,38 @@ HTMLWidget hw;
 }
 
 
+static Pixmap InfoToImageX(HTMLWidget hw, const ImageInfo *img_info);
+
+/*
+ * Time spent turning images into pixmaps for the page on screen; main.c
+ * resets it when a new page is displayed (CHIMERA_TIMING).
+ */
+double html_x11_ms = 0.0;
+int html_x11_count = 0;
+
 Pixmap
 InfoToImage(HTMLWidget hw, const ImageInfo *img_info)
+{
+    double t0;
+    Pixmap p;
+
+    if (!ChTimingOn())
+        return InfoToImageX(hw, img_info);
+
+    t0 = ChTimeMs();
+    p = InfoToImageX(hw, img_info);
+    t0 = ChTimeMs() - t0;
+    html_x11_ms += t0;
+    html_x11_count++;
+    fprintf(stderr, "x11   %6.1f ms  %dx%d %d col  (page so far: %d images, %.1f ms)  %s\n",
+            t0, img_info ? img_info->width : 0, img_info ? img_info->height : 0,
+            img_info ? img_info->num_colors : 0, html_x11_count, html_x11_ms,
+            (img_info && img_info->name) ? img_info->name : "");
+    return p;
+}
+
+static Pixmap
+InfoToImageX(HTMLWidget hw, const ImageInfo *img_info)
 {
     int i, size;
     int delta, not_right_col, not_last_row;
