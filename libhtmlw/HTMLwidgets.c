@@ -111,6 +111,19 @@ static char *MapOptionReturn _ArgProto((char *, char **));
 static void setTextSize _ArgProto((Widget, int, int));
 static Widget GetAsciiTextWidget _ArgProto((Widget));
 static Widget GetListWidget _ArgProto((Widget));
+static void ShowToggleMark _ArgProto((Widget, int));
+static void SetupToggle _ArgProto((Widget, int));
+static void CBToggleMark _ArgProto((Widget, XtPointer, XtPointer));
+
+/*
+ * Marks shown in checkboxes and radio buttons that are on. The fonts are
+ * Latin-1, so there is no check mark or filled circle.
+ */
+/* room for a select list's vertical scrollbar, its edges included */
+#define LIST_SCROLLBAR_SPACE	18
+
+#define CHECK_MARK	"X"
+#define RADIO_MARK	"*"
 
 #define FONTHEIGHT(font) (font->max_bounds.ascent + font->max_bounds.descent)
 
@@ -170,6 +183,58 @@ Widget w;
     }
   }
   return(NULL);
+}
+
+/*
+ * Checkboxes and radio buttons are Toggle widgets. With an empty label
+ * they were thin, tall boxes, and only the widget set's 3D edge or
+ * reverse video showed whether they were on, which a theme could make
+ * invisible. Now they are square and show a mark when on.
+ *
+ * ShowToggleMark() sets the label from the state. It runs on every
+ * click (CBToggleMark), and wherever the code sets the state: radio
+ * buttons turning each other off, and Reset.
+ */
+static void
+ShowToggleMark(w, radio)
+Widget w;
+int radio;
+{
+  Boolean state = False;
+
+  if (w == NULL) return;
+  XtVaGetValues(w, XtNstate, &state, NULL);
+  XtVaSetValues(w, XtNlabel,
+		state ? (radio ? RADIO_MARK : CHECK_MARK) : " ", NULL);
+}
+
+static void
+CBToggleMark(w, client_data, call_data)
+Widget w;
+XtPointer client_data, call_data;
+{
+  ShowToggleMark(w, client_data != NULL);
+}
+
+/*
+ * Give a new toggle a fixed, square size that fits the mark, so the
+ * box does not change when the mark comes and goes, and show its mark.
+ */
+static void
+SetupToggle(w, radio)
+Widget w;
+int radio;
+{
+  Dimension width = 0, height = 0;
+
+  /* the label is the mark here, so the natural size fits it */
+  XtVaGetValues(w, XtNwidth, &width, XtNheight, &height, NULL);
+  if (width < height) width = height;
+  else height = width;
+  XtVaSetValues(w, XtNresize, False, XtNwidth, width, XtNheight, height,
+		NULL);
+  ShowToggleMark(w, radio);
+  XtAddCallback(w, XtNcallback, CBToggleMark, radio ? (XtPointer) 1 : NULL);
 }
 
 static void
@@ -768,6 +833,7 @@ XtPointer call_data;
       if (state)
       {
 	XtVaSetValues (wptr->w, XtNstate, False, NULL);
+	ShowToggleMark (wptr->w, 1);
       }
     }
     cnt++;
@@ -1048,6 +1114,7 @@ XtPointer call_data;
       case W_CHECKBOX:
       case W_RADIOBOX:
 	XtVaSetValues (wptr->w, XtNstate, wptr->checked, NULL);
+	ShowToggleMark (wptr->w, wptr->type == W_RADIOBOX);
 	break;
       case W_HIDDEN:
 	break;
@@ -2365,10 +2432,11 @@ FormInfo *fptr;			/* not used */
     XtFree(tptr);
     tptr = NULL;
   }
-  XtSetArg (arg[argcnt], XtNlabel, ""); argcnt++;
+  XtSetArg (arg[argcnt], XtNlabel, CHECK_MARK); argcnt++;  /* for its size */
   w = XtCreateWidget (name,
 		      toggleWidgetClass, hw->html.view,
 		      arg, argcnt);
+  SetupToggle (w, 0);
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
 
@@ -2440,12 +2508,13 @@ FormInfo *fptr;
     XtFree (tptr);
     tptr = NULL;
   }
-  XtSetArg (arg[argcnt], XtNlabel, ""); argcnt++;
+  XtSetArg (arg[argcnt], XtNlabel, CHECK_MARK); argcnt++;  /* for its size */
   w = XtCreateWidget (name,
 		      toggleWidgetClass, hw->html.view,
 		      arg, argcnt);
   XtAddCallback (w, XtNcallback,
 		 (XtCallbackProc) CBChangeRadio, (XtPointer)fptr);
+  SetupToggle (w, 1);		/* its mark callback runs after CBChangeRadio */
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
 
@@ -2798,22 +2867,36 @@ FormInfo *fptr;			/* not used */
       }
     }
 
-    if (size > list_cnt) size = list_cnt;
-    if (size > 1)
+    /*
+     * Size the Viewport to the list. XawListChange() above has given the
+     * List its natural size: as wide as the longest entry, as tall as
+     * all entries. If they all fit in SIZE rows the Viewport is exactly
+     * that and has no scrollbar; otherwise it shows SIZE rows and the
+     * vertical scrollbar. (The fixed sizes used before left part of the
+     * list outside, so even short lists got a squeezed scrollbar.)
+     */
     {
-      XFontStruct *font = NULL;
-      Dimension h, width, s;
+      Dimension lw = 0, lh = 0, ih = 0;
+      int rows = list_cnt > 0 ? list_cnt : 1;
 
-      XtVaGetValues (w, XtNfont, &font,
-		     XtNinternalHeight, &h,
-		     XtNwidth, &width,
-		     XtNrowSpacing, &s,
-		     NULL);
-      XtVaSetValues (scroll,
-		     XtNheight,
-		     h + size * (s + FONTHEIGHT (font)),
-		     XtNwidth, width + 20,
-		     NULL);
+      if (size < 1) size = 1;
+      XtVaGetValues (w, XtNwidth, &lw, XtNheight, &lh,
+		     XtNinternalHeight, &ih, NULL);
+
+      if (size >= rows)
+      {
+	XtVaSetValues (scroll, XtNallowVert, False,
+		       XtNwidth, lw, XtNheight, lh, NULL);
+      }
+      else
+      {
+	int row = ((int) lh - 2 * (int) ih) / rows;
+
+	XtVaSetValues (scroll,
+		       XtNwidth, lw + LIST_SCROLLBAR_SPACE,
+		       XtNheight, 2 * ih + size * row,
+		       NULL);
+      }
     }
 
     w = scroll;
