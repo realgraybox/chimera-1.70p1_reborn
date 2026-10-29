@@ -18,6 +18,7 @@
 #include <sys/types.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <unistd.h>
 
@@ -48,6 +49,7 @@
 #include "cache.h"
 #include "convert.h"
 #include "inline.h"
+#include "chtime.h"
 #include "http.h"
 #include "input.h"
 #include "net.h"
@@ -55,6 +57,18 @@
 #include "stringdb.h"
 #include "widget.h"
 #include "local.h"
+
+/*
+ * Timing totals for the page being displayed (CHIMERA_TIMING)
+ */
+static struct
+{
+  int images;
+  double fetch, hunt, decode, scale, colour, other;
+} page_timing;
+
+extern double html_x11_ms;	/* libhtmlw/HTMLimages.c */
+extern int html_x11_count;
 
 /* Flag which tells if program fhould close */
 static volatile sig_atomic_t g_should_quit = 0;
@@ -700,6 +714,7 @@ DisplayCurrent()
   Arg args[2];
   Widget view;
   char *displaying = NULL;	/* as in DisplayTransferStatus --GN */
+  double t_page;
 
   if (root.dlist == NULL)
   {
@@ -755,6 +770,11 @@ DisplayCurrent()
 
   root.cancelop = False;
 
+  memset(&page_timing, 0, sizeof(page_timing));
+  html_x11_ms = 0.0;
+  html_x11_count = 0;
+  t_page = ChTimeMs();
+
   if (d->pcontent != NULL  &&  strcasecmp(d->pcontent, "text/html") == 0)
   {
     HTMLSetText(root.w, d->ptext, NULL, NULL);
@@ -762,6 +782,25 @@ DisplayCurrent()
   else
   {
     HTMLSetText(root.w, d->text, NULL, NULL);
+  }
+
+  if (ChTimingOn())
+  {
+    char *u = d->up != NULL ? MakeURL(d->up, 1) : NULL;
+    double images = page_timing.fetch + page_timing.hunt + page_timing.decode +
+		    page_timing.scale + page_timing.colour + page_timing.other;
+
+    t_page = ChTimeMs() - t_page;
+    fprintf(stderr,
+	    "page  %.1f ms: %d images %.1f ms (fetch %.1f, hunt %.1f,"
+	    " decode %.1f, scale %.1f, colour %.1f, other %.1f),"
+	    " parse/layout/rest %.1f ms  %s\n"
+	    "      (x11 lines below come when the images are drawn)\n",
+	    t_page, page_timing.images, images, page_timing.fetch,
+	    page_timing.hunt, page_timing.decode, page_timing.scale,
+	    page_timing.colour, page_timing.other, t_page - images,
+	    u != NULL ? u : "");
+    if (u != NULL) free_mem(u);
   }
 
   if (d->view_frag && d->up != NULL && d->up->anchor != NULL)
@@ -2205,6 +2244,8 @@ int delay;	/* boolean; if true, only if in cache or on localhost */
   int depth;
   int stype;
   RealmInfo *r;
+  double t0 = 0.0, t_fetch = 0.0, t_hunt = 0.0;
+  int nbytes = 0;
 
   if (root.cancelop || url == NULL) /* honor click-ahead cancel */
   {				/* (doesn't actually do that though ;) [GN] */
@@ -2218,7 +2259,10 @@ int delay;	/* boolean; if true, only if in cache or on localhost */
   //d = LoadDoc (tup, 0, delay);		//FIX for valgrind
 				/* following needed since LoadDoc may have
 				 * set these insensitive -- GN1997May19 */
+  t0 = ChTimeMs();
   d = LoadDoc (tup, 0, delay);
+  t_fetch = ChTimeMs() - t0;
+  t0 = ChTimeMs();
     
  //debug offset width/height with one image
  #ifdef IMAGENEW
@@ -2275,6 +2319,7 @@ HTMLWidget hw = (HTMLWidget) w;
   }
 
 #endif
+  t_hunt = ChTimeMs() - t0;
  
   if (root.dlist->next == NULL)
   {
@@ -2289,7 +2334,12 @@ HTMLWidget hw = (HTMLWidget) w;
 
   DestroyURLParts(tup);
 
-  if (d == NULL) return(NULL);
+  if (d == NULL)
+  {
+    if (ChTimingOn() && !delay)
+      fprintf(stderr, "img   fetch %7.1f ms  failed  %s\n", t_fetch, url);
+    return(NULL);
+  }
 
   if (d->status == DS_NEEDS_AUTH)
   {
@@ -2379,9 +2429,33 @@ HTMLWidget hw = (HTMLWidget) w;
     fprintf (stderr, "Returned ok\n");
 #endif
     /* changed this - djhjr - May 12 97 */
+    nbytes = d->len;
     i = CreateImageInfo(root.toplevel, d, root.clist, root.path,
 			stype, root.maxColors, &xcolor,
 			(double)root.gamma);
+  }
+
+  if (ChTimingOn())
+  {
+    ImgTiming *t = &img_timing;
+    double other = t->total - t->decode - t->scale - t->colour;
+
+    page_timing.images++;
+    page_timing.fetch += t_fetch;
+    page_timing.hunt += t_hunt;
+    page_timing.decode += t->decode;
+    page_timing.scale += t->scale;
+    page_timing.colour += t->colour;
+    page_timing.other += other;
+
+    fprintf(stderr,
+	    "img   fetch %7.1f  hunt %5.1f  decode %6.1f  scale %5.1f"
+	    "  colour %6.1f  other %6.1f ms | %d bytes %dx%d -> %dx%d"
+	    " %d col%s %s%s  %s\n",
+	    t_fetch, t_hunt, t->decode, t->scale, t->colour, other,
+	    nbytes, t->src_w, t->src_h, t->w, t->h, t->ncolors,
+	    t->reduced ? " reduced" : "", t->how,
+	    i == NULL ? " FAILED" : "", url);
   }
 
   DestroyDocument(d);
