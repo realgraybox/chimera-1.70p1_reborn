@@ -110,6 +110,7 @@ static char **ParseCommaList _ArgProto((char *, int *));
 static char *MapOptionReturn _ArgProto((char *, char **));
 static void setTextSize _ArgProto((Widget, int, int));
 static Widget GetAsciiTextWidget _ArgProto((Widget));
+static Widget GetListWidget _ArgProto((Widget));
 
 #define FONTHEIGHT(font) (font->max_bounds.ascent + font->max_bounds.descent)
 
@@ -128,6 +129,47 @@ Widget w;
     rw = w;
   }
   return(rw);
+}
+
+/*
+ * The List widget of a W_LIST field. wptr->w is the Viewport that
+ * scrolls it, and its children are not always [clip, list]: a Viewport
+ * also has its scrollbars as children, and the widget sets do not
+ * create them in the same order (Xaw3d differs from XawPlus), so the
+ * list is looked up by class. NULL if there is none.
+ */
+static Widget
+GetListWidget(w)
+Widget w;
+{
+  WidgetList wl = NULL;
+  Cardinal nc = 0, i;
+
+  if (w == NULL) return(NULL);
+  if (XtIsSubclass(w, listWidgetClass)) return(w);
+
+  XtVaGetValues(w, XtNchildren, &wl, XtNnumChildren, &nc, NULL);
+  for (i = 0; i < nc; i++)
+  {
+    if (XtIsSubclass(wl[i], listWidgetClass)) return(wl[i]);
+  }
+
+  /* the list may sit inside the Viewport's clip widget */
+  for (i = 0; i < nc; i++)
+  {
+    if (XtIsComposite(wl[i]))
+    {
+      WidgetList cl = NULL;
+      Cardinal cn = 0, j;
+
+      XtVaGetValues(wl[i], XtNchildren, &cl, XtNnumChildren, &cn, NULL);
+      for (j = 0; j < cn; j++)
+      {
+	if (XtIsSubclass(cl[j], listWidgetClass)) return(cl[j]);
+      }
+    }
+  }
+  return(NULL);
 }
 
 static void
@@ -387,10 +429,12 @@ fprintf(stderr,
 	   * First get the Widget ID of the proper
 	   * list element
 	   */
-          {
-	    WidgetList wl;
-	    XtVaGetValues (wptr->w, XtNchildren, &wl, NULL);
-	    child = *++wl;
+	  child = GetListWidget (wptr->w);
+	  if (child == NULL)
+	  {
+	    cnt--;
+	    cbdata.attribute_count--;
+	    break;
 	  }
 
 	  /*
@@ -937,12 +981,11 @@ XtPointer call_data;
 	  int vlist_cnt;
 	  STRING *val_list;
 	  int i;
-	  WidgetList wl;
 	  char **string_list;
 	  int list_cnt;
 	  
-	  XtVaGetValues (wptr->w, XtNchildren, &wl, NULL);
-	  child = *++wl;
+	  child = GetListWidget (wptr->w);
+	  if (child == NULL) break;
 	  XtVaGetValues (child,
 			 XtNlist, &string_list,
 			 XtNnumberStrings, &list_cnt, NULL);
@@ -1205,7 +1248,7 @@ HTMLWidget hw;
 WidgetInfo *wptr;
 {
   Widget child;
-  XFontStruct *font;
+  XFontStruct *font = NULL;
 
   /*
    * For option menus we have to first get the child that has the
@@ -1219,11 +1262,8 @@ WidgetInfo *wptr;
   {
     if (wptr->type == W_LIST)
     {
-      WidgetList wl;
-      int nc;
-      XtVaGetValues (wptr->w, XtNchildren, &wl, XtNnumChildren, &nc, NULL);
-      child = *++wl;
-      XtVaGetValues (child, XtNfont, &font, NULL);
+      child = GetListWidget (wptr->w);
+      if (child != NULL) XtVaGetValues (child, XtNfont, &font, NULL);
     }
     else if (wptr->type == W_TEXTFIELD || wptr->type == W_PASSWORD)
     {
