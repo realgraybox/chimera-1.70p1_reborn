@@ -20,13 +20,9 @@
  */
 #include "options.h"
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>     /* for memset */
-#endif
 
-#ifdef HAVE_STRING_H
 #include <string.h>	/* for memcpy */
-#endif
 
 #include "common.h"
 #include "md5.h"

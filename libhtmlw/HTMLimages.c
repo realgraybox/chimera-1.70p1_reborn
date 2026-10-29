@@ -64,9 +64,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include "HTMLP.h"
 #include "NoImage.xbm"

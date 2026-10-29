@@ -13,17 +13,11 @@
 #include <pwd.h>
 #include <errno.h>
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <sys/types.h>
 /* QNX support added by D J Hawkey Jr <hawkeyd@visi.com> 1997May16 */

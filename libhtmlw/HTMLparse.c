@@ -113,7 +113,6 @@ unsigned char map_table[256] =
  * To match, s1 must have either NUL or a !isalnum() char where s2 ends.
  * Return 1 if s1 and s2 are non-NULL and s1 begins with s2; 0 otherwise.
  */
-#ifdef GPROFOPT
 #include <ctype.h>
 #include <string.h>
 #include <stddef.h>
@@ -141,31 +140,6 @@ int caseless_equal(const char *s1, const char *s2) {
     return (*s1 == '\0' || !isalnum((unsigned char)*s1));
 }
 
-#else
-
-int
-caseless_equal (s1, s2)
-const unsigned char *s1;
-const unsigned char *s2;
-{
-  if (s1 == NULL  ||  s2 == NULL)
-  {
-    return (0);
-  }
-
-  while (*s2 != '\0')
-  {
-    if (TOLOWER (*s1) != TOLOWER (*s2))	 /* true if *s1 == 0 ! */
-    {
-      return (0);
-    }
-    s1++;
-    s2++;
-  }
-
-  return (*s1 == '\0'  ||  !isalnum(*s1)) ?  1 : 0;
-}
-#endif	//GPROFOPT
 
 
 /*
@@ -176,7 +150,6 @@ const unsigned char *s2;
  * txt buffer.  The resultant string will probably be shorter,
  * it can never get longer.
  */
-#ifdef GPROFOPT
 
 void clean_white_space(char *txt) {
     if (txt == NULL || *txt == '\0') {
@@ -211,83 +184,6 @@ void clean_white_space(char *txt) {
     *dst = '\0';
 }
 
-#else
-void
-clean_white_space (txt)
-char *txt;
-{
-  char *ptr;
-  char *start;
-
-  start = txt;
-  ptr = txt;
-
-  /*
-   * Remove leading white space
-   */
-  while (isspace ((int) *ptr))
-  {
-    ptr++;
-  }
-
-  /*
-   * Find a word, copying if we removed some space already
-   */
-  if (start == ptr)
-  {
-    while ((!isspace ((int) *ptr)) && (*ptr != '\0'))
-    {
-      ptr++;
-    }
-    start = ptr;
-  }
-  else
-  {
-    while ((!isspace ((int) *ptr)) && (*ptr != '\0'))
-    {
-      *start++ = *ptr++;
-    }
-  }
-
-  while (*ptr != '\0')
-  {
-    /*
-     * Remove trailing whitespace.
-     */
-    while (isspace ((int) *ptr))
-    {
-      ptr++;
-    }
-    if (*ptr == '\0')
-    {
-      break;
-    }
-
-    /*
-     * If there are more words, insert a space and if space was 
-     * removed move up remaining text.
-     */
-    *start++ = ' ';
-    if (start == ptr)
-    {
-      while ((!isspace ((int) *ptr)) && (*ptr != '\0'))
-      {
-	ptr++;
-      }
-      start = ptr;
-    }
-    else
-    {
-      while ((!isspace ((int) *ptr)) && (*ptr != '\0'))
-      {
-	*start++ = *ptr++;
-      }
-    }
-  }
-
-  *start = '\0';
-}
-#endif
 
 /*
  * Parse an ampersand escape, and return the appropriate character, or
@@ -298,7 +194,6 @@ char *txt;
  *      1: unterminated
  *      2: terminated with whitespace
  */
-#ifdef GPROFOPT
 
 char ExpandEscapes(const char *esc, const char **endp, int termination) {
     int unterminated = (termination & 0x01);
@@ -371,72 +266,6 @@ char ExpandEscapes(const char *esc, const char **endp, int termination) {
     return val;
 }
 
-#else
-char
-ExpandEscapes (esc, endp, termination)
-char *esc;
-char **endp;
-int termination;
-{
-  int cnt;
-  char val;
-  int unterminated;
-
-  unterminated = (termination & 0x01);
-
-  esc++;
-  if (*esc == '#')
-  {
-    if (unterminated)
-    {
-      char *tptr;
-      char tchar;
-
-      tptr = (char *) (esc + 1);
-      while (isdigit ((int) *tptr))
-      {
-	tptr++;
-      }
-      tchar = *tptr;
-      *tptr = '\0';
-      val = (char) atoi ((esc + 1));
-      *tptr = tchar;
-      *endp = tptr;
-    }
-    else
-    {
-      val = (char) atoi ((esc + 1));
-      *endp = (char *) (esc + strlen (esc));
-    }
-  }
-  else
-  {
-    cnt = 0;
-    while (AmpEscapes[cnt].tag != NULL)
-    {
-      if (strncmp (esc, AmpEscapes[cnt].tag,
-		   strlen (AmpEscapes[cnt].tag)) == 0)
-      {
-	val = AmpEscapes[cnt].value;
-	*endp = (char *) (esc +
-			  strlen (AmpEscapes[cnt].tag));
-	break;
-      }
-      cnt++;
-    }
-    if (AmpEscapes[cnt].tag == NULL)
-    {
-#ifdef VERBOSE
-      fprintf (stderr, "Error bad & string\n");
-#endif
-      val = '\0';
-      *endp = (char *) NULL;
-    }
-  }
-
-  return (val);
-}
-#endif
 
 /*
  * Clean the special HTML character escapes out of the text and replace
@@ -449,7 +278,6 @@ int termination;
  * The cleaning is done by rearranging chars in the passed txt buffer.
  * If any escapes are replaced, the string becomes shorter.
  */
-#ifdef GPROFOPT
 
 void clean_text(char *txt) {
     if (txt == NULL || *txt == '\0') {
@@ -504,142 +332,6 @@ void clean_text(char *txt) {
     *dst = '\0'; // Close the string properly
 }
 
-#else
-void
-clean_text (txt)
-char *txt;
-{
-  int unterminated;
-  int space_terminated;
-  char *ptr;
-  char *ptr2;
-  char *start;
-  char *text;
-  char *tend;
-  char tchar;
-  char val;
-
-  if (txt == NULL)
-  {
-    return;
-  }
-
-  /*
-   * Quick scan to find escape sequences.
-   * Escape is '&' followed by a letter (or a hash mark).
-   * Return if there are none.
-   */
-  ptr = txt;
-  while (*ptr != '\0')
-  {
-    if ((*ptr == '&') &&
-	((isalpha ((int) *(ptr + 1))) || (*(ptr + 1) == '#')))
-    {
-      break;
-    }
-    ptr++;
-  }
-  if (*ptr == '\0')
-  {
-    return;
-  }
-
-  /*
-   * Loop, replacing escape sequences, and moving up remaining
-   * text.
-   */
-  ptr2 = ptr;
-  while (*ptr != '\0')
-  {
-
-    unterminated = 0;
-    space_terminated = 0;
-    /*
-     * Extract the escape sequence from start to ptr
-     */
-    start = ptr;
-    while ((*ptr != ';') && (!isspace ((int) *ptr)) && (*ptr != '\0'))
-    {
-      ptr++;
-    }
-    if (*ptr == '\0')
-    {
-#ifdef VERBOSE
-      fprintf (stderr, "warning:  unterminated & (%s)\n",
-	       start);
-#endif
-      unterminated = 1;
-    }
-    else if (isspace ((int) *ptr))
-    {
-      space_terminated = 1;
-    }
-
-    /*
-     * Copy the escape sequence into a separate buffer.
-     * Then clean spaces so the "& lt ;" = "&lt;" etc.
-     * The cleaning should be unnecessary.
-     */
-    tchar = *ptr;
-    *ptr = '\0';
-    text = XtNewString(start);
-    *ptr = tchar;
-    clean_white_space (text);
-
-    /*
-     * Replace escape sequence with appropriate character
-     */
-    val = ExpandEscapes (text, &tend,
-			 ((space_terminated << 1) + unterminated));
-    if (val != '\0')
-    {
-      if (unterminated)
-      {
-	tchar = *tend;
-	*tend = '\0';
-	ptr = (char *) (start + strlen (text) - 1);
-	*tend = tchar;
-      }
-      else if (space_terminated)
-      {
-	ptr--;
-      }
-      *ptr2 = val;
-      unterminated = 0;
-      space_terminated = 0;
-    }
-    /*
-     * Invalid escape sequence. skip it.
-     */
-    else
-    {
-#ifdef VERBOSE
-      fprintf (stderr, "Error bad & string\n");
-#endif
-      ptr = start;
-      *ptr2 = *ptr;
-    }
-    XtFree(text);
-
-    /*
-     * Copy forward remaining text until you find the next
-     * escape sequence
-     */
-    ptr2++;
-    ptr++;
-    while (*ptr != '\0')
-    {
-      if ((*ptr == '&') &&
-	  ((isalpha ((int) *(ptr + 1))) || (*(ptr + 1) == '#')))
-      {
-	break;
-      }
-      *ptr2++ = *ptr++;
-    }
-  }
-  *ptr2 = '\0';
-}
-#endif
 
 
 /*
@@ -650,7 +342,6 @@ char *txt;
  * a pointer to the next '<' or '\0'
  * The returned text has already expanded '&' escapes.
  */
-#ifdef GPROFOPT
 
 // Helper function to check if a position starts an HTML tag/comment
 static inline int is_html_mark(const char *p) {
@@ -701,67 +392,6 @@ char *get_text(const char *start, const char **endp) {
 }
 
  
-#else
-char *
-get_text (start, endp)
-char *start;
-char **endp;
-{
-  char *ptr;
-  char *text;
-  char tchar;
-
-  if (start == NULL)
-  {
-    return (NULL);
-  }
-
-  /*
-   * Copy text up to beginning of a mark, or the end
-   */
-  ptr = start;
-  while (*ptr != '\0')
-  {
-    if (*ptr == '<')
-    {
-      if (isalpha ((int) (*(ptr + 1))))
-      {
-	break;
-      }
-      else if (*(ptr + 1) == '/')
-      {
-	if (isalpha ((int) (*(ptr + 2))))
-	{
-	  break;
-	}
-      }
-      else if (*(ptr + 1) == '!')	/* a comment */
-      {
-	break;
-      }
-    }
-    ptr++;
-  }
-  *endp = ptr;
-
-  if (ptr == start)
-  {
-    return (NULL);
-  }
-
-  /*
-   * Copy the text into its own buffer, and clean it
-   * of escape sequences.
-   */
-  tchar = *ptr;
-  *ptr = '\0';
-  text = XtNewString(start);
-  *ptr = tchar;
-  clean_text (text);
-
-  return (text);
-}
-#endif	//GPROFOPT
 
 /*
  * TagClose
@@ -807,7 +437,6 @@ TagClose (const char *p)
  * endp pointing to the trailing '>' in the original string.
  */
  
-#ifdef GPROFOPT
 
 struct mark_up *get_mark(const char *start, const char **endp) {
     if (start == NULL || endp == NULL || *start != '<') {
@@ -940,215 +569,11 @@ struct mark_up *get_mark(const char *start, const char **endp) {
 
 
 
-#else 
-struct mark_up *
-get_mark (start, endp)
-char *start;
-char **endp;
-{
-  char *ptr;
-  char *text;
-  char tchar;
-  struct mark_up *mark;
-
-  if (start == NULL)
-  {
-    return (NULL);
-  }
-
-  if (*start != '<')
-  {
-    return (NULL);
-  }
-
-  start++;
-
-  /*
-   * Parsing comments:
-   * <! comment >  is called a "short comment" below.
-   * <!-- comment --> is called a "long comment" below.
-   * <script> ... </script> is a comment, too. ;) -- GN 06Feb97
-   *
-   * Technically, the SGML spec says the "--" comment ends on the next "--",
-   * but that gives poor results on pages containing Java applets that use
-   * the autodecrement operator.
-   * If for some strange reason you really want SGML-spec style long comments,
-   * #define SGML_COMMENTS.  Otherwise <!-- ends on the next -->.
-   */
-
-  /* flush long or short comments outright */
-  if (*start == '!')
-  {
-    ptr = start + 1;
-#ifndef SGML_COMMENTS
-    if (*ptr == '-'  &&  ptr[1] == '-')  /* long comment */
-    {
-      /* search for a "-->" terminator */
-      for (ptr += 2;  *ptr != '\0';  ++ptr)
-      {
-	if (*ptr == '-'  &&  ptr[1] == '-'  &&  ptr[2] == '>')
-	{
-	  /* discard the comment text and pretend nothing happened */
-	  *endp = ptr + 2;
-	  return NULL;
-	}
-      }
-      /*
-       * Gak!  End of document reached without finding comment close!
-       * Rather than believe that, go back and use short comment rules.
-       */
-      ptr = start + 1;
-    }
-    /* next ">" terminates comment */
-    while (*ptr != '>'  &&  *ptr != '\0')   ptr++;
-
-#else  /* want SGML_COMMENTS */
-    {
-      int is_comment = 0;
-      while ((is_comment || (*ptr != '>')) && (*ptr != '\0'))
-      {				/* keep track of '--' bracketed comments */
-	if ((*ptr == '-') && (*++ptr == '-'))
-	{
-	  is_comment = 1 - is_comment;
-	}
-	ptr++;
-      }
-      /*
-       * Theoretically, an SGML Comment Declaration contains ONLY zero or more
-       * '--' delimited comments, but we aren't picky about finding other stuff
-       * between comments
-       */
-    }
-#endif /*ifndef SGML_COMMENTS*/
-
-    *endp = ptr;
-    return NULL;
-  }
-
-  mark = (struct mark_up *)XtMalloc(sizeof (struct mark_up));
-
-  /*
-   * Grab the mark text
-   */
-  ptr = start;
-
-  /*
-   * Handle <script> ... </script> comments
-   * It would have been nice to flush the text outright, but the calling
-   * code doesn't understand returning NULL with start[1] != '!'.  So,
-   * waste time getting a mark_up struct, saving the text, and discarding it.
-   */
-
-  if (caseless_equal (ptr, "script")  /*&&  isspace (ptr[6])*/ )
-  {				/* this is a script el't. Treat as comment */
-    int is_comment = 1;
-    ptr += 7;
-    while ((is_comment || (*ptr != '>')) && (*ptr != '\0'))
-    {
-      if ((*ptr == '<') && (*++ptr == '/')
-	  && (caseless_equal (++ptr, "script")))
-      {
-	ptr += 6;
-	if (*ptr == '>')
-	  break;
-	else if (isspace(*ptr))
-	{
-	  is_comment = 0;
-	  ptr++;
-	}
-      }
-      else
-      {
-	ptr++;
-      }
-    }
-  }
-  else if (caseless_equal (ptr, "style")  /*&&  isspace (ptr[6])*/ )
-  {				/* this is a script el't. Treat as comment */
-    int is_comment = 1;
-    ptr += 6;
-    while ((is_comment || (*ptr != '>')) && (*ptr != '\0'))
-    {
-      if ((*ptr == '<') && (*++ptr == '/')
-	  && (caseless_equal (++ptr, "style")))
-      {
-	ptr += 5;
-	if (*ptr == '>')
-	  break;
-	else if (isspace(*ptr))
-	{
-	  is_comment = 0;
-	  ptr++;
-	}
-      }
-      else
-      {
-	ptr++;
-      }
-    }
-  }
-  else				/* ordinary SGML tag */
-  {
-    ptr = (char *) TagClose (ptr);
-  }
-  *endp = ptr;
-
-  if (*ptr != '>')
-  {
-#ifdef VERBOSE
-    fprintf (stderr, "error: bad mark format\n");
-#endif
-    return (NULL);
-  }
-
-  /*
-   * Copy the mark text to its own buffer, and
-   * clean it of escapes, and odd white space.
-   */
-  tchar = *ptr;
-  *ptr = '\0';
-  text = XtNewString(start);
-  *ptr = tchar;
-  clean_text (text);
-/*
- * No longer needed because the parsing code is now smarter
- *
- clean_white_space(text);
- *
- */
-
-  /*
-   * Set whether this is the start or end of a mark
-   * block, as well as determining its type.
-   */
-  if (*text == '/')
-  {
-    mark->is_end = 1;
-    mark->type = ParseMarkType ((char *) (text + 1));
-    mark->start = NULL;
-    mark->text = NULL;
-    mark->end = text;
-  }
-  else
-  {
-    mark->is_end = 0;
-    mark->type = ParseMarkType (text);
-    mark->start = text;
-    mark->text = NULL;
-    mark->end = NULL;
-  }
-  mark->text = NULL;
-  mark->next = NULL;
-
-  return (mark);
-}
-#endif	//GPROFOPT
 
 /*
  * Special version of get_text.  It reads all text up to the
  * end of the plain text mark, or the end of the file.
  */
-#ifdef GPROFOPT
 
 // We reuse the is_html_mark logic from earlier to make the code readable
 
@@ -1208,90 +633,6 @@ char *get_plain_text(const char *start, const char **endp) {
     return text;
 }
 
-#else
-char *
-get_plain_text (start, endp)
-char *start;
-char **endp;
-{
-  char *ptr;
-  char *text;
-  char tchar;
-
-  if (start == NULL)
-  {
-    return (NULL);
-  }
-
-  /*
-   * Read until stopped by end plain text mark.
-   */
-  ptr = start;
-  while (*ptr != '\0')
-  {
-    /*
-     * Beginning of a mark is '<' followed by any letter,
-     * or followed by '!' for a comment,
-     * or '</' followed by any letter.
-     */
-    if ((*ptr == '<') &&
-	((isalpha ((int) (*(ptr + 1)))) ||
-	 (*(ptr + 1) == '!') ||
-	 ((*(ptr + 1) == '/') && (isalpha ((int) (*(ptr + 2)))))))
-    {
-      struct mark_up *mp;
-      char *ep;
-
-      /*
-       * We think we found a mark.  If it is the
-       * end of plain text, break out
-       */
-      mp = get_mark (ptr, &ep);
-      if (mp != NULL)
-      {
-	if (((mp->type == M_PLAIN_TEXT) ||
-	     (mp->type == M_LISTING_TEXT)) && (mp->is_end))
-	{
-	  if (mp->end != NULL)
-	  {
-	    XtFree((char *) mp->end);
-	  }
-	  XtFree((char *) mp);
-	  break;
-	}
-	if (mp->start != NULL)
-	{
-	  XtFree((char *) mp->start);
-	}
-	if (mp->end != NULL)
-	{
-	  XtFree((char *) mp->end);
-	}
-	XtFree((char *) mp);
-      }
-    }
-    ptr++;
-  }
-  *endp = ptr;
-
-  if (ptr == start)
-  {
-    return (NULL);
-  }
-
-  /*
-   * Copy text to its own malloced buffer, and clean it of
-   * HTML escapes.
-   */
-  tchar = *ptr;
-  *ptr = '\0';
-  text = XtNewString(start);
-  *ptr = tchar;
-  clean_text (text);
-
-  return (text);
-}
-#endif
 
 /*
  * Main parser of HTML text.  Takes raw text, and produces a linked
@@ -1300,7 +641,6 @@ char **endp;
  * The old list is passed in so it can be freed, and in the future we
  * may want to add code to append to the old list.
  */
-#ifdef GPROFOPT
 
 struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
     int preformat = 0;
@@ -1424,318 +764,7 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
     return list;
 }
 
-#else
 
-struct mark_up *
-HTMLParse (old_list, str)
-struct mark_up *old_list;
-char *str;
-{
-  int preformat;
-  char *start, *end;
-  char *text, *tptr;
-  struct mark_up *mark;
-  struct mark_up *list;
-  struct mark_up *current;
-#ifdef TIMING
-  gettimeofday (&Tv, &Tz);
-  fprintf (stderr, "HTMLParse enter (%d.%d)\n", Tv.tv_sec, Tv.tv_usec);
-#endif
-
-  preformat = 0;
-
-  /*
-   * Free up the previous Object List if one exists
-   */
-  FreeObjList (old_list);
-
-  if (str == NULL)
-  {
-    return (NULL);
-  }
-
-  list = NULL;
-  current = NULL;
-
-  start = str;
-  end = str;
-
-  mark = NULL;
-  while (*start != '\0')
-  {
-    /*
-     * Get some text (if any).  If our last mark was
-     * a begin plain text, we call a different function.
-     * If last mark was <PLAINTEXT> we lump all the rest of
-     * the text in.
-     */
-    if ((mark != NULL) && (mark->type == M_PLAIN_FILE) && (!mark->is_end))
-    {
-      text = start;
-      end = text;
-      while (*end != '\0')
-      {
-	end++;
-      }
-      /*
-       * Copy text to its own malloced buffer, and clean it of
-       * HTML escapes.
-       */
-      tptr = XtNewString(text);
-      text = tptr;
-    }
-    else if ((mark != NULL) &&
-	     ((mark->type == M_PLAIN_TEXT) ||
-	      (mark->type == M_LISTING_TEXT)) &&
-	     (!mark->is_end))
-    {
-      text = get_plain_text (start, &end);
-    }
-    else
-    {
-      text = get_text (start, &end);
-    }
-
-    /*
-     * If text is OK, put it into a mark structure, and add
-     * it to the linked list.
-     */
-    if (text == NULL)
-    {
-      if (start != end)
-      {
-#ifdef VERBOSE
-	fprintf (stderr, "error parsing text, bailing out\n");
-#endif
-	return (list);
-      }
-    }
-    else
-    {
-      mark = (struct mark_up *)XtMalloc(sizeof (struct mark_up));
-      mark->type = M_NONE;
-      mark->is_end = 0;
-      mark->start = NULL;
-      mark->text = text;
-      mark->end = NULL;
-      mark->next = NULL;
-      current = AddObj (&list, current, mark, preformat);
-    }
-    start = end;
-
-    if (*start == '\0')
-    {
-      break;
-    }
-
-    /*
-     * Get the next mark if any, and if it is
-     * valid, add it to the linked list.
-     */
-    mark = get_mark (start, &end);
-    if (mark == NULL)
-    {
-      if (start != end  &&  start[1] != '!')
-      {
-#ifdef VERBOSE
-	fprintf (stderr, "error parsing mark, bailing out\n");
-#endif
-	return (list);
-      }
-      start = end + 1;
-    }
-    else
-    {
-      start = end + 1;
-
-      mark->next = NULL;
-      current = AddObj (&list, current, mark, preformat);
-
-      if ((mark->type == M_PLAIN_FILE)  &&  (!mark->is_end))
-      {
-	/*
-	 * A linefeed immediately after the <PLAINTEXT>
-	 * mark is to be ignored.
-	 */
-	if (*start == '\n')
-	{
-	  start++;
-	}
-      }
-      else if ((mark->type == M_PLAIN_TEXT  ||  mark->type == M_LISTING_TEXT)
-	       && (!mark->is_end))
-      {
-	/*
-	 * A linefeed immediately after the <XMP>
-	 * or <LISTING> mark is to be ignored.
-	 */
-	if (*start == '\n')
-	{
-	  start++;
-	}
-      }
-      /*
-       * If we are parsing pre-formatted text we need to set a
-       * flag so we don't throw out needed linefeeds.
-       */
-      else if (mark->type == M_PREFORMAT)
-      {
-	if (mark->is_end)
-	{
-	  preformat = 0;
-	}
-	else
-	{
-	  preformat = 1;
-	  /*
-	   * A linefeed immediately after the <PRE>
-	   * mark is to be ignored.
-	   */
-	  if (*start == '\n')
-	  {
-	    start++;
-	  }
-	}
-      }
-    }
-  }
-#ifdef TIMING
-  gettimeofday (&Tv, &Tz);
-  fprintf (stderr, "HTMLParse exit (%d.%d)\n", Tv.tv_sec, Tv.tv_usec);
-#endif
-  return (list);
-}
-#endif //GPROFOPT
-
-#ifdef GPROFOPT_deact
-int ParseMarkType (char *str) {
-
-  char first_char;
-
-  if (str == NULL || str[0] == '\0') {
-    return (M_NONE);
-  }
-
-  /* Get the first character and force it to lowercase for easier switching */
-  first_char = str[0];
-  if (first_char >= 'A' && first_char <= 'Z') {
-    first_char |= 0x20;
-  }
-
-  /* OPTIMIZATION: Group the original checks based on the first letter */
-  switch (first_char) {
-    case 'a':
-      if (caseless_equal (str, MT_ANCHOR)) return M_ANCHOR;
-      if (caseless_equal (str, MT_ADDRESS)) return M_ADDRESS;
-      break;
-
-    case 'b':
-      if (caseless_equal (str, MT_BOLD)) return M_BOLD;
-      if (caseless_equal (str, MT_BLOCKQUOTE)) return M_BLOCKQUOTE;
-      if (caseless_equal (str, MT_BASE)) return M_BASE;
-      if (caseless_equal (str, MT_BODY)) return M_BODY;
-      break;
-
-    case 'c':
-      if (caseless_equal (str, MT_CODE)) return M_CODE;
-      if (caseless_equal (str, MT_CITATION)) return M_CITATION;
-      if (caseless_equal (str, MT_CAPTION)) return M_CAPTION;
-      break;
-
-    case 'd':
-      if (caseless_equal (str, MT_DIRECTORY)) return M_DIRECTORY;
-      if (caseless_equal (str, MT_DESC_LIST)) return M_DESC_LIST;
-      if (caseless_equal (str, MT_DESC_TITLE)) return M_DESC_TITLE;
-      if (caseless_equal (str, MT_DESC_TEXT)) return M_DESC_TEXT;
-      break;
-
-    case 'e':
-      if (caseless_equal (str, MT_EMPHASIZED)) return M_EMPHASIZED;
-      break;
-
-    case 'f':
-      if (caseless_equal (str, MT_FIXED)) return M_FIXED;
-      if (caseless_equal (str, MT_FORM)) return M_FORM;
-      break;
-
-    case 'h':
-      if (caseless_equal (str, MT_HEADER_1)) return M_HEADER_1;
-      if (caseless_equal (str, MT_HEADER_2)) return M_HEADER_2;
-      if (caseless_equal (str, MT_HEADER_3)) return M_HEADER_3;
-      if (caseless_equal (str, MT_HEADER_4)) return M_HEADER_4;
-      if (caseless_equal (str, MT_HEADER_5)) return M_HEADER_5;
-      if (caseless_equal (str, MT_HEADER_6)) return M_HEADER_6;
-      if (caseless_equal (str, MT_HRULE)) return M_HRULE;
-      break;
-
-    case 'i':
-      if (caseless_equal (str, MT_ITALIC)) return M_ITALIC;
-      if (caseless_equal (str, MT_INDEX)) return M_INDEX;
-      if (caseless_equal (str, MT_IMAGE)) return M_IMAGE;
-      if (caseless_equal (str, MT_INPUT)) return M_INPUT;
-      break;
-
-    case 'k':
-      if (caseless_equal (str, MT_KEYBOARD)) return M_KEYBOARD;
-      break;
-
-    case 'l':
-      if (caseless_equal (str, MT_LISTING_TEXT)) return M_LISTING_TEXT;
-      if (caseless_equal (str, MT_LIST_ITEM)) return M_LIST_ITEM;
-      if (caseless_equal (str, MT_LINEBREAK)) return M_LINEBREAK;
-      break;
-
-    case 'm':
-      if (caseless_equal (str, MT_MENU)) return M_MENU;
-      break;
-
-    case 'n':
-      if (caseless_equal (str, MT_NUM_LIST)) return M_NUM_LIST;
-      break;
-
-    case 'o':
-      if (caseless_equal (str, MT_OPTION)) return M_OPTION;
-      break;
-
-    case 'p':
-      if (caseless_equal (str, MT_PLAIN_TEXT)) return M_PLAIN_TEXT;
-      if (caseless_equal (str, MT_PLAIN_FILE)) return M_PLAIN_FILE;
-      if (caseless_equal (str, MT_PARAGRAPH)) return M_PARAGRAPH;
-      if (caseless_equal (str, MT_PREFORMAT)) return M_PREFORMAT;
-      break;
-
-    case 's':
-      if (caseless_equal (str, MT_STRONG)) return M_STRONG;
-      if (caseless_equal (str, MT_SAMPLE)) return M_SAMPLE;
-      if (caseless_equal (str, MT_STRIKEOUT)) return M_STRIKEOUT;
-      if (caseless_equal (str, MT_SELECT)) return M_SELECT;
-      break;
-
-    case 't':
-      if (caseless_equal (str, MT_TITLE)) return M_TITLE;
-      if (caseless_equal (str, MT_TEXTAREA)) return M_TEXTAREA;
-      if (caseless_equal (str, MT_TABLE)) return M_TABLE;
-      if (caseless_equal (str, MT_TABLE_ITEM)) return M_TABLE_ITEM;
-      if (caseless_equal (str, MT_TABLE_HEADER)) return M_TABLE_HEADER;
-      if (caseless_equal (str, MT_TABLE_ROW)) return M_TABLE_ROW;
-      break;
-
-    case 'u':
-      if (caseless_equal (str, MT_UNUM_LIST)) return M_UNUM_LIST;
-      break;
-
-    default:
-      break;
-  }
-
-  /* If we hit here, none of the defined tags matched */
-#ifdef VERBOSE
-  fprintf (stderr, "warning: unknown mark (%s)\n", str);
-#endif
-  return (M_UNKNOWN);
-}
-
-#else
 /*
  * Determine mark type from the identifying string passed
  */
@@ -1982,7 +1011,6 @@ char *str;
 
   return (type);
 }
-#endif	//GPROFOPT
 
 /*
  * Parse a single anchor tag.  ptrp is a pointer to a pointer to the
@@ -1992,7 +1020,6 @@ char *str;
  * after the end of the tag's name in the original anchor string.
  * Finally the function returns the tag value in a malloced buffer.
  */
-#ifdef GPROFOPT
 
 char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
 {
@@ -2097,118 +1124,6 @@ char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
   return (tag_val);
 }
 
-#else
-char *
-AnchorTag (ptrp, startp, endp)
-const char **ptrp;
-const char **startp;
-const char **endp;
-{
-  char *tag_val;
-  const char *ptr;
-  const char *start;
-  int quoted;
-  int has_value;
-
-  quoted = 0;
-
-  /*
-   * remove leading spaces, and set start
-   */
-  ptr = *ptrp;
-  while (isspace ((int) *ptr))
-  {
-    ptr++;
-  }
-  *startp = ptr;
-
-  /*
-   * Find and set the end of the tag
-   */
-  while ((!isspace ((int) *ptr)) && (*ptr != '=') && (*ptr != '\0'))
-  {
-    ptr++;
-  }
-  *endp = ptr;
-
-  if (*ptr == '\0')
-  {
-    *ptrp = ptr;
-    return (NULL);
-  }
-
-  /*
-   * Move to the start of the tag value, if there is one.
-   * set the has_value flag.
-   */
-  has_value = 0;
-  while ((isspace ((int) *ptr)) || (*ptr == '='))
-  {
-    if (*ptr == '=')
-    {
-      has_value = 1;
-    }
-    ptr++;
-  }
-
-  /*
-   * For a tag with no value, this is a boolean flag.
-   * Return the string "1" so we know the tag is there.
-   */
-  if (!has_value)
-  {
-    *ptrp = *endp;
-    /*
-     * set a tag value of 1.
-     */
-    return (XtNewString("1"));
-  }
-
-  /*
-   * Single quotes are also legal SGML value delimiters --GN 1997May06
-   */
-  if (*ptr == '\"' || *ptr == '\'') 
-    quoted = *ptr++;		/* remember which one it was */
-
-  start = ptr;
-  /*
-   * Get tag value.  Either a quoted string or a single word
-   */
-  if (quoted)
-  {
-    while ((*ptr != quoted) && (*ptr != '\0'))
-    {
-      ptr++;
-    }
-  }
-  else
-  {
-    while ((!isspace ((int) *ptr)) && (*ptr != '\0'))
-    {
-      ptr++;
-    }
-  }
-  if ((quoted) && (*ptr == '\0'))
-  {
-    *ptrp = ptr;
-    return (NULL);
-  }
-
-  /*
-   * Copy the tag value out into a malloc'd string.
-   * Logically XtNewString, but avoids modifying the string passed by the
-   * caller (which might be unwritable).
-   */
-  tag_val = XtMalloc (ptr - start + 1);
-  tag_val[0] = '\0';		/* for strncat */
-  strncat (tag_val, start, ptr - start);  /* should work even if ptr=start */
-
-  if (quoted) ptr++;
-  *ptrp = ptr;
-
-  return (tag_val);
-}
-#endif //GPROFOPT
 
 /*
  * Parse mark text for the value associated with the
@@ -2217,7 +1132,6 @@ const char **endp;
  * If the passed tag is found but has no value, return "".
  */
  
-#ifdef GPROFOPT
 extern char *strcasestr(const char *haystack, const char *needle);
 
 char *
@@ -2268,44 +1182,4 @@ const char *mtag;
 }
 
 
-#else
-char *
-ParseMarkTag (text, mtext, mtag)
-const char *text;
-const char *mtext;
-const char *mtag;
-{
-  char *ptr;
-
-  if ((text == NULL) || (mtext == NULL) || (mtag == NULL))
-  {
-    return (NULL);
-  }
-
-  /*
-   * skip over leading mark tag (mtext) characters.
-   * Special cases: common practice is to pass MT_tag, which doesn't
-   * include the leading "/" in closing marks and which doesn't include the
-   * leading "+" in certain implicitly-generated tags.  Skip them both.
-   */
-  if (*text == '+')  ++text;	/* always first, if present */
-  if (*text == '/')  ++text;
-  ptr = (char *) (text + strlen (mtext));
-
-  while (*ptr != '\0')
-  {
-    char *start, *end;
-
-    char *tag_val = AnchorTag (&ptr, &start, &end);
-
-    if (caseless_equal (start, mtag))  /* found the requested field in tag */
-    {
-      return (tag_val != NULL) ?  tag_val  :  XtNewString("");
-    }
-    if (tag_val != NULL)  XtFree (tag_val);
-  }
-
-  return (NULL);
-}
-#endif //GPROFOPT
 

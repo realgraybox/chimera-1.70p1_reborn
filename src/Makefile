@@ -10,7 +10,7 @@ SRCS = \
 
 OBJS = $(SRCS:.c=.o)
 TARGET = chimera
-CFLAGS += -I../XawPlus-2.0.2 -I../ -std=gnu99 -funit-at-a-time
+CFLAGS += -I../XawPlus-2.0.2 -I../ -funit-at-a-time
 
 
 .PHONY: all clean install

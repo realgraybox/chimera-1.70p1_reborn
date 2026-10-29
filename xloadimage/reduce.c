@@ -16,15 +16,8 @@
  * Copyright 1991 Jim Frost.
  * See included file "copyright.h" for complete copyright information.
  */
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#include <stdlib.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#include <string.h>	//todo : clean up to avoid -DHAVE_STRING_H
 #include "common.h"
 #include "copyright.h"
 #include "image.h"
