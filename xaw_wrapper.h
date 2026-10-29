@@ -8,7 +8,6 @@
 #	include <X11/XawPlus/Command.h>
 #	include <X11/XawPlus/Label.h>
 #	include <X11/XawPlus/AsciiText.h>
-#	include <X11/XawPlus/AsciiSink.h>
 #	include <X11/XawPlus/Paned.h>
 #	include <X11/XawPlus/Viewport.h>
 #	include <X11/XawPlus/Cardinals.h>
@@ -29,7 +28,6 @@
 #	include <X11/Xaw3d/Command.h>
 #   include <X11/Xaw3d/Label.h>
 #	include <X11/Xaw3d/AsciiText.h>
-#	include <X11/Xaw3d/AsciiSink.h>
 #	include <X11/Xaw3d/Paned.h>
 #	include <X11/Xaw3d/Viewport.h>
 #	include <X11/Xaw3d/Cardinals.h>
@@ -47,7 +45,6 @@
 #	include <X11/Xaw/Command.h>
 #	include <X11/Xaw/Label.h>
 #	include <X11/Xaw/AsciiText.h>
-#	include <X11/Xaw/AsciiSink.h>
 #	include <X11/Xaw/Paned.h>
 #	include <X11/Xaw/Viewport.h>
 #	include <X11/Xaw/Cardinals.h>
