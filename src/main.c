@@ -17,13 +17,9 @@
 #include <sys/param.h>
 #include <sys/types.h>
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>

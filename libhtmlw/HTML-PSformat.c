@@ -47,9 +47,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdint.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include "HTMLP.h"
 
