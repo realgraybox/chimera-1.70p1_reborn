@@ -137,6 +137,7 @@ typedef struct _HTMLPart
 	Boolean			border_delayed_images;
 	Boolean			use_body_colors;
 	Boolean			delay_images;
+	Boolean			background_images; /* remote images arrive later */
 	Boolean			is_index;
 	int			html_errmsg_cutoff;  /* <0 off, else do if > */
 	int                     truncate_alt;

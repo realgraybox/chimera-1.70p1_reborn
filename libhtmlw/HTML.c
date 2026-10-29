@@ -427,6 +427,12 @@ static XtResource resources[] =
     XtRString, "False"
   },
   {
+    WbNbackgroundImages,
+    WbCBackgroundImages, XtRBoolean, sizeof (Boolean),
+    XtOffset (HTMLWidget, html.background_images),
+    XtRString, "True"
+  },
+  {
     WbNfancySelections,
     WbCFancySelections, XtRBoolean, sizeof (Boolean),
     XtOffset (HTMLWidget, html.fancy_selections),
@@ -682,6 +688,87 @@ HTMLWidget hw;
 {
   hw->html.delay_images = !hw->html.delay_images;
 }
+
+
+/*
+ * HTMLDelayingImages
+ *
+ * True while DeferPix is on: images wait for a click.
+ */
+Boolean
+HTMLDelayingImages (Widget w)
+{
+  return ((HTMLWidget) w)->html.delay_images;
+}
+
+
+/*
+ * HTMLGetDelayedImages
+ *
+ * The SRC of every image that is still shown as a delayed-image
+ * placeholder, each once, in the order they should be fetched: those in
+ * view first, then those below, then those above. Returns an XtMalloc'd
+ * array of XtMalloc'd strings, or NULL with *num_srcs = 0.
+ */
+char **
+HTMLGetDelayedImages (Widget w, int *num_srcs)
+{
+  HTMLWidget hw = (HTMLWidget) w;
+  struct ele_rec *eptr;
+  char **srcs = NULL;
+  int *keys = NULL;
+  int n = 0, size = 0;
+  int top = hw->html.scroll_y;
+  int bottom = top + (int) hw->html.view_height;
+  int i, j, pass;
+
+  for (eptr = hw->html.formatted_elements; eptr != NULL; eptr = eptr->next)
+  {
+    int key;
+
+    if (eptr->type != E_IMAGE || eptr->edata == NULL || eptr->edata[0] == '\0')
+      continue;
+    if (eptr->img_data == NULL || eptr->img_data->pic_data == NULL ||
+	!eptr->img_data->pic_data->delayed)
+      continue;
+
+    for (i = 0; i < n; i++)
+      if (strcmp (srcs[i], eptr->edata) == 0) break;
+    if (i < n) continue;
+
+    if (eptr->y + eptr->line_height < top) key = 2;	/* above */
+    else if (eptr->y > bottom) key = 1;			/* below */
+    else key = 0;					/* in view */
+
+    if (n == size)
+    {
+      size = size ? size * 2 : 32;
+      srcs = (char **) XtRealloc ((char *) srcs, size * sizeof (char *));
+      keys = (int *) XtRealloc ((char *) keys, size * sizeof (int));
+    }
+    srcs[n] = XtNewString (eptr->edata);
+    keys[n] = key;
+    n++;
+  }
+
+  /* stable reorder by key; the element list is already in page order */
+  if (n > 1)
+  {
+    char **sorted = (char **) XtMalloc (n * sizeof (char *));
+
+    j = 0;
+    for (pass = 0; pass < 3; pass++)
+      for (i = 0; i < n; i++)
+	if (keys[i] == pass) sorted[j++] = srcs[i];
+    XtFree ((char *) srcs);
+    srcs = sorted;
+  }
+  if (keys != NULL) XtFree ((char *) keys);
+
+  *num_srcs = n;
+  return srcs;
+}
+
 
 
 /*
@@ -5909,4 +5996,22 @@ HTMLRestoreDefaultBodyAttr (Widget w)
   hw->html.foreground = hw->html.default_foreground;
   hw->html.activeAnchor_bg = hw->html.default_activeAnchor_bg;
   hw->core.background_pixel = hw->html.default_background;
+}
+
+
+/*
+ * HTMLRefreshImages
+ *
+ * Lay the page out again after images have arrived in the background,
+ * keeping the scroll position. Images that are ready now replace their
+ * placeholders (the resolve callback is asked again for each).
+ */
+void
+HTMLRefreshImages (Widget w)
+{
+  HTMLWidget hw = (HTMLWidget) w;
+
+  ReformatWindow (hw);
+  ScrollWidgets (hw);
+  ViewClearAndRefresh (hw);
 }

@@ -385,6 +385,7 @@ struct mark_up {
 #define WbNdelayedImageBorders	"delayedImageBorders"
 #define WbNuseBodyColors	"useBodyColors"
 #define	WbNdelayImageLoads	"delayImageLoads"
+#define	WbNbackgroundImages	"backgroundImages"
 #define WbNhtmlErrorMsgCutoff   "htmlErrorMsgCutoff"
 #define WbNtruncateALT          "truncateALT"
 #define	WbNisIndex		"isIndex"
@@ -442,6 +443,7 @@ struct mark_up {
 #define WbCDelayedImageBorders	"DelayedImageBorders"
 #define WbCUseBodyColors	"UseBodyColors"
 #define	WbCDelayImageLoads	"DelayImageLoads"
+#define	WbCBackgroundImages	"BackgroundImages"
 #define WbCHTMLErrorMsgCutoff   "HTMLErrorMsgCutoff"
 #define WbCTruncateALT          "TruncateALT"
 #define	WbCIsIndex		"IsIndex"
@@ -493,6 +495,9 @@ extern char **   HTMLGetHRefs _ArgProto((Widget w, int *num_hrefs));
 extern void	 HTMLGetImage _ArgProto((HTMLWidget hw, struct ele_rec *eptr,
 					 Boolean now));
 extern char **   HTMLGetImageSrcs _ArgProto((Widget w, int *num_srcs));
+extern char **   HTMLGetDelayedImages _ArgProto((Widget w, int *num_srcs));
+extern void      HTMLRefreshImages _ArgProto((Widget w));
+extern Boolean   HTMLDelayingImages _ArgProto((Widget w));
 extern LinkInfo *HTMLGetLinks _ArgProto((Widget w, int *num_links));
 extern char *    HTMLGetText _ArgProto((Widget w, int pretty));
 extern char *    HTMLGetTextAndSelection _ArgProto((Widget w, char **startp,

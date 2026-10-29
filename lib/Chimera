@@ -86,6 +86,10 @@ Chimera*html.dashedVisitedAnchorUnderlines: True
 
 Chimera*html.useBodyColors:        True
 Chimera*html.delayImageLoads:      False
+! Show pages at once and fetch their images in the background, up to
+! maxImageLoads at a time. False: fetch every image before the page shows.
+Chimera*html.backgroundImages:     True
+Chimera.maxImageLoads:             6
 Chimera*html.htmlErrorMsgCutoff:   0
 Chimera*html.truncateALT:          60
 

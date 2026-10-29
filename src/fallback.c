@@ -53,6 +53,7 @@ char *fallback_resources[] =
   "*html.anchorUnderlines:     1",
   "*html.visitedAnchorUnderlines: 1",
   "*html.dashedVisitedAnchorUnderlines: True",
+  "*html.backgroundImages:     True",
   "*html.autoSize:             True",
   "*html.htmlErrorMsgCutoff:   0",
 

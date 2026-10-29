@@ -7,6 +7,7 @@
  */
 
 Document *ParseHTTPResponse _ArgProto((int));
+Document *ParseHTTPResponseBuffer _ArgProto((const char *, int));
 Document *ParseHTTPRequest _ArgProto((int));
 Document *http _ArgProto((URLParts *, MIMEType *));
 Document *http_proxy _ArgProto((URLParts *, URLParts *, MIMEType *, int));

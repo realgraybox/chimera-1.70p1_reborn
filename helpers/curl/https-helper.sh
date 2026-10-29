@@ -58,6 +58,7 @@ LOGFILE=${LOGFILE:-/tmp/chimera.log}
 
 URI=""
 HOST=""
+INLINE=false
 REQUEST_LINE=""
 METHOD="GET"
 CONTENT_TYPE="application/x-www-form-urlencoded"
@@ -91,6 +92,10 @@ do
             ;;
         X-hostname:*)
             HOST=$(printf "%s" "$line" | sed 's/^X-hostname: //')
+            ;;
+        X-chimera-inline:*)
+            # an image loaded in the background, alongside others
+            INLINE=true
             ;;
         Content-type:*)
             CONTENT_TYPE=$(printf "%s" "$line" | sed 's/^Content-type: //')
@@ -155,7 +160,14 @@ set -- -L -s -A "Chimera/1.70" --connect-timeout 3 --max-time 10 \
 if [ "$COOKIES" = true ]; then
     COOKIEJAR="$HOME/chimera/cookies/cookies.txt"
     mkdir -p "$HOME/chimera/cookies"
-    set -- "$@" -b "$COOKIEJAR" -c "$COOKIEJAR"
+    if [ "$INLINE" = true ]; then
+        # Chimera loads several images at once; if each curl rewrote the
+        # cookie file at exit they would overwrite each other's changes.
+        # Images send the cookies but leave the file alone.
+        set -- "$@" -b "$COOKIEJAR"
+    else
+        set -- "$@" -b "$COOKIEJAR" -c "$COOKIEJAR"
+    fi
 fi
 
 if [ "$INSECURE" = true ]; then

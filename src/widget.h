@@ -66,6 +66,7 @@ typedef struct _htmlroot
   char *email;
   float gamma;
   int maxColors; /* maximum colors per inline image */
+  int maxImageLoads; /* images fetched at the same time in the background */
   Boolean cacheIgnoreExpires;
   Boolean openButtonShortcut; /* enable foo.com -> http://foo.com/ shortcut */
   char *localIndexFiles; /* look for index.html etc. in local directories */

@@ -50,6 +50,7 @@
 #include "convert.h"
 #include "inline.h"
 #include "chtime.h"
+#include "imgload.h"
 #include "http.h"
 #include "input.h"
 #include "net.h"
@@ -106,6 +107,7 @@ void Siaghelp(char *p);
 
 int DisplayTransferStatus _ArgProto((int, int, int));
 int DisplayConnectStatus _ArgProto((int, char *));
+static void QueueImages _ArgProto((void));
 
 static void           HomeAction();
 static void           BackAction();
@@ -212,6 +214,8 @@ static XtResource       resource_list[] =
 	offset(allProxy), XtRString, (XtPointer)NULL },
   { "maxColors", "MaxColors", XtRInt, sizeof(int),
 	offset(maxColors), XtRImmediate, (XtPointer)256 },
+  { "maxImageLoads", "MaxImageLoads", XtRInt, sizeof(int),
+	offset(maxImageLoads), XtRImmediate, (XtPointer)6 },
   { "cacheInfoFiles", "Files", XtRString, sizeof(char *),
 	offset(cacheInfoFiles), XtRString, (XtPointer)CACHE_INFO_FILES },
   { "cacheIgnoreExpires", XtCBoolean, XtRBoolean, sizeof(Boolean),
@@ -770,6 +774,8 @@ DisplayCurrent()
 
   root.cancelop = False;
 
+  ImgLoadCancel();		/* images of the page shown before */
+
   memset(&page_timing, 0, sizeof(page_timing));
   html_x11_ms = 0.0;
   html_x11_count = 0;
@@ -837,6 +843,8 @@ DisplayCurrent()
     if (root.home != 0) XtSetSensitive(root.home, True);
     if (root.back != 0) XtSetSensitive(root.back, True);
   }
+
+  QueueImages();		/* remote images, in the background */
   return;
 }
 
@@ -846,15 +854,12 @@ DisplayCurrent()
  * Always pass up through MakeURLParts to ensure some degree of sanity
  * --GN 1997May18
  */
-static Document *
-LoadDoc(up, reload, localonly)
+static URLParts *
+ResolveDocURL(up, reload)
 URLParts *up;
 int reload;
-int localonly;			/* boolean;  in cache or on localhost */
 {
-  Document *d;
   URLParts *nup = NULL;
-  static char *download = NULL;	/* as in DisplayTransferStatus --GN */
 
   if (root.dlist != NULL && reload == 0)
   {
@@ -877,6 +882,21 @@ int localonly;			/* boolean;  in cache or on localhost */
     else nup = MakeURLParts(up, (URLParts *) NULL);
   }
   else nup = MakeURLParts(up, (URLParts *) NULL);
+
+  return(nup);
+}
+
+static Document *
+LoadDoc(up, reload, localonly)
+URLParts *up;
+int reload;
+int localonly;			/* boolean;  in cache or on localhost */
+{
+  Document *d;
+  URLParts *nup;
+  static char *download = NULL;	/* as in DisplayTransferStatus --GN */
+
+  nup = ResolveDocURL(up, reload);
 
   d = (root.cacheOff  ||  reload) ?  NULL :  ReadCache (nup);
 
@@ -1747,6 +1767,15 @@ Cancel(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
+  /*
+   * Stop images still loading in the background; those not yet here
+   * keep their placeholders, which load the image when clicked.
+   */
+  if (ImgLoadBusy())
+  {
+    ImgLoadCancel();
+    SetTitle(NULL);
+  }
   return;
 }
 
@@ -2107,6 +2136,7 @@ XtPointer cldata, cbdata;
   signal(SIGALRM, SIG_IGN);
   signal(SIGTERM, SIG_DFL);
 
+  ImgLoadCancel();
   if (root.dlist && root.dlist->doc) DestroyDocument(root.dlist->doc);
 
   if (!root.cacheOff) CleanCache();
@@ -2221,6 +2251,116 @@ XtPointer cbdata;
 }
 
 /*
+ * Background image loading (imgload.c)
+ */
+
+/* True when the page's remote images should be fetched in the background */
+static Boolean
+BackgroundImages()
+{
+  Boolean b = False;
+
+  XtVaGetValues(root.w, WbNbackgroundImages, &b, NULL);
+  return(b && !HTMLDelayingImages(root.w));
+}
+
+/* file: URLs and the local host are loaded right away */
+static int
+IsLocalURL(up)
+URLParts *up;
+{
+  if (up == NULL) return(1);
+  if (up->protocol != NULL && strcasecmp(up->protocol, "file") == 0)
+    return(1);
+  if (up->hostname != NULL && strcasecmp(up->hostname, "localhost") == 0)
+    return(1);
+  return(0);
+}
+
+/* Fetch without the busy cursor and button changes of LoadDoc */
+static Document *
+FetchQuiet(up)
+URLParts *up;
+{
+  Document *d = root.cacheOff ? NULL : ReadCache(up);
+
+  if (d == NULL) d = LoadDocument(up, root.plist, root.mtlist, 0);
+  return(d);
+}
+
+/* Images have arrived: show them, and the progress in the title */
+static void
+BgApply(relayout, done, total)
+int relayout, done, total;
+{
+  double t0 = ChTimeMs();
+
+  if (relayout) HTMLRefreshImages(root.w);
+
+  if (ChTimingOn())
+  {
+    fprintf(stderr, "apply %7.1f ms  %d of %d images%s\n", ChTimeMs() - t0,
+	    done, total, relayout ? "" : " (no layout)");
+  }
+
+  if (done < total)
+  {
+    char msg[64];
+
+    sprintf(msg, "Loading images: %d of %d", done, total);
+    SetTitle(msg);
+  }
+  else SetTitle(NULL);
+}
+
+/*
+ * Queue the images of the page just displayed that are still shown as
+ * placeholders. Called from DisplayCurrent once the page is laid out.
+ */
+static void
+QueueImages()
+{
+  char **srcs;
+  int n = 0, i;
+  int queued = 0;
+
+  if (!BackgroundImages()) return;
+
+  ImgLoadInit(root.appcon, root.plist, FetchQuiet, BgApply,
+	      root.maxImageLoads);
+
+  srcs = HTMLGetDelayedImages(root.w, &n);
+  for (i = 0; i < n; i++)
+  {
+    URLParts *tup = ParseURL(srcs[i]);
+
+    if (tup != NULL)
+    {
+      URLParts *nup = ResolveDocURL(tup, 0);
+
+      if (nup != NULL && !IsLocalURL(nup))
+      {
+	ImgLoadAdd(srcs[i], nup);
+	queued++;
+      }
+      if (nup != NULL) DestroyURLParts(nup);
+      DestroyURLParts(tup);
+    }
+    XtFree(srcs[i]);
+  }
+  if (srcs != NULL) XtFree((char *)srcs);
+
+  if (queued > 0)
+  {
+    char msg[64];
+
+    sprintf(msg, "Loading images: 0 of %d", queued);
+    SetTitle(msg);
+    ImgLoadRun();
+  }
+}
+
+/*
  * ImageResolve
  *
  * Called by the HTML widget to turn an image into something the widget
@@ -2233,7 +2373,9 @@ ImageResolve(w, url, bg, delay)
 Widget w;
 char *url;
 Pixel bg;
-int delay;	/* boolean; if true, only if in cache or on localhost */
+int delay;	/* 0: normally (in the background if that is on),
+		 * 1: DeferPix, only if in cache or on localhost,
+		 * 2: now, the user clicked the placeholder */
 {
   Document *d, *x;
   URLParts *tup;
@@ -2260,7 +2402,34 @@ int delay;	/* boolean; if true, only if in cache or on localhost */
 				/* following needed since LoadDoc may have
 				 * set these insensitive -- GN1997May19 */
   t0 = ChTimeMs();
-  d = LoadDoc (tup, 0, delay);
+  if (delay != 1 && BackgroundImages())
+  {
+    Document *bd = NULL;
+    int st = ImgLoadTake(url, &bd);
+
+    if (st == IMG_READY) d = bd;
+    else if (delay == 2) d = LoadDoc(tup, 0, 0);  /* clicked: fetch it now */
+    else if (st != IMG_UNKNOWN) d = NULL;	  /* on its way, or failed */
+    else
+    {
+      /*
+       * Not queued. Local files are loaded now, other images only from
+       * the cache: the rest are queued once the page is laid out, and
+       * meanwhile the page shows a placeholder.
+       */
+      URLParts *nup = ResolveDocURL(tup, 0);
+
+      d = LoadDoc(tup, 0, IsLocalURL(nup) ? 0 : 1);
+      if (nup != NULL) DestroyURLParts(nup);
+    }
+
+    if (d == NULL)
+    {
+      DestroyURLParts(tup);
+      return(NULL);
+    }
+  }
+  else d = LoadDoc (tup, 0, delay == 1);
   t_fetch = ChTimeMs() - t0;
   t0 = ChTimeMs();
     
@@ -2336,7 +2505,7 @@ HTMLWidget hw = (HTMLWidget) w;
 
   if (d == NULL)
   {
-    if (ChTimingOn() && !delay)
+    if (ChTimingOn() && delay != 1)
       fprintf(stderr, "img   fetch %7.1f ms  failed  %s\n", t_fetch, url);
     return(NULL);
   }
