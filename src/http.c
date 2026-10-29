@@ -252,6 +252,87 @@ int s;
 }
 
 /*
+ * ParseHTTPResponseBuffer
+ *
+ * The same as ParseHTTPResponse, for a response already read into
+ * memory (by the background image loader). buf is not modified.
+ */
+Document *
+ParseHTTPResponseBuffer(const char *buf, int len)
+{
+  Document *d;
+  char line[BUFSIZ];
+  int error_code = 0;
+  int header_end = 0;
+  int pos = 0;
+  MIMEField *m;
+
+  if (buf == NULL || len <= 0) return(NULL);
+
+  d = CreateDocument();
+
+  if (len < 7 || strncmp(buf, "HTTP/1.", 7) != 0)
+  {				/* non-HTTP/1.* transmission */
+    d->text = alloc_mem(len + 1);
+    memcpy(d->text, buf, len);
+    d->text[len] = '\0';
+    d->len = len;
+    return(d);
+  }
+
+  /* lines are copied with their '\n', as ReadLine returns them */
+  while (pos < len)
+  {
+    int n = 0;
+
+    while (pos < len && n < (int)sizeof(line) - 1)
+    {
+      line[n++] = buf[pos++];
+      if (line[n - 1] == '\n') break;
+    }
+    line[n] = '\0';
+
+    if (error_code == 0)	/* status line: "HTTP/1.x 200 OK" */
+    {
+      char *sp = strchr(line, ' ');
+
+      if (sp == NULL || sscanf(sp, "%d", &error_code) != 1) break;
+      continue;
+    }
+
+    if (line[0] == '\r' || line[0] == '\n')
+    {
+      header_end = 1;
+      break;
+    }
+
+    if ((m = CreateMIMEField(line)) != NULL)
+    {
+      ParseMIMEField(d, m);
+      m->next = d->mflist;
+      d->mflist = m;
+    }
+  }
+
+  if (!header_end)
+  {
+    char *msg = GetFromStringDB("abort");
+
+    DestroyDocument(d);
+    return(BuildDocument(msg, strlen(msg), "text/html", 1, 0));
+  }
+
+  if (d->text != NULL) free_mem(d->text);
+  d->len = len - pos;
+  d->text = alloc_mem(d->len + 1);
+  memcpy(d->text, buf + pos, d->len);
+  d->text[d->len] = '\0';
+  ECToDS(d, error_code);
+
+  return(d);
+}
+
+/*
  * Formats for HTTP/1.0 requests, for talking to helper applications
  * (\n-terminated lines)  or to an httpd  (\r\n-terminated lines).
  * In the latter case, we now send a Host header so multi-homed HTTP/1.1
@@ -662,22 +743,29 @@ int reload;
   else
   {
     char *url;
+    /*
+     * type 3 is an image fetched in the background: several of these run
+     * at the same time, so the helper is told not to rewrite its cookie
+     * file for them (see https-helper.sh)
+     */
     static char *format = "\
 URI: %s\n\
 X-protocol: %s\n\
 X-hostname: %s\n\
 X-port: %d\n\
-X-filename: %s\n";
+X-filename: %s\n\
+%s";
 
     url = MakeURL(up, 0);
-    extra_header = alloc_mem(strlen(url) * 5 + strlen(format) + 1);
+    extra_header = alloc_mem(strlen(url) * 5 + strlen(format) + 64);
     sprintf (extra_header,
 	     format,
 	     url,
 	     up->protocol != NULL ? up->protocol:"",
 	     up->hostname != NULL ? up->hostname:"",
 	     up->port,
-	     up->filename != NULL ? up->filename:"/");
+	     up->filename != NULL ? up->filename:"/",
+	     type == 3 ? "X-chimera-inline: 1\n" : "");
 
     query = build_request(up, NULL, extra_header, 0);
     free_mem(extra_header);

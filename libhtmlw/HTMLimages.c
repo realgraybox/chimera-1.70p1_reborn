@@ -1091,9 +1091,14 @@ Boolean now;			/* True: force loading now */
        * controls arg4 for the resolveImageProc, and arg3
        * passes the appropriate bg color - djhjr - May 12 97
        */
+      /*
+       * arg 4: 0 = load normally (or later, in the background),
+       *        1 = DeferPix: only from the cache or the local host,
+       *        2 = load now, the user asked for this image
+       */
       pic_data = (* (resolveImageProc) (hw->html.resolveImage) )
 	         (hw, edata, hw->core.background_pixel,
-		  (hw->html.delay_images  &&  !now));
+		  now ? 2 : (hw->html.delay_images ? 1 : 0));
 
       if (pic_data != NULL)	/* got a real image */
       {
@@ -1125,8 +1130,8 @@ Boolean now;			/* True: force loading now */
        * making it clear the load failed.  The user still has other ways
        * to prod Chimera to try again to load the image.
        */
-      if (pic_data == NULL  &&	/* don't have an image */
-	  hw->html.delay_images  &&  !now)
+      if (pic_data == NULL  &&	/* don't have an image (yet) */
+	  (hw->html.delay_images || hw->html.background_images)  &&  !now)
       {
 	/*
 	 * Use "delayed image" or "delayed image that's an anchor" box.
