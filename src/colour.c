@@ -23,44 +23,46 @@
  */
 
 /*
- * #rrggbb colours in X resources
+ * #rrggbb colours with an Xlib built without Xcms
  *
  * Xt turns colour resources into pixels with XAllocNamedColor(). Xlib
- * reads "#rrggbb" itself only when it is built with Xcms (its colour
+ * reads "#rrggbb" there only when it is built with Xcms (its colour
  * management part); without it the name goes to the X server, which
- * knows names like "grey18" from rgb.txt but not "#2e2e2e". Static
- * builds are often made without Xcms, and then every #rrggbb colour in
- * the app-defaults fails with 'Color name "#2e2e2e" is not defined'.
+ * knows names like "grey18" from rgb.txt but not "#2e2e2e". Size-reduced
+ * static builds leave Xcms out (it adds about 24 KB to every program),
+ * and then every #rrggbb colour in the app-defaults fails with
+ * 'Color name "#2e2e2e" is not defined'.
  *
- * This converter reads #rgb, #rrggbb, #rrrgggbbb and #rrrrggggbbbb
- * itself and hands everything else (colour names, XtDefaultForeground,
- * ...) to Xt's own converter.
+ * In such builds (mk.config: NO_XCMS=1, the default with uClibc) Chimera
+ * is linked with -Wl,--wrap=XAllocNamedColor. The linker then sends every
+ * call to XAllocNamedColor() in Chimera and in the static libraries,
+ * libXt.a included, to __wrap_XAllocNamedColor() below. That reads #rgb,
+ * #rrggbb, #rrrgggbbb and #rrrrggggbbbb itself and passes everything
+ * else to the real function (__real_XAllocNamedColor), so colour names
+ * and the warnings for unknown ones are exactly as before.
+ *
+ * Other builds use Xlib's own function, and this file compiles to
+ * nothing.
  */
+
+#ifdef CHIMERA_NO_XCMS
 
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
-#include <X11/IntrinsicP.h>
-#include <X11/CoreP.h>
-#include <X11/StringDefs.h>
+#include <X11/Xlib.h>
 
-#include "colour.h"
+Status __real_XAllocNamedColor(Display *, Colormap, const char *,
+			       XColor *, XColor *);
+Status __wrap_XAllocNamedColor(Display *, Colormap, const char *,
+			       XColor *, XColor *);
 
-/* Xt's converter, for everything that is not #rrggbb */
-extern Boolean XtCvtStringToPixel(Display *, XrmValuePtr, Cardinal *,
-				  XrmValuePtr, XrmValuePtr, XtPointer *);
-
-/* the same arguments as Xt's converter: the widget's screen and colormap */
-static XtConvertArgRec colour_args[] =
-{
-  { XtWidgetBaseOffset, (XtPointer) XtOffsetOf(WidgetRec, core.screen),
-    sizeof(Screen *) },
-  { XtWidgetBaseOffset, (XtPointer) XtOffsetOf(WidgetRec, core.colormap),
-    sizeof(Colormap) }
-};
-
-/* "#" and 3, 6, 9 or 12 hex digits, as XParseColor accepts */
+/*
+ * "#" and 3, 6, 9 or 12 hex digits, read as XParseColor does: the digits
+ * are the high bits of each 16-bit value ("2e" -> 2e00, so "#fff" is
+ * f000 f000 f000), so the colours are exactly those of the other builds.
+ */
 static int
 ParseHex(const char *s, XColor *c)
 {
@@ -85,11 +87,6 @@ ParseHex(const char *s, XColor *c)
     memcpy(part, s + i * n, n);
     part[n] = '\0';
     sscanf(part, "%x", &x);
-    /*
-     * to 16 bits as XParseColor does it: the digits are the high bits
-     * ("2e" -> 2e00, and "#fff" is f000 f000 f000, a light grey), so a
-     * static build shows exactly the colours the other builds show
-     */
     v[i] = x << (16 - 4 * n);
   }
 
@@ -100,53 +97,19 @@ ParseHex(const char *s, XColor *c)
   return 1;
 }
 
-static Boolean
-CvtStringToPixel(Display *dpy, XrmValuePtr args, Cardinal *num_args,
-		 XrmValuePtr from, XrmValuePtr to, XtPointer *data)
+Status
+__wrap_XAllocNamedColor(Display *dpy, Colormap cmap, const char *name,
+			XColor *screen_def, XColor *exact_def)
 {
-  static Pixel result;
-  const char *name = (const char *) from->addr;
-  Colormap cmap;
   XColor c;
 
-  if (name == NULL || name[0] != '#' || *num_args != 2 ||
-      !ParseHex(name, &c))
-    return XtCvtStringToPixel(dpy, args, num_args, from, to, data);
+  if (name == NULL || name[0] != '#' || !ParseHex(name, &c))
+    return __real_XAllocNamedColor(dpy, cmap, name, screen_def, exact_def);
 
-  cmap = *((Colormap *) args[1].addr);
-  if (!XAllocColor(dpy, cmap, &c))	/* colormap full: let Xt complain */
-    return XtCvtStringToPixel(dpy, args, num_args, from, to, data);
-
-  if (to->addr != NULL)
-  {
-    if (to->size < sizeof(Pixel))
-    {
-      to->size = sizeof(Pixel);
-      return False;
-    }
-    *(Pixel *) to->addr = c.pixel;
-  }
-  else
-  {
-    result = c.pixel;
-    to->addr = (XPointer) &result;
-  }
-  to->size = sizeof(Pixel);
-  return True;
+  c.pixel = 0;
+  *exact_def = c;		/* the colour asked for */
+  *screen_def = c;		/* the colour the screen gives */
+  return XAllocColor(dpy, cmap, screen_def);
 }
 
-/*
- * Must be called before the first widget (the toplevel shell) is
- * created, so that every colour resource goes through it, and after
- * the widget classes are initialised: XawPlus's Add3dExt, Form and
- * TextSink install Xt's converter in their ClassInitialize, which
- * would replace this one (XtSetTypeConverter acts on every
- * application context). main() initialises them all first.
- */
-void
-RegisterColourConverter(XtAppContext app)
-{
-  XtAppSetTypeConverter(app, XtRString, XtRPixel, CvtStringToPixel,
-			colour_args, XtNumber(colour_args),
-			XtCacheByDisplay, NULL);
-}
+#endif /* CHIMERA_NO_XCMS */

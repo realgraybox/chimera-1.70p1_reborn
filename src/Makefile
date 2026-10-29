@@ -22,7 +22,7 @@ LIBDEPS = ../libhtmlw/libhtmlw.a ../mxw/libmxw.a ../xloadimage/libxloadimage.a \
           $(filter %.a,$(XAW_LIBS))
 
 $(TARGET): $(OBJS) $(LIBDEPS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CFLAGS)
+	$(CC) -o $@ $(OBJS) $(XCMS_LDFLAGS) $(LDFLAGS) $(CFLAGS)
 
 install: $(TARGET)
 	install -d $(DESTDIR)$(BINDIR)

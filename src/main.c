@@ -24,7 +24,6 @@
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-#include <X11/Shell.h>
 #include <X11/cursorfont.h>
 #include <xaw_wrapper.h>
 //#include <X11/Xaw/Toggle.h>	/* for DeferPix (WBE) */
@@ -52,7 +51,6 @@
 #include "inline.h"
 #include "chtime.h"
 #include "imgload.h"
-#include "colour.h"
 #include "http.h"
 #include "input.h"
 #include "net.h"
@@ -353,51 +351,8 @@ int main(int argc, char *argv[])
 
   StartReaper();
 
-  /*
-   * What XtAppInitialize() does, with Chimera's colour converter
-   * registered before the first widget is made (see colour.c).
-   */
-  {
-    Display *dpy;
-
-    XtToolkitInitialize();
-    root.appcon = XtCreateApplicationContext();
-    XtAppSetFallbackResources(root.appcon, fallback_resources);
-
-    /*
-     * Some widget classes install Xt's colour converter again when they
-     * are initialised (XawPlus: Add3dExt, Form, TextSink), which would
-     * replace Chimera's. Initialise them all first, then register it.
-     */
-    {
-      WidgetClass classes[] =
-      {
-	boxWidgetClass, commandWidgetClass, labelWidgetClass,
-	toggleWidgetClass, formWidgetClass, panedWidgetClass,
-	viewportWidgetClass, listWidgetClass, menuButtonWidgetClass,
-	simpleMenuWidgetClass, smeBSBObjectClass, smeLineObjectClass,
-	asciiTextWidgetClass, asciiSrcObjectClass, asciiSinkObjectClass,
-	htmlWidgetClass
-      };
-      Cardinal c;
-
-      for (c = 0; c < XtNumber(classes); c++)
-	XtInitializeWidgetClass(classes[c]);
-    }
-    RegisterColourConverter(root.appcon);
-
-    dpy = XtOpenDisplay(root.appcon, NULL, NULL, "Chimera", NULL, 0,
-			&argc, argv);
-    if (dpy == NULL)
-    {
-      fprintf(stderr, "chimera: cannot open display %s\n",
-	      getenv("DISPLAY") ? getenv("DISPLAY") : "(DISPLAY is not set)");
-      exit(1);
-    }
-    root.toplevel = XtAppCreateShell(NULL, "Chimera",
-				     applicationShellWidgetClass, dpy,
-				     NULL, 0);
-  }
+  root.toplevel = XtAppInitialize(&(root.appcon), "Chimera", NULL, 0,
+				  &argc, argv, fallback_resources, NULL, 0);
   if (root.toplevel == 0) exit(1);
 
   /*
