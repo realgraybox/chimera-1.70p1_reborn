@@ -137,7 +137,11 @@ CvtStringToPixel(Display *dpy, XrmValuePtr args, Cardinal *num_args,
 
 /*
  * Must be called before the first widget (the toplevel shell) is
- * created, so that every colour resource goes through it.
+ * created, so that every colour resource goes through it, and after
+ * the widget classes are initialised: XawPlus's Add3dExt, Form and
+ * TextSink install Xt's converter in their ClassInitialize, which
+ * would replace this one (XtSetTypeConverter acts on every
+ * application context). main() initialises them all first.
  */
 void
 RegisterColourConverter(XtAppContext app)
