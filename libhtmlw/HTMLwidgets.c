@@ -2542,6 +2542,7 @@ FormInfo *fptr;
   value = ParseMarkTag (text, MT_INPUT, "VALUE");
   if ((value == NULL) || (*value == '\0'))
   {
+    if (value != NULL) XtFree (value);
     value = XtNewString ("Submit Query");
   }
 
@@ -2558,21 +2559,18 @@ FormInfo *fptr;
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
   PrepareFormEnd (hw, w, fptr);
-  
-  
-  // 1. Save the result from AddNewWidget in a temporary variable
-  WidgetInfo *winfo = AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
-			             name, value, NULL, False);
 
-  // 2. Free the allocated 'value' string now that the widget and AddNewWidget have made their own copies
-  if (value != NULL)
-  {
-    XtFree (value);
-    value = NULL;
-  }
+  /*
+   * AddNewWidget() keeps the value pointer, it does not copy it: the
+   * value is sent with the form when this button is pressed. So it must
+   * live as long as the widget, and is freed when the widget goes.
+   * (It was freed right here, and the form sent whatever text later
+   * took that memory.)
+   */
+  XtAddCallback (w, XtNdestroyCallback, CBTextDestroy, (XtPointer) value);
 
-  // 3. Return the saved result
-  return (winfo);
+  return (AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
+			name, value, NULL, False));
 }
 
 /*
@@ -2962,6 +2960,7 @@ FormInfo *fptr;
   value = ParseMarkTag (text, MT_INPUT, "VALUE");
   if ((value == NULL) || (*value == '\0'))
   {
+    if (value != NULL) XtFree (value);
     value = XtNewString ("Reset");
   }
 
@@ -2978,6 +2977,7 @@ FormInfo *fptr;
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
   PrepareFormReset (hw, w, fptr);
+  XtAddCallback (w, XtNdestroyCallback, CBTextDestroy, (XtPointer) value);
 
   return (AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
 			name, value, NULL, False));
@@ -3014,6 +3014,8 @@ FormInfo *fptr;			/* not used */
 		      arg, argcnt);
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
+  if (value != NULL)
+    XtAddCallback (w, XtNdestroyCallback, CBTextDestroy, (XtPointer) value);
 
   return (AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
 			name, value, NULL, False));
