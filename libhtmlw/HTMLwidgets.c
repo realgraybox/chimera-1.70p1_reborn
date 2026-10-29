@@ -2825,6 +2825,8 @@ FormInfo *fptr;			/* not used */
     XtSetArg (arg[argcnt], XtNx, x); argcnt++;
     XtSetArg (arg[argcnt], XtNy, y); argcnt++;
     XtSetArg (arg[argcnt], XtNallowVert, True); argcnt++;
+    /* the app-defaults set *Viewport*allowHoriz: True for other windows */
+    XtSetArg (arg[argcnt], XtNallowHoriz, False); argcnt++;
     /*
      * I pulled these numbers out of my butt.  john.
      */
@@ -2836,7 +2838,10 @@ FormInfo *fptr;			/* not used */
                              arg, argcnt);
 
     argcnt = 0;
+    /* one entry per row: without forceColumns the List fills its
+     * width with several columns ("a b / c d") */
     XtSetArg (arg[argcnt], XtNdefaultColumns, 1); argcnt++;
+    XtSetArg (arg[argcnt], XtNforceColumns, True); argcnt++;
     //note: multiple list are shown but multi select not possible - only one otion can be selected at a time
     w = XtCreateWidget (name,
 			listWidgetClass, scroll,
