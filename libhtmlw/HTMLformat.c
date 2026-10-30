@@ -120,7 +120,7 @@ extern ImageInfo *NoImageData ();
 extern Pixmap InfoToImage ();
 extern void clean_white_space ();
 extern void WidgetRefresh ();
-extern void MoveWidget (/*WidgetInfo *wp, x, y*/);
+extern void MoveWidget (/*HTMLWidget hw, WidgetInfo *wp, x, y*/);
 extern WidgetInfo *MakeWidget ();
 extern XFontStruct *GetWidgetFont ();
 extern void AddNewForm ();
@@ -2703,7 +2703,7 @@ int *x, *y;
        {
 	 if (eptr->type == E_WIDGET  &&  eptr->widget_data != NULL)
 	 {
-	   MoveWidget (eptr->widget_data,
+	   MoveWidget (hw, eptr->widget_data,
 		       (eptr->x + IMAGE_BORDER),
 		       (eptr->y + eptr->y_offset + IMAGE_BORDER));
 	 }
