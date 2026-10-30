@@ -36,6 +36,24 @@ every copy, including binaries.
 | `libwebp.txt`, `libwebp-PATENTS.txt` | `helpers/xvl/libwebp-0.4.4/` |
 | `curl.txt`, `Apache-2.0.txt` | curl 7.47.0 and mbedTLS 2.16.0, downloaded by `make -C helpers/curl static-curl` |
 
+## NCSA Mosaic code
+
+The NCSA licence (`NCSA-Mosaic.txt`) allows use for academic, research
+and internal business purposes, and distribution of source and binaries
+free of charge with the notice. A derivative work may be distributed if
+NCSA is notified and users are told it is a modified version, not the
+original NCSA Mosaic.
+
+In 2026 the University of Illinois was told about this repository and
+asked whether it fits the licence: the modified source and ready-built
+binaries of Chimera, published free of charge. The University confirmed
+that this non-commercial use is fine. Commercial use still needs a
+licence from the University, as the licence text says. The NCSA-derived
+files in `libhtmlw/` and Chimera's help page say that this is a modified
+version.
+
+## Files without a notice
+
 Files with no licence notice of their own:
 
 - `libhtmlw/DrawingArea.c`, `DrawingArea.h`, `DrawingAreaP.h`: written by

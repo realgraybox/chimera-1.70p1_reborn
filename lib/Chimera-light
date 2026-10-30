@@ -1,0 +1,289 @@
+! Chimera X resources: light theme
+!
+! "make install" installs this file as ~/Chimera-light; the dark theme,
+! the default, is ~/Chimera. To use this one:
+!
+!   chimera -xrm '*customization: -light'     for one session
+!   cp ~/Chimera-light ~/Chimera               to make it the default
+!
+! Xt reads ~/Chimera-light instead of ~/Chimera when the customization
+! is set, so each theme file is complete. Colours are near the top; edit
+! them and restart Chimera, no rebuild needed.
+
+Chimera.convertFiles: ~/chimera/convert
+Chimera.protocolFiles: ~/chimera/protocol
+Chimera.mailCapFiles: ~/chimera/mailcap
+Chimera.mimeTypeFiles: ~/chimera/mime.types
+Chimera.bookmarkFile: ~/chimera/bookmarks
+
+! A directory shows its file list, even when it has an index.html. Give
+! file names here, separated by colons (index.html:index.htm), to open
+! the first one found instead.
+Chimera.localIndexFiles:
+
+Chimera.maxColors:	1024
+
+Chimera.cacheOff:                 True
+Chimera.cacheDir:                 /tmp
+Chimera.cacheTTL:                 14400
+Chimera.cacheSize:                4000000
+Chimera.cacheClean:               True
+Chimera.cacheIgnoreExpires:       False
+
+! Fallbacks for the resources below are in src/fallback.c:
+Chimera*showGrip:                  False
+! ---- Colours (light theme) ----------------------------------
+! Window, buttons and menus
+Chimera*background:		#e4e4e4
+Chimera*foreground:		black
+Chimera*borderColor:		#9a9a9a
+
+! 3D edges. XawPlus: highlightColor/shadowColor, buttonBorderWidth.
+! Xaw3d: topShadowPixel/bottomShadowPixel. Plain Xaw has no 3D edges.
+Chimera*highlightColor:		#f8f8f8
+Chimera*shadowColor:		#a0a0a0
+Chimera*buttonBorderWidth:	1
+Chimera*beNiceToColormap:	False
+Chimera*topShadowPixel:		#f8f8f8
+Chimera*bottomShadowPixel:	#a0a0a0
+
+! Scrollbars
+Chimera*Scrollbar.background:	#d4d4d4
+Chimera*Scrollbar.foreground:	#9a9a9a
+Chimera*html*Vbar.background:	#d4d4d4
+Chimera*html*Hbar.background:	#d4d4d4
+
+! Text fields: URL, title, dialogs
+Chimera*Text*background:	white
+Chimera*Text*foreground:	black
+
+! Page area. Pages that set their own colours (<body bgcolor=...>)
+! still use them; set useBodyColors to False below to ignore them.
+Chimera*html*background:	white
+Chimera*html*foreground:	black
+Chimera*html.anchorColor:		#0000cc
+Chimera*html.visitedAnchorColor:	#551a8b
+Chimera*html.activeAnchorFG:		#0000cc
+Chimera*html.activeAnchorBG:		#dce8ff
+
+
+
+Chimera*menubox.MenuButton.shadowWidth:	0
+Chimera*MenuButton.shadowWidth:	1
+
+
+*helpshell.height:	10
+*helplabel.height:	10
+
+!Chimera*helplabel.font:		fixed
+!Chimera*helplabel.background:		LightYellow
+
+Chimera.geometry:		800x600
+
+Chimera*Box.orientation:           horizontal
+Chimera*Label.borderWidth:         0
+Chimera*Label.shadowWidth:		0
+Chimera*Label.topShadowContrast:	-40
+Chimera*Label.bottomShadowContrast:	-20
+Chimera*buttonbox.Command.shadowWidth:	0
+Chimera*Command.shadowWidth:		1
+Chimera*Toggle.shadowWidth:		1
+
+Chimera*Form.resizeable:           True
+Chimera*Form.borderWidth:          0
+
+
+
+Chimera*Viewport*allowHoriz:       True
+Chimera*Viewport*allowVert:        True
+
+Chimera*quit.label:					Quit
+Chimera*open.label:				Open
+Chimera*home.label:				Home
+Chimera*back.label:				Back
+Chimera*source.label:			Source
+Chimera*reload.label:				Reload
+Chimera*file.label:					File
+Chimera*help.label:				Help
+Chimera*bookmark.label:		Bookmark
+Chimera*search.label:			Search
+Chimera*cancel.label:				Stop
+Chimera*deferpix.label:			DeferPix
+
+
+
+Chimera*html.height:               600
+Chimera*html.width:                800
+Chimera*html.horizontalScrollOnTop: False
+Chimera*html.verticalScrollOnRight: True
+
+! background of html
+!Chimera*html.background:               steelblue
+
+! Form fields in pages keep a clear border, so they stand out on a
+! flat page
+Chimera*html*borderWidth: 1
+Chimera*html*borderColor: #7a7a7a
+Chimera*html*Text*background: white
+Chimera*html*Text*foreground: black
+! Checkboxes and radio buttons: a field with a mark (X or *) when on
+Chimera*html*Toggle.background: white
+Chimera*html*Toggle.foreground: #0000cc
+! Select lists (size=n): like the text fields; the selected entry is
+! shown in reverse
+Chimera*html*List.background: white
+Chimera*html*List.foreground: black
+Chimera*html*Viewport.background: white
+
+Chimera*html.anchorUnderlines:     1
+Chimera*html.visitedAnchorUnderlines: 1
+
+Chimera*html.dashedVisitedAnchorUnderlines: True
+
+Chimera*html.useBodyColors:        True
+Chimera*html.delayImageLoads:      False
+! Show pages at once and fetch their images in the background, up to
+! maxImageLoads at a time. False: fetch every image before the page shows.
+Chimera*html.backgroundImages:     True
+Chimera.maxImageLoads:             6
+Chimera*html.htmlErrorMsgCutoff:   0
+Chimera*html.truncateALT:          60
+
+
+Chimera*Bookmark*title:            Bookmarks
+Chimera*Bookmark*Box.hSpace:       10
+Chimera*Bookmark*markbox.hSpace:   20
+Chimera*Bookmark*markadd.label:    Add
+Chimera*Bookmark*markopen.label:   Open
+Chimera*Bookmark*markdel.label:    Delete
+Chimera*Bookmark*groupadd.label:   Add Group
+Chimera*Bookmark*groupdel.label:   Delete Group
+Chimera*Bookmark*Viewport.height:  150
+Chimera*Bookmark*Viewport.width:   400
+Chimera*Bookmark*Viewport.borderWidth: 1
+Chimera*Bookmark*dismiss.label:    Dismiss
+Chimera*Bookmark*List.forceColumns: True
+Chimera*Bookmark*List.defaultColumns: 1
+Chimera*Bookmark*groupform.defaultDistance: 3
+Chimera*Bookmark*markform.defaultDistance: 3
+Chimera*Bookmark*srgroupadd.strreqMessage: Enter Group Name
+Chimera*Bookmark*srmarkadd.strreqMessage: Enter Bookmark Name
+Chimera*Bookmark.pickDestroys: False
+
+Chimera*OutputSel.outputType:      0
+Chimera*OutputSel.outputDevice:    0
+Chimera*OutputSel*title:           Output Selector
+Chimera*OutputSel*Box.hSpace:      10
+Chimera*OutputSel*obox.hSpace:     60
+Chimera*OutputSel*plain.label:     Plain Text
+Chimera*OutputSel*pretty.label:    Pretty Text
+Chimera*OutputSel*ps.label:        Postscript
+Chimera*OutputSel*raw.label:       HTML/Raw
+Chimera*OutputSel*printer.label:   Printer
+Chimera*OutputSel*email.label:     Email
+Chimera*OutputSel*file.label:      File
+Chimera*OutputSel*ok.label:        OK
+Chimera*OutputSel*clear.label:     Clear
+Chimera*OutputSel*dismiss.label:   Dismiss
+Chimera*OutputSel*ScrollingText.width: 300
+
+Chimera*AuthReq*Box.hspace:        10
+Chimera*AuthReq*ok.label:          OK
+Chimera*AuthReq*clear.label:       Clear
+Chimera*AuthReq*dismiss.label:     Dismiss
+Chimera*AuthReq*ScrollingText.width: 300
+Chimera*AuthReq*ulabel.label:      Username
+Chimera*AuthReq*plabel.label:      Password
+Chimera*AuthReq*title:             Authentication
+
+Chimera*StrReq*Box.hSpace:         10
+Chimera*StrReq*ok.label:           OK
+Chimera*StrReq*clear.label:        Clear
+Chimera*StrReq*dismiss.label:      Dismiss
+Chimera*StrReq*ScrollingText.width: 300
+Chimera*filename*title:            Save file as
+Chimera*filename.strreqMessage:    Save file as
+Chimera*url*title:                 Enter URL or website
+Chimera*url.strreqMessage:         Enter URL
+Chimera*search.title:              Enter search
+Chimera*search.strreqMessage:      Enter search
+
+Chimera*titlelabel.label:          Status/Title:
+Chimera*titlelabel.left:           ChainLeft
+Chimera*titlelabel.right:          ChainLeft
+Chimera*titlelabel.width:		100
+Chimera*titledisplay.left:         ChainLeft
+Chimera*titledisplay.right:        ChainRight
+Chimera*titledisplay.fromHoriz:    titlelabel
+Chimera*titledisplay*sensitive:    True
+Chimera*titledisplay.width:        500
+Chimera*titledisplay*displayCaret: False
+Chimera*titledisplay*editType:     read
+
+Chimera*urllabel.label:            Latest URL  :
+Chimera*urllabel.left:             ChainLeft
+Chimera*urllabel.right:            ChainLeft
+Chimera*urllabel.width:		100
+Chimera*urldisplay.left:           ChainLeft
+Chimera*urldisplay.right:          ChainRight
+Chimera*urldisplay.fromHoriz:      urllabel
+Chimera*urldisplay*sensitive:      True
+Chimera*urldisplay.width:          500
+Chimera*urldisplay*displayCaret:   True
+Chimera*urldisplay*editType:       edit
+
+Chimera*hreflabel.label:           ALT / HREF  :
+Chimera*hreflabel.left:            ChainLeft
+Chimera*hreflabel.right:           ChainLeft
+Chimera*hrefdisplay.left:          ChainLeft
+Chimera*hrefdisplay.right:         ChainRight
+Chimera*hrefdisplay.fromHoriz:     hreflabel
+Chimera*hrefdisplay*sensitive:     False
+Chimera*hrefdisplay.width:         500
+Chimera*hrefdisplay*displayCaret:  False
+Chimera*hrefdisplay*editType:      read
+
+!Chimera*Label.font: 		 fixed
+!Chimera*Command.font:        fixed
+!Chimera*Toggle.font:         fixed
+!Chimera*titledisplay.font:   fixed
+!Chimera*urldisplay.font:     fixed
+!Chimera*hrefdisplay.font:    fixed
+
+Chimera*header1Font:	-adobe-helvetica-medium-r-normal--24-*-*-*-*-*-iso8859-1
+Chimera*header2Font:	-sony-fixed-medium-r-normal--16-120-100-100-c-80-iso8859-1
+Chimera*header3Font:	-adobe-helvetica-medium-r-normal--18-*-*-*-*-*-iso8859-1
+
+Chimera*header3Font:	-misc-fixed-bold-r-normal--15-140-75-75-c-90-iso8859-1
+Chimera*header4Font:	-misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1
+
+Chimera*header5Font:	-misc-fixed-bold-r-normal--14-130-75-75-c-70-iso8859-1
+Chimera*header6Font:	-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso8859-1
+
+
+Chimera*font:          -adobe-helvetica-medium-r-normal--12-120-75-75-p-67-iso8859-1
+Chimera*boldFont:      -adobe-helvetica-bold-r-normal--12-120-75-75-p-70-iso8859-1
+Chimera*italicFont:		-adobe-courier-medium-o-normal--12-120-75-75-m-70-iso8859-1
+
+!Chimera*addressFont:   -*-helvetica-medium-o-normal-*-*-140-*-*-*-*-iso8859-1
+
+
+!Chimera*fixedFont:       fixed
+!Chimera*fixedboldFont:   fixed
+!Chimera*fixeditalicFont: fixed
+!Chimera*addressFont:     fixed
+!Chimera*plainFont:       fixed
+!Chimera*plainboldFont:   fixed
+!Chimera*plainitalicFont: fixed
+
+.chimera.paned.menubox.MenuButton.highlightThickness: 0
+.chimera.paned.menubox.MenuButton.highlightMode:		False
+
+.chimera.paned.buttonbox.?.highlightThickness: 0
+.chimera.paned.buttonbox.?.highlightMode:		False
+
+
+
+Chimera*html*Vbar.translations: #override \
+	<Btn4Down>: scroll-down("Oneline") scroll-down("Oneline") scroll-down("Oneline") \n\
+	<Btn5Down>: scroll-up("Oneline") scroll-up("Oneline") scroll-up("Oneline")
