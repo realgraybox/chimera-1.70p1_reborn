@@ -64,9 +64,7 @@ static void initializeTable()
  * read data
  */
 static int
-pbm_read(b, blen)
-unsigned char *b;
-int blen;
+pbm_read(unsigned char *b, int blen)
 {
   if (pbm_datalen < blen + pbm_pos) return(0);
 
@@ -125,8 +123,7 @@ pbmReadInt()
   }
 }
 
-static int isPBM(width, height, maxval)
-int *width, *height, *maxval;
+static int isPBM(int *width, int *height, int *maxval)
 {
   byte buf[4];
 
@@ -182,10 +179,7 @@ int *width, *height, *maxval;
 }
 
 Image *
-pbmLoad(data, datalen, bg)
-char *data;
-int datalen;
-RGBColor *bg;
+pbmLoad(char *data, int datalen, RGBColor *bg)
 {
   Image        *image=NULL;
   int           pbm_type;

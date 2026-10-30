@@ -59,10 +59,7 @@ static struct ButtonTable {
 };
 
 static void
-AddButtons(r, box, list)
-AppResources *r;
-Widget box;
-char *list;
+AddButtons(AppResources *r, Widget box, char *list)
 {
   char name[256];
   struct ButtonTable *btp;
@@ -149,8 +146,7 @@ char *list;
  * Create the command and box widgets.
  */
 void
-CreateWidgets(r)
-AppResources *r;
+CreateWidgets(AppResources *r)
 {
   Widget paned, box, form;
   Arg args[5];

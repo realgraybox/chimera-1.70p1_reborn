@@ -428,8 +428,7 @@ MakeImage(Display *dsp, unsigned char *data, int width, int height,
 }
 
 int
-AnchoredHeight (hw)
-HTMLWidget hw;
+AnchoredHeight (HTMLWidget hw)
 {
   return ((int) (AnchoredImage_height + IMAGE_BORDER));
 }
@@ -438,17 +437,14 @@ HTMLWidget hw;
 static const char *const ismapformstring = "ISMAP Form";
 
 char *
-IsMapForm (hw)
-HTMLWidget hw;
+IsMapForm (HTMLWidget hw)
 {
   return (XtNewString (ismapformstring));
 }
 
 
 int
-IsIsMapForm (hw, href)
-HTMLWidget hw;
-char *href;
+IsIsMapForm (HTMLWidget hw, char *href)
 {
   return (href != NULL  &&
 	  strcmp (href, ismapformstring) == 0);
@@ -476,17 +472,14 @@ char *href;
 static const char *const delayedhrefstring = "DelayedImage:";
 
 char *
-DelayedHRef (hw)
-HTMLWidget hw;
+DelayedHRef (HTMLWidget hw)
 {
   return (XtNewString (delayedhrefstring));
 }
 
 
 int
-IsDelayedHRef (hw, href)
-HTMLWidget hw;
-char *href;
+IsDelayedHRef (HTMLWidget hw, char *href)
 {
   return (href != NULL  &&
 	  strcmp (href, delayedhrefstring) == 0);
@@ -577,8 +570,7 @@ NoImageData ()
  * Build pixmaps for the internal images
  */
 void
-BuildInternalImagePixmaps (hw)
-HTMLWidget hw;
+BuildInternalImagePixmaps (HTMLWidget hw)
 {
   if (no_image.image == (Pixmap) NULL)
   {
@@ -972,9 +964,8 @@ InfoToImageX(HTMLWidget hw, const ImageInfo *img_info)
  * Returns the value of pic_data->next as a convenience to the caller.
  */
 ImageInfo *
-FreeOneImage (hw, pic_data)
-HTMLWidget hw;
-ImageInfo *pic_data;		/* NULL allowed */
+FreeOneImage (HTMLWidget hw,
+              ImageInfo *pic_data)	/* NULL allowed */
 {
   ImageInfo *next;
 
@@ -1009,8 +1000,7 @@ ImageInfo *pic_data;		/* NULL allowed */
  * Free up all the image data used by the current document.
  */
 void
-FreeImages (hw)
-HTMLWidget hw;
+FreeImages (HTMLWidget hw)
 {
   ImageInfo *pic_data = hw->html.image_list;
 
@@ -1025,9 +1015,7 @@ HTMLWidget hw;
  * Return a pointer to an ImageInfo *, or NULL if not found.
  */
 ImageInfo *
-IsCurrentImage (list, name)
-ImageInfo *list;
-const char *const name;
+IsCurrentImage (ImageInfo *list, const char *const name)
 {
   if (list == NULL)
   {

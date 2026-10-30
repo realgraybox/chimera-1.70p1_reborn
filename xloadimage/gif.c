@@ -109,9 +109,7 @@ static BYTE gifin_interlace_flag;      /* interlace image format flag */
  * read GIF data
  */
 static int
-gif_read(b, blen)
-unsigned char *b;
-int blen;
+gif_read(unsigned char *b, int blen)
 {
   if (gifin_datalen < blen + gifin_pos) return(0);
 
@@ -277,8 +275,7 @@ static int gifin_open_image()
  * try to read next pixel from the raster, return result in *pel
  */
 
-static int gifin_get_pixel(pel)
-     int *pel;
+static int gifin_get_pixel(int *pel)
 {
   int  code;
   int  first;
@@ -403,9 +400,7 @@ static int gifin_cleanup()
  * load a colormap from the input stream
  */
 
-static int gifin_load_cmap(cmap, ncolors)
-     BYTE cmap[3][256];
-     int  ncolors;
+static int gifin_load_cmap(BYTE cmap[3][256], int ncolors)
 {
   int i;
 
@@ -496,8 +491,7 @@ static int gifin_read_data_block()
  * (returns the code of the first pixel in the string)
  */
 
-static int gifin_push_string(code)
-     int code;
+static int gifin_push_string(int code)
 {
   int rslt;
 
@@ -517,9 +511,7 @@ static int gifin_push_string(code)
  * add a new string to the string table
  */
 
-static void gifin_add_string(p, e)
-int p;
-int e;
+static void gifin_add_string(int p, int e)
 {
   prefix[table_size] = p;
   extnsn[table_size] = e;
@@ -536,10 +528,7 @@ int e;
 }
 
 Image *
-gifLoad(data, datalen, bg)
-char *data;
-int datalen;
-RGBColor *bg;
+gifLoad(char *data, int datalen, RGBColor *bg)
 {
   Image *image;
   int x, y, pixel, pass, scanlen;

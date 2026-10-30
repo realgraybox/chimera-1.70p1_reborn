@@ -128,8 +128,7 @@ static void CBToggleMark _ArgProto((Widget, XtPointer, XtPointer));
 #define FONTHEIGHT(font) (font->max_bounds.ascent + font->max_bounds.descent)
 
 static Widget
-GetAsciiTextWidget(w)
-Widget w;
+GetAsciiTextWidget(Widget w)
 {
   Widget rw;
 
@@ -152,8 +151,7 @@ Widget w;
  * list is looked up by class. NULL if there is none.
  */
 static Widget
-GetListWidget(w)
-Widget w;
+GetListWidget(Widget w)
 {
   WidgetList wl = NULL;
   Cardinal nc = 0, i;
@@ -196,9 +194,7 @@ Widget w;
  * buttons turning each other off, and Reset.
  */
 static void
-ShowToggleMark(w, radio)
-Widget w;
-int radio;
+ShowToggleMark(Widget w, int radio)
 {
   Boolean state = False;
 
@@ -209,9 +205,7 @@ int radio;
 }
 
 static void
-CBToggleMark(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+CBToggleMark(Widget w, XtPointer client_data, XtPointer call_data)
 {
   ShowToggleMark(w, client_data != NULL);
 }
@@ -221,9 +215,7 @@ XtPointer client_data, call_data;
  * box does not change when the mark comes and goes, and show its mark.
  */
 static void
-SetupToggle(w, radio)
-Widget w;
-int radio;
+SetupToggle(Widget w, int radio)
 {
   Dimension width = 0, height = 0;
 
@@ -238,10 +230,7 @@ int radio;
 }
 
 static void
-setTextSize (w, columns, lines)
-Widget w;
-int columns;
-int lines;
+setTextSize (Widget w, int columns, int lines)
 {
   XFontStruct *font = NULL;
   Position lm, rm, tm, bm;
@@ -280,10 +269,7 @@ int lines;
 }
 
 void
-CBListDestroy (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBListDestroy (Widget w, XtPointer client_data, XtPointer call_data)
 {
   char **string_list, **p;
   int item_count;
@@ -304,20 +290,14 @@ XtPointer call_data;
 
 
 void
-CBTextDestroy (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBTextDestroy (Widget w, XtPointer client_data, XtPointer call_data)
 {
   XtFree((char *)client_data);
 }
 
 
 void
-CBoption (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBoption (Widget w, XtPointer client_data, XtPointer call_data)
 {
   Widget menuButton = (Widget) client_data;
   char *label;
@@ -329,9 +309,7 @@ XtPointer call_data;
 
 
 void
-AddNewForm (hw, fptr)
-HTMLWidget hw;
-FormInfo *fptr;
+AddNewForm (HTMLWidget hw, FormInfo *fptr)
 {
   FormInfo *ptr;
 
@@ -354,8 +332,7 @@ FormInfo *fptr;
 
 
 void
-FreeOneForm (fptr)
-FormInfo *fptr;
+FreeOneForm (FormInfo *fptr)
 {
   if (fptr->action != NULL)      XtFree (fptr->action);
   if (fptr->method != NULL)      XtFree (fptr->method);
@@ -366,8 +343,7 @@ FormInfo *fptr;
 
 
 void
-FreeForms (hw)
-HTMLWidget hw;
+FreeForms (HTMLWidget hw)
 {
   FormInfo *fptr;
 
@@ -383,11 +359,7 @@ HTMLWidget hw;
 
 
 int
-CollectSubmitInfo (w, fptr, name_list, value_list)
-Widget w;
-FormInfo *fptr;
-char ***name_list;
-char ***value_list;
+CollectSubmitInfo (Widget w, FormInfo *fptr, char ***name_list, char ***value_list)
 {
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
   WbFormCallbackData cbdata;
@@ -625,11 +597,7 @@ fprintf(stderr,
 
 
 void
-ImageSubmitForm (fptr, event, name, x, y)
-FormInfo *fptr;
-XEvent *event;
-char *name;
-int x, y;
+ImageSubmitForm (FormInfo *fptr, XEvent *event, char *name, int x, int y)
 {
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
   WbFormCallbackData cbdata;
@@ -707,10 +675,7 @@ int x, y;
 
 
 void
-CBSubmitForm (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBSubmitForm (Widget w, XtPointer client_data, XtPointer call_data)
 {
   FormInfo *fptr = (FormInfo *) client_data;
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
@@ -737,10 +702,7 @@ XtPointer call_data;
  * If there are other radios of the same name, turn them off.
  */
 void
-CBChangeRadio (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBChangeRadio (Widget w, XtPointer client_data, XtPointer call_data)
 {
   FormInfo *fptr = (FormInfo *) client_data;
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
@@ -846,10 +808,7 @@ XtPointer call_data;
  * If this is the only textfield in this form, submit the form.
  */
 void
-CBActivateField (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBActivateField (Widget w, XtPointer client_data, XtPointer call_data)
 {
   FormInfo *fptr = (FormInfo *) client_data;
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
@@ -916,10 +875,7 @@ XtPointer call_data;
 }
 
 void
-CBResetForm (w, client_data, call_data)
-Widget w;
-XtPointer client_data;
-XtPointer call_data;
+CBResetForm (Widget w, XtPointer client_data, XtPointer call_data)
 {
   FormInfo *fptr = (FormInfo *) client_data;
   HTMLWidget hw = (HTMLWidget) (fptr->hw);
@@ -1128,10 +1084,7 @@ XtPointer call_data;
 
 
 void
-PrepareFormEnd (hw, w, fptr)
-HTMLWidget hw;
-Widget w;
-FormInfo *fptr;
+PrepareFormEnd (HTMLWidget hw, Widget w, FormInfo *fptr)
 {
   XtAddCallback (w, XtNcallback, (XtCallbackProc) CBSubmitForm,
 		 (XtPointer)fptr);
@@ -1139,10 +1092,7 @@ FormInfo *fptr;
 
 
 void
-PrepareFormReset (hw, w, fptr)
-HTMLWidget hw;
-Widget w;
-FormInfo *fptr;
+PrepareFormReset (HTMLWidget hw, Widget w, FormInfo *fptr)
 {
   XtAddCallback (w, XtNcallback, (XtCallbackProc) CBResetForm,
 		 (XtPointer)fptr);
@@ -1150,8 +1100,7 @@ FormInfo *fptr;
 
 
 void
-HideWidgets (hw)
-HTMLWidget hw;
+HideWidgets (HTMLWidget hw)
 {
   WidgetInfo *wptr;
   XEvent event;
@@ -1184,8 +1133,7 @@ HTMLWidget hw;
 
 
 void
-MapWidgets (hw)
-HTMLWidget hw;
+MapWidgets (HTMLWidget hw)
 {
   WidgetInfo *wptr;
 
@@ -1203,10 +1151,7 @@ HTMLWidget hw;
 
 
 Boolean
-AlreadyChecked (hw, fptr, name)
-HTMLWidget hw;
-FormInfo *fptr;
-char *name;
+AlreadyChecked (HTMLWidget hw, FormInfo *fptr, char *name)
 {
   WidgetInfo *wptr;
   Boolean radio_checked;
@@ -1231,16 +1176,7 @@ char *name;
 }
 
 WidgetInfo *
-AddNewWidget (hw, w, type, id, x, y, name, value, mapping, checked)
-HTMLWidget hw;
-Widget w;
-int type;
-int id;
-int x, y;
-char *name;
-char *value;
-char **mapping;
-Boolean checked;
+AddNewWidget (HTMLWidget hw, Widget w, int type, int id, int x, int y, char *name, char *value, char **mapping, Boolean checked)
 {
   WidgetInfo *wptr;
   Dimension width, height;
@@ -1310,9 +1246,7 @@ Boolean checked;
  * we can use the font's baseline to place them.
  */
 XFontStruct *
-GetWidgetFont (hw, wptr)
-HTMLWidget hw;
-WidgetInfo *wptr;
+GetWidgetFont (HTMLWidget hw, WidgetInfo *wptr)
 {
   Widget child;
   XFontStruct *font = NULL;
@@ -1353,8 +1287,7 @@ WidgetInfo *wptr;
  * characters
  */
 char *
-NextComma (string)
-char *string;
+NextComma (char *string)
 {
   char *tptr;
 
@@ -1388,9 +1321,7 @@ char *string;
  * ParseCommaList
  */
 static char **
-ParseCommaList (str, count)
-char *str;
-int *count;
+ParseCommaList (char *str, int *count)
 {
   char *str_copy;
   char **list;
@@ -1465,9 +1396,7 @@ int *count;
  * turn '"' into ''', and turn ''' into '\''
  */
 char *
-ComposeCommaList (list, cnt)
-char **list;
-int cnt;
+ComposeCommaList (char **list, int cnt)
 {
   int i;
   char *buf;
@@ -1540,9 +1469,7 @@ int cnt;
 }
 
 void
-FreeCommaList (list, cnt)
-char **list;
-int cnt;
+FreeCommaList (char **list, int cnt)
 {
   int i;
 
@@ -1560,8 +1487,7 @@ int cnt;
  * lone ' back to "
  */
 void
-UnMuckTextAreaValue (value)
-char *value;
+UnMuckTextAreaValue (char *value)
 {
   char *tptr;
 
@@ -1593,9 +1519,7 @@ char *value;
 
 
 static char *
-MapOptionReturn (val, mapping)
-char *val;
-char **mapping;
+MapOptionReturn (char *val, char **mapping)
 {
   int cnt;
 
@@ -1618,10 +1542,7 @@ char **mapping;
 
 
 char **
-MakeOptionMappings (list1, list2, list_cnt)
-char **list1;
-char **list2;
-int list_cnt;
+MakeOptionMappings (char **list1, char **list2, int list_cnt)
 {
   int i, cnt;
   char **list;
@@ -1662,13 +1583,13 @@ int list_cnt;
  * MakeTextAreaWidget
  */
 static WidgetInfo *
-MakeTextAreaWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakeTextAreaWidget (char *name,
+                    HTMLWidget hw,
+                    char *text,
+                    int x,
+                    int y,
+                    int id,
+                    FormInfo *fptr)	/* not used */
 {
   Widget w;
   char **list;
@@ -1756,11 +1677,10 @@ FormInfo *fptr;			/* not used */
  * since the FormInfo records are rebuilt when the page is laid out again.
  */
 static void
-FieldActivate (w, event, params, num_params)
-Widget w;			/* the AsciiText widget of the field */
-XEvent *event;
-String *params;
-Cardinal *num_params;
+FieldActivate (Widget w,	/* the AsciiText widget of the field */
+               XEvent *event,
+               String *params,
+               Cardinal *num_params)
 {
   Widget p;
   HTMLWidget hw;
@@ -1792,8 +1712,7 @@ Cardinal *num_params;
 }
 
 static void
-RegisterFieldActivate (w)
-Widget w;
+RegisterFieldActivate (Widget w)
 {
   static Boolean added = False;
   static XtActionsRec action[] = {
@@ -1826,9 +1745,7 @@ static Boolean text_limit_busy = False;
 static WidgetInfo *text_limit_pending = NULL;
 
 static void
-TextLimitTrim (client_data, id)
-XtPointer client_data;
-XtIntervalId *id;
+TextLimitTrim (XtPointer client_data, XtIntervalId *id)
 {
   WidgetInfo *wptr = (WidgetInfo *) client_data;
   Widget tw;
@@ -1855,10 +1772,7 @@ XtIntervalId *id;
 }
 
 static void
-CBTextLimit (src, client_data, call_data)
-Widget src;
-XtPointer client_data;
-XtPointer call_data;
+CBTextLimit (Widget src, XtPointer client_data, XtPointer call_data)
 {
   WidgetInfo *wptr = (WidgetInfo *) client_data;
 
@@ -1870,13 +1784,13 @@ XtPointer call_data;
 }
 
 static WidgetInfo *
-MakeTextFieldWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakeTextFieldWidget (char *name,
+                     HTMLWidget hw,
+                     char *text,
+                     int x,
+                     int y,
+                     int id,
+                     FormInfo *fptr)	/* not used */
 {
   char **list;
   int list_cnt;
@@ -2081,8 +1995,7 @@ FormInfo *fptr;			/* not used */
  * keys and pasting are ignored, so field and real text stay in step.
  */
 static WidgetInfo *
-PasswordInfo (w)
-Widget w;			/* the AsciiText widget of the field */
+PasswordInfo (Widget w)	/* the AsciiText widget of the field */
 {
   Widget p;
   WidgetInfo *wptr;
@@ -2106,10 +2019,7 @@ Widget w;			/* the AsciiText widget of the field */
  * be added (not printable, or the field is full).
  */
 static Boolean
-PasswordAppend (w, wptr, c)
-Widget w;
-WidgetInfo *wptr;
-int c;
+PasswordAppend (Widget w, WidgetInfo *wptr, int c)
 {
   int len;
   XawTextBlock blk;
@@ -2132,11 +2042,7 @@ int c;
 }
 
 static void
-PasswordInsert (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+PasswordInsert (Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   WidgetInfo *wptr;
   char buf[8];
@@ -2156,13 +2062,7 @@ Cardinal *num_params;
  * field is full.
  */
 static void
-PasswordPasteDone (w, client_data, selection, type, value, length, format)
-Widget w;
-XtPointer client_data;
-Atom *selection, *type;
-XtPointer value;
-unsigned long *length;
-int *format;
+PasswordPasteDone (Widget w, XtPointer client_data, Atom *selection, Atom *type, XtPointer value, unsigned long *length, int *format)
 {
   WidgetInfo *wptr;
   unsigned long i;
@@ -2183,11 +2083,7 @@ int *format;
 }
 
 static void
-PasswordPaste (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+PasswordPaste (Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   Atom selection = XA_PRIMARY;
   Time t = CurrentTime;
@@ -2204,11 +2100,7 @@ Cardinal *num_params;
 }
 
 static void
-PasswordDelete (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+PasswordDelete (Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   WidgetInfo *wptr;
   int len;
@@ -2245,13 +2137,13 @@ static char password_translations[] =
    <Btn2Up>:        htmlwPasswordPaste(PRIMARY)";
 
 static WidgetInfo *
-MakePasswordWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakePasswordWidget (char *name,
+                    HTMLWidget hw,
+                    char *text,
+                    int x,
+                    int y,
+                    int id,
+                    FormInfo *fptr)	/* not used */
 {
   Arg arg[30];
   int size, maxlength;
@@ -2402,13 +2294,13 @@ FormInfo *fptr;			/* not used */
  * MakeCheckWidget
  */
 static WidgetInfo *
-MakeCheckWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakeCheckWidget (char *name,
+                 HTMLWidget hw,
+                 char *text,
+                 int x,
+                 int y,
+                 int id,
+                 FormInfo *fptr)	/* not used */
 {
   Boolean checked = False;
   char *value;
@@ -2448,13 +2340,13 @@ FormInfo *fptr;			/* not used */
  * MakeHiddenWidget
  */
 static WidgetInfo *
-MakeHiddenWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakeHiddenWidget (char *name,
+                  HTMLWidget hw,
+                  char *text,
+                  int x,
+                  int y,
+                  int id,
+                  FormInfo *fptr)	/* not used */
 {
   char *value;
 
@@ -2469,13 +2361,7 @@ FormInfo *fptr;			/* not used */
  * MakeRadioBoxWidget
  */
 static WidgetInfo *
-MakeRadioBoxWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;
+MakeRadioBoxWidget (char *name, HTMLWidget hw, char *text, int x, int y, int id, FormInfo *fptr)
 {
   char *value;
   Arg arg[30];
@@ -2526,13 +2412,7 @@ FormInfo *fptr;
  * MakeSubmitWidget
  */
 static WidgetInfo *
-MakeSubmitWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;
+MakeSubmitWidget (char *name, HTMLWidget hw, char *text, int x, int y, int id, FormInfo *fptr)
 {
   char *value;
   char *label;
@@ -2589,13 +2469,13 @@ FormInfo *fptr;
  * MakeSelectWidget
  */
 static WidgetInfo *
-MakeSelectWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakeSelectWidget (char *name,
+                  HTMLWidget hw,
+                  char *text,
+                  int x,
+                  int y,
+                  int id,
+                  FormInfo *fptr)	/* not used */
 {
   int type = 0;
   Widget w;
@@ -2961,13 +2841,7 @@ FormInfo *fptr;			/* not used */
  * MakeResetWidget
  */
 static WidgetInfo *
-MakeResetWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;
+MakeResetWidget (char *name, HTMLWidget hw, char *text, int x, int y, int id, FormInfo *fptr)
 {
   char *value;
   char *label;
@@ -3016,13 +2890,13 @@ FormInfo *fptr;
  * MakePushButtonWidget
  */
 static WidgetInfo *
-MakePushButtonWidget (name, hw, text, x, y, id, fptr)
-char *name;
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;			/* not used */
+MakePushButtonWidget (char *name,
+                      HTMLWidget hw,
+                      char *text,
+                      int x,
+                      int y,
+                      int id,
+                      FormInfo *fptr)	/* not used */
 {
   char *value;
   char *label;
@@ -3076,10 +2950,7 @@ FormInfo *fptr;			/* not used */
  * parent and without unmapping it, and only when the place changes.
  */
 void
-MoveWidget (hw, wp, x, y)
-HTMLWidget hw;
-WidgetInfo *wp;
-int x,y;
+MoveWidget (HTMLWidget hw, WidgetInfo *wp, int x, int y)
 {
     wp->x = x;
     wp->y = y;
@@ -3101,12 +2972,7 @@ int x,y;
  * WidgetInfo structure and return it.
  */
 WidgetInfo *
-MakeWidget (hw, text, x, y, id, fptr)
-HTMLWidget hw;
-char *text;
-int x, y;
-int id;
-FormInfo *fptr;
+MakeWidget (HTMLWidget hw, char *text, int x, int y, int id, FormInfo *fptr)
 {
   WidgetInfo *wlist;
   WidgetInfo *wptr;
@@ -3188,9 +3054,7 @@ FormInfo *fptr;
 
 
 void
-WidgetRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+WidgetRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
     if (eptr == NULL)
     {

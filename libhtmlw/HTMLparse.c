@@ -769,8 +769,7 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
  * Determine mark type from the identifying string passed
  */
 int
-ParseMarkType (str)
-char *str;
+ParseMarkType (char *str)
 {
   int type;
 
@@ -1135,10 +1134,7 @@ char *AnchorTag (const char **ptrp, const char **startp, const char **endp)
 extern char *strcasestr(const char *haystack, const char *needle);
 
 char *
-ParseMarkTag (text, mtext, mtag)
-const char *text;
-const char *mtext;
-const char *mtag;
+ParseMarkTag (const char *text, const char *mtext, const char *mtag)
 {
   const char *ptr;
 

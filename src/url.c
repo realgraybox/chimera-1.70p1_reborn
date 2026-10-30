@@ -28,9 +28,7 @@
  * as spec'd in RFCs 1738, 1808 and 2068.)
  */
 char *
-EscapeURL(url, s2p)
-unsigned char *url;
-int s2p;
+EscapeURL(unsigned char *url, int s2p)
 {
   unsigned char *cp;
   char *n, *s;
@@ -73,8 +71,7 @@ int s2p;
  * Could do everthing in place I guess.
  */
 char *
-UnescapeURL(url)
-char *url;
+UnescapeURL(char *url)
 {
   char *cp, *n, *s;
   char hex[3];
@@ -118,9 +115,7 @@ char *url;
  * MakeURL
  */
 char *
-MakeURL(up, addanchor)
-URLParts *up;
-int addanchor;
+MakeURL(URLParts *up, int addanchor)
 {
   int len;
   char *u;
@@ -229,8 +224,7 @@ CreateURLParts()
  * CopyURLAttributes
  */
 static void
-CopyURLAttributes(d, s)
-URLParts *d, *s;
+CopyURLAttributes(URLParts *d, URLParts *s)
 {
   int i;
 
@@ -263,8 +257,7 @@ URLParts *d, *s;
  * explicitly mentioned in its input). --GN 1997May18
  */
 URLParts *
-MakeURLParts(up1, upc)
-URLParts *up1, *upc;
+MakeURLParts(URLParts *up1, URLParts *upc)
 {
   URLParts *r;
 //  char *filename;
@@ -528,8 +521,7 @@ URLParts *up1, *upc;
 }
 
 URLParts *
-DupURLParts(up)
-URLParts *up;
+DupURLParts(URLParts *up)
 {
   URLParts *dp;
 
@@ -565,8 +557,7 @@ URLParts *up;
  * Made somewhat smarter (err, completely re-written) by GN 1997May02
  */
 URLParts *
-ParseURL(url)
-char *url;
+ParseURL(char *url)
 {
   URLParts *up;
   char *start, *s, *t;
@@ -702,8 +693,7 @@ char *url;
  * Destroys a URLParts structure.
  */
 void
-DestroyURLParts(up)
-URLParts *up;
+DestroyURLParts(URLParts *up)
 {
   int i;
 
@@ -748,8 +738,7 @@ URLParts *up;
  * Returns 1 if the URLParts given is absolute, 0 otherwise.
  */
 int
-IsAbsoluteURL(up)
-URLParts *up;
+IsAbsoluteURL(URLParts *up)
 {
   if (up->protocol == NULL) return(0);
 

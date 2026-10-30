@@ -128,10 +128,10 @@ WidgetClass authReqWidgetClass = (WidgetClass) &authReqClassRec;
  * Initialize
  */
 static void
-AInitialize(request, new, xargs, num_args)
-Widget request, new;
-ArgList xargs;                  /* unused */
-Cardinal *num_args;             /* unused */
+AInitialize(Widget request,
+            Widget new,
+            ArgList xargs,	/* unused */
+            Cardinal *num_args)	/* unused */
 {
   AuthReqWidget aw = (AuthReqWidget)new;
   Arg args[10];
@@ -212,10 +212,7 @@ Cardinal *num_args;             /* unused */
  * ARealize 
  */
 static void
-ARealize(w, valueMask, attributes)
-Widget w;
-XtValueMask *valueMask;
-XSetWindowAttributes *attributes;
+ARealize(Widget w, XtValueMask *valueMask, XSetWindowAttributes *attributes)
 {
   AuthReqWidget aw = (AuthReqWidget)w;
 
@@ -231,8 +228,7 @@ XSetWindowAttributes *attributes;
  * ADestroy
  */
 static void
-ADestroy(w)
-Widget w;
+ADestroy(Widget w)
 {
   return;
 }
@@ -241,12 +237,7 @@ Widget w;
  * ASetValues
  */
 static Boolean
-ASetValues(old, request, new, args, num_args)
-Widget old;
-Widget request;
-Widget new;
-ArgList args;
-Cardinal *num_args;
+ASetValues(Widget old, Widget request, Widget new, ArgList args, Cardinal *num_args)
 {
   return(False);
 }
@@ -255,9 +246,7 @@ Cardinal *num_args;
  * AClearCallback
  */
 static void
-AClearCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+AClearCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   AuthReqWidget aw = (AuthReqWidget)cldata;
 
@@ -272,8 +261,7 @@ XtPointer cldata, cbdata;
  * ADoCallback
  */
 static void
-ADoCallback(aw)
-AuthReqWidget aw;
+ADoCallback(AuthReqWidget aw)
 {
   AuthReqReturnStruct ar;
 
@@ -295,9 +283,7 @@ AuthReqWidget aw;
  * AOKCallback
  */
 static void
-AOKCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+AOKCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   ADoCallback((AuthReqWidget)cldata);
 
@@ -308,11 +294,7 @@ XtPointer cldata, cbdata;
  * AUsernameReturn
  */
 static void
-AUsernameReturn(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+AUsernameReturn(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   AuthReqWidget aw;
   Widget xw;
@@ -331,11 +313,7 @@ Cardinal *num_params;
  * APasswordReturn
  */
 static void
-APasswordReturn(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+APasswordReturn(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   Widget xw;
 
@@ -352,9 +330,7 @@ Cardinal *num_params;
  * ADismissCallback
  */
 static void
-ADismissCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+ADismissCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   AuthReqWidget aw = (AuthReqWidget)cldata;
 

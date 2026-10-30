@@ -36,9 +36,7 @@ void byteReverse(unsigned char *buf, unsigned longs);
 /*
  * Note: this code is harmless on little-endian machines.
  */
-void byteReverse(buf, longs)
-unsigned char *buf;
-unsigned longs;
+void byteReverse(unsigned char *buf, unsigned longs)
 {
 	uint32 t;
 	do {
@@ -56,8 +54,7 @@ unsigned longs;
  * initialization constants.
  */
 void
-MD5Init(ctx)
-struct MD5Context *ctx;
+MD5Init(struct MD5Context *ctx)
 {
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
@@ -73,10 +70,7 @@ struct MD5Context *ctx;
  * of bytes.
  */
 void
-MD5Update(ctx, buf, len)
-struct MD5Context *ctx;
-unsigned char *buf;
-unsigned len;
+MD5Update(struct MD5Context *ctx, unsigned char *buf, unsigned len)
 {
 	uint32 t;
 
@@ -126,9 +120,7 @@ unsigned len;
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void
-MD5Final(digest, ctx)
-unsigned char digest[16];
-struct MD5Context *ctx;
+MD5Final(unsigned char digest[16], struct MD5Context *ctx)
 {
 	unsigned count;
 	unsigned char *p;
@@ -189,9 +181,7 @@ struct MD5Context *ctx;
  * the data and converts bytes into longwords for this routine.
  */
 void
-MD5Transform(buf, in)
-uint32 buf[4];
-uint32 in[16];
+MD5Transform(uint32 buf[4], uint32 in[16])
 {
 	register uint32 a, b, c, d;
 

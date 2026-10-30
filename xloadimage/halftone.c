@@ -153,9 +153,7 @@ static byte DitherBits[GRAYS][4] = {
 /* simple dithering algorithm, really optimized for the 4x4 array
  */
 
-Image *halftone(cimage, verbose)
-     Image        *cimage;
-     unsigned int  verbose;
+Image *halftone(Image *cimage, unsigned int verbose)
 { Image         *image;
   unsigned char *sp, *dp, *dp2; /* data pointers */
   unsigned int   dindex;        /* index into dither array */

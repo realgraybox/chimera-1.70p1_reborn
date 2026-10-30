@@ -45,8 +45,7 @@ static Convert converters[] =
  * ~/.chimera_convert:~john/lib/convert:/local/infosys/lib/convert
  */
 Convert *
-ReadConvertFiles(filelist)
-char *filelist;
+ReadConvertFiles(char *filelist)
 {
   Convert *t = NULL, *c, *clist = NULL;
   char *f;
@@ -102,10 +101,7 @@ char *filelist;
  * and content-type.
  */
 static Convert *
-GetConvert(clist, use, incontent)
-Convert *clist;
-char *use;
-char *incontent;
+GetConvert(Convert *clist, char *use, char *incontent)
 {
   Convert *c;
   int flen, elen;
@@ -160,11 +156,7 @@ char *incontent;
  * PlainTextToHTML
  */
 static int
-PlainTextToHTML(t, tlen, h, hlen)
-char *t;
-int tlen;
-char **h;
-int *hlen;
+PlainTextToHTML(char *t, int tlen, char **h, int *hlen)
 {
   /*
    * Lines longer than PLAIN_WRAP characters are wrapped, at a space in
@@ -222,11 +214,7 @@ int *hlen;
  * used (http, ftp, cimg, ...)
  */
 Document *
-ConvertDocument(d, clist, altuse, path)
-Document *d;
-Convert *clist;
-char *altuse;
-char *path;
+ConvertDocument(Document *d, Convert *clist, char *altuse, char *path)
 {
   Convert *c;
   char *incontent;

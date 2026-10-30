@@ -57,8 +57,7 @@ static char **ilist;
  * NULL pointer. Memory allocated here stays allocated until Chimera exits.
  */
 void
-ReadIndexFilenames(filelist)
-char *filelist;
+ReadIndexFilenames(char *filelist)
 {
   int sl, colons;
   char *filenames, *cp, *cp2;
@@ -107,10 +106,7 @@ char *filelist;
  * Load the contents of a file into memory.
  */
 static Document *
-LoadFile(filename, size, mtlist)
-char *filename;
-int size;
-MIMEType *mtlist;
+LoadFile(char *filename, int size, MIMEType *mtlist)
 {
   FILE *fp;
   char *b;
@@ -152,8 +148,7 @@ MIMEType *mtlist;
  * (changed upon advice by Nelson H F Beebe <beebe@math.utah.edu> 1997May09)
  */
 static int
-local_strcmp(a, b)
-const void *a, *b;
+local_strcmp(const void *a, const void *b)
 {
   return(strcmp(*(const char **)a, *(const char **)b));
 }
@@ -310,9 +305,7 @@ add_list_entry(char *current_dir, char *filename, int count, char **sa)
  * navigate the local filesystem.
  */
 static Document *
-LoadDir(filename, mtlist)
-char *filename;
-MIMEType *mtlist;
+LoadDir(char *filename, MIMEType *mtlist)
 {
   Document *d;
   DIR *dp;
@@ -421,9 +414,7 @@ MIMEType *mtlist;
  * GN 1997May18
  */
 Document *
-file(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+file(URLParts *up, MIMEType *mtlist)
 {
   char *domain;
   struct stat s;
@@ -477,9 +468,7 @@ MIMEType *mtlist;
  * Handles telnet and tn3270 URLs
  */
 static Document *
-telnet_main(up, content)
-URLParts *up;
-char *content;
+telnet_main(URLParts *up, char *content)
 {
   char *username;
   char *password;
@@ -524,9 +513,7 @@ char *content;
  * Handles telnet URLs
  */
 Document * 
-telnet(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+telnet(URLParts *up, MIMEType *mtlist)
 {
   return(telnet_main(up, "application/x-telnet"));
 }
@@ -537,9 +524,7 @@ MIMEType *mtlist;
  * Handles tn3270 URLs
  */
 Document *
-tn3270(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+tn3270(URLParts *up, MIMEType *mtlist)
 {
   return(telnet_main(up, "application/x-tn3270"));
 }

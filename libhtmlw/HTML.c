@@ -692,17 +692,14 @@ static Cursor in_anchor_cursor = (Cursor) NULL;
  * Called from main.c.
  */
 void
-SetDelayedImageLoading (hw, defer)  /* used when DeferPix button present */
-HTMLWidget hw;
-Boolean defer;
+SetDelayedImageLoading (HTMLWidget hw, Boolean defer)  /* used when DeferPix button present */
 {
   hw->html.delay_images = defer ?  True : False;
 }
 
 
 void
-ToggleDelayedImageLoading (hw)	/* used when DeferPix button absent */
-HTMLWidget hw;
+ToggleDelayedImageLoading (HTMLWidget hw)  /* used when DeferPix button absent */
 {
   hw->html.delay_images = !hw->html.delay_images;
 }
@@ -794,10 +791,7 @@ HTMLGetDelayedImages (Widget w, int *num_srcs)
  * can be a regular expose event, or perhaps a GraphicsExpose Event.
  */
 static void
-DrawExpose (w, data, event)
-Widget w;
-caddr_t data;
-XEvent *event;
+DrawExpose (Widget w, caddr_t data, XEvent *event)
 {
   XExposeEvent *ExEvent = (XExposeEvent *) event;
   HTMLWidget hw = (HTMLWidget) data;
@@ -842,8 +836,7 @@ XEvent *event;
 
 
 void
-ScrollWidgets (hw)
-HTMLWidget hw;
+ScrollWidgets (HTMLWidget hw)
 {
   WidgetInfo *wptr;
   int xval, yval;
@@ -877,10 +870,7 @@ HTMLWidget hw;
  * The union hands the float's bytes to Xt unchanged.
  */
 static void
-setScrollBar (sb, topPosition, totalLength, currentLength)
-Widget sb;
-int topPosition;
-int totalLength, currentLength;
+setScrollBar (Widget sb, int topPosition, int totalLength, int currentLength)
 {
   float top, shown;
 
@@ -912,10 +902,7 @@ int totalLength, currentLength;
  * Either the vertical or hortizontal scrollbar has been moved
  */
 void
-ScrollToPos (w, hw, value)
-Widget w;
-HTMLWidget hw;
-int value;
+ScrollToPos (Widget w, HTMLWidget hw, int value)
 {
   /*
    * Special code incase the scrollbar is "moved" before we have a window
@@ -1138,10 +1125,7 @@ int value;
  * Either the vertical or hortizontal scrollbar has been moved
  */
 void
-ScrollMove (w, client_data, call_data)
-Widget w;
-caddr_t client_data;
-caddr_t call_data;
+ScrollMove (Widget w, caddr_t client_data, caddr_t call_data)
 {
   float scrollDir = (intptr_t) call_data < 0 ? -0.3 : 0.3;
   HTMLWidget hw = (HTMLWidget) client_data;
@@ -1187,10 +1171,7 @@ caddr_t call_data;
 
 
 void
-JumpMove (w, client_data, call_data)
-Widget w;
-caddr_t client_data;
-caddr_t call_data;
+JumpMove (Widget w, caddr_t client_data, caddr_t call_data)
 {
   HTMLWidget hw = (HTMLWidget) client_data;
   int value = (int) (*(float *) call_data *
@@ -1206,8 +1187,7 @@ caddr_t call_data;
  * Size them later.
  */
 static void
-CreateScrollbars (hw)
-HTMLWidget hw;
+CreateScrollbars (HTMLWidget hw)
 {
   Arg arg[20];
   Cardinal argcnt;
@@ -1300,8 +1280,7 @@ HTMLWidget hw;
  * Return the width of the vertical scrollbar
  */
 static Dimension
-VbarWidth (hw)
-HTMLWidget hw;
+VbarWidth (HTMLWidget hw)
 {
   Arg arg[4];
   Cardinal argcnt;
@@ -1324,8 +1303,7 @@ HTMLWidget hw;
  * Return the height of the horizontal scrollbar
  */
 static Dimension
-HbarHeight (hw)
-HTMLWidget hw;
+HbarHeight (HTMLWidget hw)
 {
   Arg arg[4];
   Cardinal argcnt;
@@ -1349,8 +1327,7 @@ HTMLWidget hw;
  * area based on scrollbar locations.
  */
 static void
-ConfigScrollBars (hw)
-HTMLWidget hw;
+ConfigScrollBars (HTMLWidget hw)
 {
   int vx, vy;
 
@@ -1585,8 +1562,7 @@ HTMLWidget hw;
  * window size.
  */
 static void
-ReformatWindow (hw)
-HTMLWidget hw;
+ReformatWindow (HTMLWidget hw)
 {
   int temp;
   int new_width;
@@ -1749,10 +1725,7 @@ HTMLWidget hw;
  * however they want, we don't care.
  */
 static XtGeometryResult
-GeometryManager (w, request, reply)
-Widget w;
-XtWidgetGeometry *request;
-XtWidgetGeometry *reply;
+GeometryManager (Widget w, XtWidgetGeometry *request, XtWidgetGeometry *reply)
 {
   reply->x = request->x;
   reply->y = request->y;
@@ -1769,9 +1742,7 @@ XtWidgetGeometry *reply;
  * Check to see that all the starting resources are valid.
  */
 static void
-Initialize (request, new)
-HTMLWidget request;
-HTMLWidget new;
+Initialize (HTMLWidget request, HTMLWidget new)
 {
   /*
    *    Make sure height and width are not zero.
@@ -1903,8 +1874,7 @@ HTMLWidget new;
 
 #ifdef DEBUG
 void
-DebugHook (x, y, width, height)
-int x, y, width, height;
+DebugHook (int x, int y, int width, int height)
 {
   fprintf (stderr, "Redrawing (%d,%d) %dx%d\n", x, y, width, height);
 }
@@ -1917,10 +1887,7 @@ int x, y, width, height;
  * underlying document area.
  */
 static void
-ViewRedisplay (hw, x, y, width, height)
-HTMLWidget hw;
-int x, y;
-int width, height;
+ViewRedisplay (HTMLWidget hw, int x, int y, int width, int height)
 {
   int sx, sy;
   int doc_x, doc_y;
@@ -2027,8 +1994,7 @@ int width, height;
 
 
 static void
-ViewClearAndRefresh (hw)
-HTMLWidget hw;
+ViewClearAndRefresh (HTMLWidget hw)
 {
 #ifdef FAKE_EXPOSE
   /*
@@ -2075,10 +2041,7 @@ HTMLWidget hw;
  * Redisplay routine.
  */
 static void
-Redisplay (hw, event, region)
-HTMLWidget hw;
-XEvent *event;
-Region region;
+Redisplay (HTMLWidget hw, XEvent *event, Region region)
 {
   int dx, dy;
 
@@ -2107,9 +2070,7 @@ Region region;
 #ifdef REBOUNCH
 //oprindelig resize kode med nyt navn og
 static void
-ActualResizeWorker (client_data, id)
-XtPointer client_data;
-XtIntervalId *id;
+ActualResizeWorker (XtPointer client_data, XtIntervalId *id)
 {
   HTMLWidget hw = (HTMLWidget)client_data;
   int tempw;
@@ -2230,8 +2191,7 @@ XtIntervalId *id;
 * but waits to respond until the user stops dragging the window.
 */
 static void
-Resize (hw)
-HTMLWidget hw;
+Resize (HTMLWidget hw)
 {
   /* 1. If there is already an active timer, stop it (the user is still dragging) */
   if (resize_timeout_id != (XtIntervalId)0) {
@@ -2252,8 +2212,7 @@ HTMLWidget hw;
  
 #else
 static void
-Resize (hw)
-HTMLWidget hw;
+Resize (HTMLWidget hw)
 {
   int tempw;
   Dimension swidth, sheight;
@@ -2372,9 +2331,7 @@ HTMLWidget hw;
  * and set it into the selection.
  */
 static void
-FindSelectAnchor (hw, aptr)
-HTMLWidget hw;
-struct ele_rec *aptr;
+FindSelectAnchor (HTMLWidget hw, struct ele_rec *aptr)
 {
   struct ele_rec *eptr;
 
@@ -2405,8 +2362,7 @@ struct ele_rec *aptr;
  * in the widget's start ptr.
  */
 static void
-SetAnchor (hw)
-HTMLWidget hw;
+SetAnchor (HTMLWidget hw)
 {
   struct ele_rec *eptr;
   struct ele_rec *start;
@@ -2513,11 +2469,7 @@ HTMLWidget hw;
  * from start to end.
  */
 static void
-DrawSelection (hw, start, end, start_pos, end_pos)
-HTMLWidget hw;
-struct ele_rec *start;
-struct ele_rec *end;
-int start_pos, end_pos;
+DrawSelection (HTMLWidget hw, struct ele_rec *start, struct ele_rec *end, int start_pos, int end_pos)
 {
   struct ele_rec *eptr;
   int epos;
@@ -2629,8 +2581,7 @@ int start_pos, end_pos;
  * start to end list.
  */
 static void
-SetSelection (hw)
-HTMLWidget hw;
+SetSelection (HTMLWidget hw)
 {
   struct ele_rec *start;
   struct ele_rec *end;
@@ -2648,11 +2599,7 @@ HTMLWidget hw;
  * Erase the selection from start to end
  */
 static void
-EraseSelection (hw, start, end, start_pos, end_pos)
-HTMLWidget hw;
-struct ele_rec *start;
-struct ele_rec *end;
-int start_pos, end_pos;
+EraseSelection (HTMLWidget hw, struct ele_rec *start, struct ele_rec *end, int start_pos, int end_pos)
 {
   struct ele_rec *eptr;
   int epos;
@@ -2759,8 +2706,7 @@ int start_pos, end_pos;
  * Clear the current selection (if there is one)
  */
 static void
-ClearSelection (hw)
-HTMLWidget hw;
+ClearSelection (HTMLWidget hw)
 {
   struct ele_rec *start;
   struct ele_rec *end;
@@ -2796,8 +2742,7 @@ HTMLWidget hw;
  * selection.)
  */
 static void
-UnsetAnchor (hw)
-HTMLWidget hw;
+UnsetAnchor (HTMLWidget hw)
 {
   struct ele_rec *eptr;
 
@@ -2831,11 +2776,7 @@ HTMLWidget hw;
  * flashing.
  */
 static void
-ChangeSelection (hw, start, end, start_pos, end_pos)
-HTMLWidget hw;
-struct ele_rec *start;
-struct ele_rec *end;
-int start_pos, end_pos;
+ChangeSelection (HTMLWidget hw, struct ele_rec *start, struct ele_rec *end, int start_pos, int end_pos)
 {
   struct ele_rec *old_start;
   struct ele_rec *old_end;
@@ -3052,11 +2993,10 @@ int start_pos, end_pos;
  * Btn1Up within timeout calls _HTMLInput to select (possible) cursor URL.
  */
 static void
-SelectStart (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+SelectStart (Widget w,
+             XEvent *event,
+             String *params,	/* unused */
+             Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
   XButtonPressedEvent *BuEvent = (XButtonPressedEvent *) event;
@@ -3153,11 +3093,10 @@ Cardinal *num_params;	/* unused */
 
 
 static void
-ExtendStart (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ExtendStart (Widget w,
+             XEvent *event,
+             String *params,	/* unused */
+             Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
   XButtonPressedEvent *BuEvent = (XButtonPressedEvent *) event;
@@ -3287,11 +3226,10 @@ Cardinal *num_params;	/* unused */
 
 
 static void
-ExtendAdjust (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ExtendAdjust (Widget w,
+              XEvent *event,
+              String *params,	/* unused */
+              Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
   XPointerMovedEvent *MoEvent = (XPointerMovedEvent *) event;
@@ -3391,11 +3329,7 @@ Cardinal *num_params;	/* unused */
 
 
 static void
-ExtendEnd (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+ExtendEnd (Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
   XButtonReleasedEvent *BuEvent = (XButtonReleasedEvent *) event;
@@ -3715,11 +3649,10 @@ TrackMotion (Widget w, XEvent *event, String *params, Cardinal *num_params)
 }
 
 static void
-ScrollRight (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ScrollRight (Widget w,
+             XEvent *event,
+             String *params,	/* unused */
+             Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
 
@@ -3739,11 +3672,10 @@ Cardinal *num_params;	/* unused */
 }
 
 static void
-ScrollLeft (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ScrollLeft (Widget w,
+            XEvent *event,
+            String *params,	/* unused */
+            Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
 
@@ -3763,11 +3695,10 @@ Cardinal *num_params;	/* unused */
 }
 
 static void
-ScrollUp (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ScrollUp (Widget w,
+          XEvent *event,
+          String *params,	/* unused */
+          Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
 
@@ -3787,11 +3718,10 @@ Cardinal *num_params;	/* unused */
 }
 
 static void
-ScrollDown (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+ScrollDown (Widget w,
+            XEvent *event,
+            String *params,	/* unused */
+            Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
 
@@ -3811,11 +3741,10 @@ Cardinal *num_params;	/* unused */
 }
 
 static void
-TopBot (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;	/* unused */
-Cardinal *num_params;	/* unused */
+TopBot (Widget w,
+        XEvent *event,
+        String *params,	/* unused */
+        Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
 
@@ -3894,11 +3823,10 @@ static void HtmlPopMenu(Widget w, char *u)
  * Currently only processes an anchor-activate when Button1 is pressed
  */
 static void
-_HTMLInput (w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;			/* unused */
-Cardinal *num_params;		/* unused */
+_HTMLInput (Widget w,
+            XEvent *event,
+            String *params,	/* unused */
+            Cardinal *num_params)	/* unused */
 {
   HTMLWidget hw = (HTMLWidget) XtParent (w);
   struct ele_rec *eptr;
@@ -4042,10 +3970,7 @@ Cardinal *num_params;		/* unused */
  * resources in this widget.
  */
 static Boolean
-SetValues (current, request, new)
-HTMLWidget current;
-HTMLWidget request;
-HTMLWidget new;
+SetValues (HTMLWidget current, HTMLWidget request, HTMLWidget new)
 {
  // int reformatted;
 
@@ -4191,8 +4116,7 @@ HTMLWidget new;
  * call the LinkCallback.
  */
 static void
-CallLinkCallbacks (hw)
-HTMLWidget hw;
+CallLinkCallbacks (HTMLWidget hw)
 {
   struct mark_up *mptr;
   LinkInfo l_info;
@@ -4223,12 +4147,7 @@ HTMLWidget hw;
 
 
 static Boolean
-ConvertSelection (w, selection, target, type, value, length, format)
-Widget w;
-Atom *selection, *target, *type;
-caddr_t *value;
-unsigned long *length;
-int *format;
+ConvertSelection (Widget w, Atom *selection, Atom *target, Atom *type, caddr_t *value, unsigned long *length, int *format)
 {
   Display *d = XtDisplay (w);
   HTMLWidget hw = (HTMLWidget) w;
@@ -4352,9 +4271,7 @@ int *format;
 
 
 static void
-LoseSelection (w, selection)
-Widget w;
-Atom *selection;
+LoseSelection (Widget w, Atom *selection)
 {
   HTMLWidget hw = (HTMLWidget) w;
 
@@ -4363,9 +4280,7 @@ Atom *selection;
 
 
 static void
-SelectionDone (w, selection, target)
-Widget w;
-Atom *selection, *target;
+SelectionDone (Widget w, Atom *selection, Atom *target)
 {
   /*
    * empty proc so Intrinsics know we want to keep storage 
@@ -4394,9 +4309,7 @@ Atom *selection, *target;
  * pretty = 5: Lucida Bright
  */
 char *
-HTMLGetText (w, pretty)
-Widget w;
-int pretty;
+HTMLGetText (Widget w, int pretty)
 {
   HTMLWidget hw = (HTMLWidget) w;
   char *text;
@@ -4457,9 +4370,7 @@ int pretty;
 #if 0				/* not used */
 /*extern int	 HTMLPositionToId _ArgProto((Widget w, int x, int y));*/
 int
-HTMLPositionToId (w, x, y)
-Widget w;
-int x, y;
+HTMLPositionToId (Widget w, int x, int y)
 {
   HTMLWidget hw = (HTMLWidget) w;
   int i;
@@ -4518,10 +4429,7 @@ int x, y;
 /*extern int	 HTMLIdToPosition _ArgProto((Widget w, int element_id,
 					     int *x, int *y));*/
 int
-HTMLIdToPosition (w, element_id, x, y)
-Widget w;
-int element_id;
-int *x, *y;
+HTMLIdToPosition (Widget w, int element_id, int *x, int *y)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct ele_rec *start;
@@ -4560,9 +4468,7 @@ int *x, *y;
  * A passed in id of 0 means goto the top.
  */
 void
-HTMLGotoId (w, element_id)
-Widget w;
-int element_id;
+HTMLGotoId (Widget w, int element_id)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct ele_rec *start;
@@ -4635,10 +4541,7 @@ int element_id;
  * If there is no such element, x=0, y=0 and -1 is returned.
  */
 int
-HTMLAnchorToPosition (w, name, x, y)
-Widget w;
-char *name;
-int *x, *y;
+HTMLAnchorToPosition (Widget w, char *name, int *x, int *y)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct ele_rec *start;
@@ -4679,9 +4582,7 @@ int *x, *y;
  * If there is no such element, 0 is returned.
  */
 int
-HTMLAnchorToId (w, name)
-Widget w;
-char *name;
+HTMLAnchorToId (Widget w, char *name)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct ele_rec *start;
@@ -4709,9 +4610,7 @@ char *name;
  * If there are no HREFs NULL returned.
  */
 char **
-HTMLGetHRefs (w, num_hrefs)
-Widget w;
-int *num_hrefs;
+HTMLGetHRefs (Widget w, int *num_hrefs)
 {
   HTMLWidget hw = (HTMLWidget) w;
   int cnt;
@@ -4785,9 +4684,7 @@ int *num_hrefs;
  * If there are no SRCs NULL returned.
  */
 char **
-HTMLGetImageSrcs (w, num_srcs)
-Widget w;
-int *num_srcs;
+HTMLGetImageSrcs (Widget w, int *num_srcs)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct mark_up *mptr;
@@ -4848,9 +4745,7 @@ int *num_srcs;
  * If there are no LINKs NULL returned.
  */
 LinkInfo *
-HTMLGetLinks (w, num_links)
-Widget w;
-int *num_links;
+HTMLGetLinks (Widget w, int *num_links)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct mark_up *mptr;
@@ -4899,8 +4794,7 @@ int *num_links;
 
 
 static void
-HTMLFreeImageInfo (w)
-Widget w;
+HTMLFreeImageInfo (Widget w)
 {
   HTMLWidget hw = (HTMLWidget) w;
 
@@ -4910,8 +4804,7 @@ Widget w;
 
 
 static void
-HTMLFreeWidgetInfo (w)
-Widget w;
+HTMLFreeWidgetInfo (Widget w)
 {
   HTMLWidget hw = (HTMLWidget) w;
   WidgetInfo *wptr = hw->html.widget_list;
@@ -4976,8 +4869,8 @@ Widget w;
  * where DiscardCurPageObjects comes in.
  */
 static void
-DiscardCurPageObjects (old, new)
-HTMLWidget old, new;		/* may be the same */
+DiscardCurPageObjects (HTMLWidget old,
+                       HTMLWidget new)	/* may be the same */
 {
   /*
    * Free up the old visited href list.
@@ -5007,9 +4900,7 @@ HTMLWidget old, new;		/* may be the same */
  * function.
  */
 void
-HTMLRetestAnchors (w, testFunc)
-Widget w;
-visitTestProc testFunc;
+HTMLRetestAnchors (Widget w, visitTestProc testFunc)
 {
   HTMLWidget hw = (HTMLWidget) w;
   struct ele_rec *start;
@@ -5075,8 +4966,7 @@ visitTestProc testFunc;
 
 
 void
-HTMLClearSelection (w)
-Widget w;
+HTMLClearSelection (Widget w)
 {
   LoseSelection (w, NULL);
 }
@@ -5087,10 +4977,7 @@ Widget w;
  * Both refs must be valid.
  */
 void
-HTMLSetSelection (w, start, end)
-Widget w;
-ElementRef *start;
-ElementRef *end;
+HTMLSetSelection (Widget w, ElementRef *start, ElementRef *end)
 {
   HTMLWidget hw = (HTMLWidget) w;
   int found;
@@ -5256,11 +5143,7 @@ ElementRef *end;
  * to the user to free.
  */
 char *
-HTMLGetTextAndSelection (w, startp, endp, insertp)
-Widget w;
-char **startp;
-char **endp;
-char **insertp;
+HTMLGetTextAndSelection (Widget w, char **startp, char **endp, char **insertp)
 {
   HTMLWidget hw = (HTMLWidget) w;
   int length;
@@ -5394,11 +5277,7 @@ char **insertp;
  * if a text pointer points to "", that text is set to NULL.
  */
 void
-HTMLSetText (w, text, header_text, footer_text)
-Widget w;
-char *text;
-char *header_text;
-char *footer_text;
+HTMLSetText (Widget w, char *text, char *header_text, char *footer_text)
 {
   HTMLWidget hw = (HTMLWidget) w;
   //struct ele_rec *start;
@@ -5516,13 +5395,7 @@ extern char map_table[];
  * returns -1 otherwise (and start and end are unchanged).
  */
 int
-HTMLSearchText (w, pattern, m_start, m_end, backward, caseless)
-Widget w;
-char *pattern;
-ElementRef *m_start;
-ElementRef *m_end;
-int backward;
-int caseless;
+HTMLSearchText (Widget w, char *pattern, ElementRef *m_start, ElementRef *m_end, int backward, int caseless)
 {
   HTMLWidget hw = (HTMLWidget) w;
   int found, equal;

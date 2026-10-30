@@ -22,8 +22,7 @@ static StringDB *head = NULL;
  * Adds a preallocated list to the string DB
  */
 void
-AddListToStringDB(list)
-StringDB *list;
+AddListToStringDB(StringDB *list)
 {
   StringDB *l, *tl;
 
@@ -42,9 +41,7 @@ StringDB *list;
  * Adds a new entry to the string DB
  */
 void
-AddToStringDB(name, value)
-char *name;
-char *value;
+AddToStringDB(char *name, char *value)
 {
   StringDB *n;
 
@@ -63,8 +60,7 @@ char *value;
  * Returns a value from a name
  */
 char *
-GetFromStringDB(name)
-char *name;
+GetFromStringDB(char *name)
 {
   StringDB *c;
 
@@ -82,8 +78,7 @@ char *name;
  * Returns a value from a name
  */
 char *
-NGetFromStringDB(name)
-char *name;
+NGetFromStringDB(char *name)
 {
   StringDB *c;
 

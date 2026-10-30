@@ -247,8 +247,7 @@ static StringDB lang[] =
  * Adds the language array or a string DB file to the string database
  */
 void
-AddLanguage(filename)
-char *filename;
+AddLanguage(char *filename)
 {
   FILE *fp;
   char buffer[BUFSIZ];
