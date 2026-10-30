@@ -348,6 +348,8 @@ char *edata;
   eptr->tblcol = CurrentTblColumn;
   eptr->y_offset = 0;
   eptr->width = 0;
+  eptr->target_width = 0;	/* E_IMAGE placeholder size, see ImagePlace */
+  eptr->target_height = 0;
   eptr->line_number = LineNumber;
   eptr->line_height = LineHeight;
   eptr->fg = Fg;
@@ -1570,6 +1572,49 @@ unsigned int xmax;
 
 
 /*
+ * Size of the box a placeholder takes while its image is loading, from
+ * the WIDTH and HEIGHT of the IMG tag, so the text does not move when
+ * the image arrives. The image is later scaled as src/inline.c does it:
+ * into that box, never wider than PLACEHOLDER_MAX_WIDTH. Only when both
+ * are given in pixels; a percentage or a missing one gives 0 (the small
+ * placeholder icon as before).
+ */
+#define PLACEHOLDER_MAX_WIDTH 600	/* MAX_WIDTH in src/inline.c */
+
+static int
+PlaceholderSize (const char *taginfo, int *w, int *h)
+{
+  char *ws = ParseMarkTag (taginfo, MT_IMAGE, "WIDTH");
+  char *hs = ParseMarkTag (taginfo, MT_IMAGE, "HEIGHT");
+  int ok = 0;
+
+  *w = *h = 0;
+  if (ws != NULL && hs != NULL &&
+      strchr (ws, '%') == NULL && strchr (hs, '%') == NULL)
+  {
+    *w = atoi (ws);
+    *h = atoi (hs);
+    if (*w > 0 && *h > 0)
+    {
+      if (*w > PLACEHOLDER_MAX_WIDTH)
+      {
+	*h = (*h * PLACEHOLDER_MAX_WIDTH) / *w;
+	*w = PLACEHOLDER_MAX_WIDTH;
+      }
+      if (*h < 1) *h = 1;
+      ok = 1;
+    }
+    else
+    {
+      *w = *h = 0;
+    }
+  }
+  if (ws != NULL) XtFree (ws);
+  if (hs != NULL) XtFree (hs);
+  return ok;
+}
+
+/*
  * Place an image.  Add an element record for it.
  */
 static void
@@ -1587,11 +1632,14 @@ unsigned int width;		/* = right hand margin */
   int border = IMAGE_BORDER;
   int extra;
   int marginw = (CurrentTable != NULL) ?  0 : MarginW;
+  int tw, th;			/* placeholder size from WIDTH/HEIGHT */
 
   /*
    * Note:  NeedSpace = 0 if Current->prev = PrevContextEnd
    */
   IfNeedSpaceDo (hw, x, y);
+
+  (void) PlaceholderSize (taginfo, &tw, &th);
 
   /*
    * Place the image in order to find out its dimensions.
@@ -1627,8 +1675,19 @@ unsigned int width;		/* = right hand margin */
     extra = 0;
   }
 
-  dx = Current->img_data->pic_data->width + extra;
-  dy = Current->img_data->pic_data->height + extra;
+  if (Current->img_data->pic_data->delayed && tw > 0)
+  {
+    /* a placeholder for an image still loading: the image's own size */
+    Current->target_width = tw;
+    Current->target_height = th;
+    dx = tw + extra;
+    dy = th + extra;
+  }
+  else
+  {
+    dx = Current->img_data->pic_data->width + extra;
+    dy = Current->img_data->pic_data->height + extra;
+  }
 
   /*
    * If the image is too wide for the line and
@@ -1642,6 +1701,11 @@ unsigned int width;		/* = right hand margin */
     Current = savedCurrent;	/* unplaces image and any added spaces */
     LineFeed (hw, x, y);
     AddFElement (hw, E_IMAGE, currentFont, *x, *y, tptr);
+    if (Current->img_data->pic_data->delayed && tw > 0)
+    {
+      Current->target_width = tw;
+      Current->target_height = th;
+    }
   }
 
   /*
@@ -5525,6 +5589,16 @@ struct ele_rec *eptr;
   {
     int x, y, extra;
     ImageInfo *pic_data = eptr->img_data->pic_data;
+    int pw = pic_data->width;	/* size of the box drawn */
+    int ph = pic_data->height;
+    int sized = (pic_data->delayed && eptr->target_width > 0);
+
+    if (sized)
+    {
+      /* placeholder at the size the image will have (ImagePlace) */
+      pw = eptr->target_width;
+      ph = eptr->target_height;
+    }
 
     x = eptr->x;
     y = eptr->y + eptr->y_offset;
@@ -5546,25 +5620,39 @@ struct ele_rec *eptr;
     XFillRectangle (XtDisplay (hw->html.view),
 		    XtWindow (hw->html.view), hw->html.drawGC,
 		    x, y,
-		    (pic_data->width + (2 * extra)),
+		    (pw + (2 * extra)),
 		    extra);
     XFillRectangle (XtDisplay (hw->html.view),
 		    XtWindow (hw->html.view), hw->html.drawGC,
 		    x,
-		    (y + pic_data->height + extra),
-		    (pic_data->width + (2 * extra)),
+		    (y + ph + extra),
+		    (pw + (2 * extra)),
 		    extra);
     XFillRectangle (XtDisplay (hw->html.view),
 		    XtWindow (hw->html.view), hw->html.drawGC,
 		    x, y,
 		    extra,
-		    (pic_data->height + (2 * extra)));
+		    (ph + (2 * extra)));
     XFillRectangle (XtDisplay (hw->html.view),
 		    XtWindow (hw->html.view), hw->html.drawGC,
-		    (x + pic_data->width + extra),
+		    (x + pw + extra),
 		    y,
 		    extra,
-		    (pic_data->height + (2 * extra)));
+		    (ph + (2 * extra)));
+
+    if (sized)
+    {
+      /* outline the box, and clear it of whatever was drawn there */
+      XSetForeground (XtDisplay (hw), hw->html.drawGC, eptr->bg);
+      XFillRectangle (XtDisplay (hw->html.view),
+		      XtWindow (hw->html.view), hw->html.drawGC,
+		      (x + extra), (y + extra), pw, ph);
+      XSetForeground (XtDisplay (hw), hw->html.drawGC, eptr->fg);
+      if (pw > 1 && ph > 1)
+	XDrawRectangle (XtDisplay (hw->html.view),
+			XtWindow (hw->html.view), hw->html.drawGC,
+			(x + extra), (y + extra), pw - 1, ph - 1);
+    }
 
     /*
      * Pixmap creation at the X server was put off until now to make sure
@@ -5627,10 +5715,12 @@ struct ele_rec *eptr;
       /* Brug vores tomme funktion i stedet for NULL */
       XErrorHandler old_handler = XSetErrorHandler(DummyXErrorHandler);
 
+      /* a sized placeholder shows the icon in its corner, if it fits */
       XCopyArea (XtDisplay (hw->html.view),
 		 pic_data->image,
 		 XtWindow (hw->html.view), hw->html.drawGC, 0, 0,
-		 pic_data->width, pic_data->height,
+		 (pic_data->width < pw ? pic_data->width : pw),
+		 (pic_data->height < ph ? pic_data->height : ph),
 		 (x + extra),
 		 (y + extra));
 
@@ -5653,7 +5743,7 @@ struct ele_rec *eptr;
       XFillRectangle (XtDisplay (hw->html.view),
 		      XtWindow (hw->html.view), hw->html.drawGC,
 		      x, (y + AnchoredHeight (hw)),
-		      (pic_data->width + (2 * extra)),
+		      (pw + (2 * extra)),
 		      extra);
     }
   }
