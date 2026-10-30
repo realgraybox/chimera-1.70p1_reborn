@@ -2458,15 +2458,16 @@ HTMLWidget hw = (HTMLWidget) w;
         if (strcmp(srcptr, url) == 0) 
         {
           /* Bingo! We've found the correct tag. Get the dimensions directly from here */
+          /* pixels only: "50%" is relative to the page, not 50 pixels */
           tptr = ParseMarkTag (mptr->start, MT_IMAGE, "WIDTH");
           if (tptr != NULL) {
-              found_width = atoi(tptr);
+              if (strchr(tptr, '%') == NULL) found_width = atoi(tptr);
               XtFree(tptr);
           }
           
           tptr = ParseMarkTag (mptr->start, MT_IMAGE, "HEIGHT");
           if (tptr != NULL) {
-              found_height = atoi(tptr);
+              if (strchr(tptr, '%') == NULL) found_height = atoi(tptr);
               XtFree(tptr);
           }
           

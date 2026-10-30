@@ -1,0 +1,29 @@
+<html><head><title>image placeholder test</title></head>
+<body>
+<h2>Image placeholders</h2>
+<p>The pictures come from httpbin.org and load in the background. Watch
+the page while they arrive (Reload to see it again).</p>
+
+<h3>1. Width and height given</h3>
+<p>Before <img src="https://httpbin.org/image/jpeg" width="239" height="178"> after.</p>
+<p>Expected: while loading, an outlined box of the picture's size with
+the small placeholder icon in its corner; "after" does not move when the
+picture arrives.</p>
+
+<h3>2. Only the width</h3>
+<p>Before <img src="https://httpbin.org/image/jpeg?2" width="239"> after.</p>
+<p>Expected: the small placeholder icon, then the picture; "after" moves,
+as the height was not known.</p>
+
+<h3>3. A percentage</h3>
+<p>Before <img src="https://httpbin.org/image/jpeg?3" width="50%" height="89"> after.</p>
+<p>Expected: the small placeholder icon (a percentage is not a size in
+pixels), then the picture at a height of 89 pixels with its own aspect
+ratio, not 50 pixels wide.</p>
+
+<h3>4. Inside a link</h3>
+<p>Before <a href="https://httpbin.org/"><img src="https://httpbin.org/image/jpeg?4" width="120" height="89"></a> after.</p>
+<p>Expected: a box of 120 x 89 with the link placeholder icon; clicking
+the bar at the top of the icon follows the link, clicking below it loads
+the picture at once.</p>
+</body></html>

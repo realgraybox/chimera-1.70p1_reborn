@@ -199,12 +199,8 @@ struct ele_rec {
 	int type;
 	IMGInfo *img_data;
 	WidgetInfo *widget_data;
-/*
- * #ifdef IMAGENEW
-	int target_width;
-	int target_height;
-#endif
-* */
+	int target_width;	/* E_IMAGE: size of a placeholder while */
+	int target_height;	/* the image loads, 0 if unknown */
 	XFontStruct *font;
 	int alignment;
 	Boolean internal;
