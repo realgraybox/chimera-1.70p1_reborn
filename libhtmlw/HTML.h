@@ -158,6 +158,7 @@ typedef struct wid_rec {
 	char **mapping;
 	Boolean checked;
 	Boolean mapped;
+	Boolean submit;		/* W_PUSHBUTTON that submits its form */
 	struct wid_rec *next;
 //	unsigned long magic2;
 } WidgetInfo;
