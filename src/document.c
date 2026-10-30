@@ -64,8 +64,7 @@ static struct name protocols[] =
  * Read a list of protocol files and return a list.
  */
 Protocol *
-ReadProtocolFiles(filelist)
-char *filelist;
+ReadProtocolFiles(char *filelist)
 {
   FILE *fp;
   char buffer[BUFSIZ];
@@ -124,9 +123,7 @@ char *filelist;
  * to get information.  Allows new protocols without changing chimera.
  */
 Document *
-ExternalProtocol(up, plist)
-URLParts *up;
-Protocol *plist;
+ExternalProtocol(URLParts *up, Protocol *plist)
 {
   Document *d;
   Protocol *p;
@@ -184,10 +181,7 @@ Protocol *plist;
  * Handles proxy protocols.
  */
 Document *
-ProxyProtocol(up, mtlist, reload)
-URLParts *up;
-MIMEType *mtlist;
-int reload;
+ProxyProtocol(URLParts *up, MIMEType *mtlist, int reload)
 {
   int i, plen, hlen;
   Document *d = NULL;
@@ -272,9 +266,7 @@ int reload;
  * Handle protocols that have been implemented in the chimera source.
  */
 static Document *
-LocalProtocol(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+LocalProtocol(URLParts *up, MIMEType *mtlist)
 {
   int i;
   Document *d = NULL;
@@ -352,8 +344,7 @@ CreateDocument()
  * DestroyDocument
  */
 void
-DestroyDocument(d)
-Document *d;
+DestroyDocument(Document *d)
 {
   MIMEField *m, *t;
 
@@ -386,12 +377,7 @@ Document *d;
  * Do some of the grunge work to make a document.
  */
 Document *
-BuildDocument(text, len, content, doalloc, cache)
-char *text;
-int len;
-char *content;
-int doalloc;
-int cache;
+BuildDocument(char *text, int len, char *content, int doalloc, int cache)
 {
   Document *d;
 
@@ -420,11 +406,7 @@ int cache;
  * LoadDocument
  */
 Document *
-LoadDocument(up, plist, mtlist, reload)
-URLParts *up;
-Protocol *plist;
-MIMEType *mtlist;
-int reload;
+LoadDocument(URLParts *up, Protocol *plist, MIMEType *mtlist, int reload)
 {
   Document *d;
   char *value;
@@ -566,9 +548,7 @@ int reload;
  * Picks out the fields that Chimera documents know about for speed.
  */
 void
-ParseMIMEField(d, m)
-Document *d;
-MIMEField *m;
+ParseMIMEField(Document *d, MIMEField *m)
 {
   char *field, *data;
 
@@ -641,8 +621,7 @@ MIMEField *m;
  * BuildDocumentInfo
  */
 char *
-BuildDocumentInfo(d)
-Document *d;
+BuildDocumentInfo(Document *d)
 {
   char *info = NULL;
   MIMEField *m;

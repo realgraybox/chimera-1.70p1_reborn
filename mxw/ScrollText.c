@@ -118,10 +118,7 @@ ClassInitialize()
 
 /* ARGSUSED */
 static void
-Initialize(req, new, args, num_args)
-    Widget req, new;
-    ArgList args;
-    Cardinal *num_args;
+Initialize(Widget req, Widget new, ArgList args, Cardinal *num_args)
 {
     XFontStruct *font;
     Dimension width, height;
@@ -173,10 +170,7 @@ Initialize(req, new, args, num_args)
 
 /* ARGSUSED */
 static Boolean
-SetValues(old, request, new, args, num_args)
-     Widget old, request, new;
-     ArgList args;
-     Cardinal *num_args;
+SetValues(Widget old, Widget request, Widget new, ArgList args, Cardinal *num_args)
 {
     if (PRIVATE(old,scroll_on_movement) != PRIVATE(new,scroll_on_movement))
     {
@@ -198,8 +192,7 @@ SetValues(old, request, new, args, num_args)
 }
 
 static void
-Destroy(w)
-     Widget w;
+Destroy(Widget w)
 {
     if (PRIVATE(w,action_hook))
     {
@@ -209,13 +202,7 @@ Destroy(w)
 
 /* ARGSUSED */
 static void
-AdjustForMovement(widget, client_data, action, event, params, num_params)
-     Widget widget;
-     XtPointer client_data;
-     String action;
-     XEvent *event;
-     String *params;
-     Cardinal *num_params;
+AdjustForMovement(Widget widget, XtPointer client_data, String action, XEvent *event, String *params, Cardinal *num_params)
 {
     Widget text = (Widget) client_data;
 	//Widget porthole = XtParent(text);	//uncomment to activate patch
@@ -260,9 +247,7 @@ AdjustForMovement(widget, client_data, action, event, params, num_params)
 
 /* ARGSUSED */
 static void
-AdjustForChange(widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+AdjustForChange(Widget widget, XtPointer client_data, XtPointer call_data)
 {
     /*
      * The scrolling of the view is postponed to a work proc because
@@ -281,8 +266,7 @@ AdjustForChange(widget, client_data, call_data)
 }
 
 static Boolean 
-Scroll(client_data)
-    XtPointer client_data;
+Scroll(XtPointer client_data)
 {
     WorkProcRecord *wprec = (WorkProcRecord *) client_data;
     Widget source, sink, text = XtParent(wprec->source), porthole = XtParent(text);

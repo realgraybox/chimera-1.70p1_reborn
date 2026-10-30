@@ -54,8 +54,7 @@ unsigned long DepthToColorsTable[] = {
   /* 32 */ 2147483648ul /* bigger than unsigned int; this is good enough */
 };
 
-unsigned long colorsToDepth(ncolors)
-     unsigned long ncolors;
+unsigned long colorsToDepth(unsigned long ncolors)
 { unsigned long a;
 
   for (a= 0; (a < 32) && (DepthToColorsTable[a] < ncolors); a++)
@@ -65,9 +64,7 @@ unsigned long colorsToDepth(ncolors)
 }
 
 
-void goodImage(image, func)
-     Image *image;
-     char  *func;
+void goodImage(Image *image, char *func)
 {
   if (!image) {
 #ifdef VERBOSE
@@ -88,9 +85,7 @@ void goodImage(image, func)
   }
 }
 
-void newRGBMapData(rgb, size)
-     RGBMap       *rgb;
-     unsigned int  size;
+void newRGBMapData(RGBMap *rgb, unsigned int size)
 {
   rgb->used= 0;
   rgb->size= size;
@@ -100,16 +95,14 @@ void newRGBMapData(rgb, size)
   rgb->blue= (Intensity *)alloc_mem(sizeof(Intensity) * size);
 }
 
-void freeRGBMapData(rgb)
-     RGBMap *rgb;
+void freeRGBMapData(RGBMap *rgb)
 {
   free_mem((char *)rgb->red);
   free_mem((char *)rgb->green);
   free_mem((char *)rgb->blue);
 }
 
-Image *newBitImage(width, height)
-     unsigned int width, height;
+Image *newBitImage(unsigned int width, unsigned int height)
 { Image        *image;
   unsigned int  linelen;
 
@@ -128,8 +121,7 @@ Image *newBitImage(width, height)
   return(image);
 }
 
-Image *newRGBImage(width, height, depth)
-     unsigned int width, height, depth;
+Image *newRGBImage(unsigned int width, unsigned int height, unsigned int depth)
 { Image        *image;
   unsigned int  pixlen, numcolors;
 
@@ -149,8 +141,7 @@ Image *newRGBImage(width, height, depth)
   return(image);
 }
 
-Image *newTrueImage(width, height)
-     unsigned int width, height;
+Image *newTrueImage(unsigned int width, unsigned int height)
 { Image        *image;
 
   image= (Image *)alloc_mem(sizeof(Image));
@@ -165,8 +156,7 @@ Image *newTrueImage(width, height)
   return(image);
 }
 
-void freeImageData(image)
-     Image *image;
+void freeImageData(Image *image)
 {
   if (image->title) {
     free_mem((char *)image->title);
@@ -177,8 +167,7 @@ void freeImageData(image)
   free_mem((char *)image->data);
 }
 
-void freeImage(image)
-     Image *image;
+void freeImage(Image *image)
 {
   goodImage(image, "freeImage");
   freeImageData(image);

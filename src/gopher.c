@@ -42,12 +42,7 @@ static char *gopher_to_html _ArgProto((int, char *, int, char *, char *));
  * Much fixing provided by R. Stewart Ellis.
  */
 static char *
-gopher_to_html(s, hostname, portno, filename, ext)
-int s;
-char *hostname;
-int portno;
-char *filename;
-char *ext;
+gopher_to_html(int s, char *hostname, int portno, char *filename, char *ext)
 {
   char gf[GOPHER_FIELD_COUNT][BUFSIZ]; /* fields in gopher line */
   char buffer[BUFSIZ];
@@ -232,10 +227,7 @@ char *ext;
  *
  */
 Document *
-gopher_main(up, mtlist, plus)
-URLParts *up;
-MIMEType *mtlist;
-int plus;
+gopher_main(URLParts *up, MIMEType *mtlist, int plus)
 {
   char *t = NULL;
   char buffer[BUFSIZ];
@@ -462,9 +454,7 @@ int plus;
  * This is the gopher+ frontend to gopher_main
  */
 Document *
-gopherplus(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+gopherplus(URLParts *up, MIMEType *mtlist)
 {
   return(gopher_main(up, mtlist, 1));
 }
@@ -475,9 +465,7 @@ MIMEType *mtlist;
  * The plain gopher frontend to gopher_main
  */
 Document *
-gopherplain(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+gopherplain(URLParts *up, MIMEType *mtlist)
 {
   return(gopher_main(up, mtlist, 0));
 }

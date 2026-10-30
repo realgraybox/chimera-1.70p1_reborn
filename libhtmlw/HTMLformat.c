@@ -280,12 +280,7 @@ HaveRealBaseLine (int baseline)
  * Type-specific as well as type-independent initialization is done.
  */
 static void
-AddFElement (hw, type, fp, x, y, edata)
-HTMLWidget hw;
-int type;
-XFontStruct *fp;
-int x, y;
-char *edata;
+AddFElement (HTMLWidget hw, int type, XFontStruct *fp, int x, int y, char *edata)
 {
   struct ele_rec *eptr;
   char *saved_edata;
@@ -551,8 +546,7 @@ char *edata;
  * Change our drawing font 
  */
 void
-NewFont (fp)
-XFontStruct *fp;
+NewFont (XFontStruct *fp)
 {
   /*
    * Deal with bad Lucida descents.
@@ -573,9 +567,7 @@ XFontStruct *fp;
  * Create and add the element record for it.
  */
 static void
-LinefeedPlace (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+LinefeedPlace (HTMLWidget hw, int *x, int *y)
 {
   /*
    * At the end of every line check if we have a new MaxWidth
@@ -637,9 +629,7 @@ int *x, *y;
  * and move down some space.
  */
 void
-LineFeed (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+LineFeed (HTMLWidget hw, int *x, int *y)
 {
   /*
    * Manipulate linefeed state for special pre-formatted linefeed
@@ -700,10 +690,7 @@ int *x, *y;
  * But if we are already there, don't put in a new line.
  */
 void
-ConditionalLineFeed (hw, x, y, state)
-HTMLWidget hw;
-int *x, *y;
-int state;
+ConditionalLineFeed (HTMLWidget hw, int *x, int *y, int state)
 {
   if (PF_LF_State < state)
   {
@@ -734,9 +721,7 @@ int state;
  * looking linefeeds.
  */
 void
-HardLineFeed (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+HardLineFeed (HTMLWidget hw, int *x, int *y)
 {
   /*
    * Manipulate linefeed state for special pre-formatted linefeed
@@ -833,9 +818,7 @@ AdjustBaseLine ()
  * list item.  Create and add the element record for it.
  */
 void
-BulletPlace (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+BulletPlace (HTMLWidget hw, int *x, int *y)
 {
   int width = hw->html.font->max_bounds.lbearing
             + hw->html.font->max_bounds.rbearing;
@@ -884,10 +867,7 @@ int *x, *y;
  * Create and add the element record for it.
  */
 void
-HRulePlace (hw, x, y, width)
-HTMLWidget hw;
-int *x, *y;
-unsigned int width;
+HRulePlace (HTMLWidget hw, int *x, int *y, unsigned int width)
 {
   *x = (CurrentTable == NULL) ?  hw->html.margin_width : TextIndent;
   AddFElement (hw, E_HRULE, currentFont, *x, *y, (char *) NULL);
@@ -914,10 +894,7 @@ unsigned int width;
  * Create and add the element record for it.
  */
 void
-ListNumberPlace (hw, x, y, val)
-HTMLWidget hw;
-int *x, *y;
-int val;
+ListNumberPlace (HTMLWidget hw, int *x, int *y, int val)
 {
   int width, my_x;
   int dir, ascent, descent;
@@ -956,11 +933,11 @@ int val;
  * Place a piece of pre-formatted text. Add an element record for it.
  */
 static void
-PreformatPlace (hw, text, x, y, width)
-HTMLWidget hw;
-char *text;			/* not const; some whitespace changed to 040 */
-int *x, *y;
-unsigned int width;
+PreformatPlace (HTMLWidget hw,
+                char *text,	/* not const; some whitespace changed to 040 */
+                int *x,
+                int *y,
+                unsigned int width)
 {
   const char *start;
   const char *end;
@@ -1182,9 +1159,7 @@ unsigned int width;
  */
 
 static void
-IfNeedSpaceDo (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+IfNeedSpaceDo (HTMLWidget hw, int *x, int *y)
 {
   if (!Preformat  &&  NeedSpace < 0)
   {
@@ -1216,11 +1191,7 @@ int *x, *y;
  * Format and place a piece of text. Add an element record for it.
  */
 static void
-FormatPlace (hw, text, x, y, xmax)
-HTMLWidget hw;
-const char *text;
-int *x, *y;
-unsigned int xmax;
+FormatPlace (HTMLWidget hw, const char *text, int *x, int *y, unsigned int xmax)
 {
   const char *start, *end;
 #ifdef DOUBLE_SPACE_AFTER_PUNCT
@@ -1618,11 +1589,11 @@ PlaceholderSize (const char *taginfo, int *w, int *h)
  * Place an image.  Add an element record for it.
  */
 static void
-ImagePlace (hw, taginfo, x, y, width)
-HTMLWidget hw;
-const char *taginfo;
-int *x, *y;
-unsigned int width;		/* = right hand margin */
+ImagePlace (HTMLWidget hw,
+            const char *taginfo,
+            int *x,
+            int *y,
+            unsigned int width)	/* = right hand margin */
 {
   struct ele_rec *const savedCurrent = Current;
   char *tptr, *aptr;
@@ -1926,11 +1897,7 @@ fprintf(stderr, "Recording HEIGHT=\"%d\"\n", global_html_height);
  * Place a Widget.  Add an element record for it.
  */
 static void
-WidgetPlace (hw, taginfo, x, y, width)
-HTMLWidget hw;
-const char *taginfo;
-int *x, *y;
-unsigned int width;
+WidgetPlace (HTMLWidget hw, const char *taginfo, int *x, int *y, unsigned int width)
 {
   struct ele_rec *const savedCurrent = Current;
   int marginw = (CurrentTable != NULL) ?  0 : MarginW;
@@ -2068,8 +2035,7 @@ unsigned int width;
 
 
 static void
-PushFont (font)
-XFontStruct *font;
+PushFont (XFontStruct *font)
 {
   FontRec *fptr;
 #ifdef DEBUG_PUSHFONT
@@ -2126,13 +2092,7 @@ PopFont ()
  */
 
 static void
-DisplayMessage (hw, x, y, msg, font, xmax, center)
-HTMLWidget hw;
-int *x, *y;
-const char *msg;
-XFontStruct *font;
-unsigned int xmax;
-Boolean center;
+DisplayMessage (HTMLWidget hw, int *x, int *y, const char *msg, XFontStruct *font, unsigned int xmax, Boolean center)
 {
   /*
    * switch to specified font
@@ -2246,8 +2206,7 @@ is_empty_or_whitespace(const char *s)
 }
 
 static void
-ProcessOption (sptr)
-SelectInfo *sptr;
+ProcessOption (SelectInfo *sptr)
 {
   int i, cnt;
   char **tarray;
@@ -2334,9 +2293,7 @@ SelectInfo *sptr;
  * This lets us safely put the resultant value between double quotes.
  */
 char *
-TextAreaAddValue (value, text)
-char *value;
-char *text;
+TextAreaAddValue (char *value, char *text)
 {
   int extra;
   char *buf;
@@ -2396,8 +2353,7 @@ char *text;
  * of those columns.
  */
 static void
-WidenTableColumn (col, deltax0)
-int col, deltax0;
+WidenTableColumn (int col, int deltax0)
 {
   struct ele_rec *eptr;
   int i, first, last;
@@ -2430,8 +2386,7 @@ int col, deltax0;
  * Make room in the rowspan arrays of CurrentTable for columns 0..n.
  */
 static void
-TableSpanRoom (n)
-int n;
+TableSpanRoom (int n)
 {
   int i, cap = CurrentTable->span_cap;
 
@@ -2459,9 +2414,7 @@ int n;
  * height is set by Table_Row_Close and its width by Table_Close.
  */
 static void
-TableCellBorder (hw, col, endcol, x0, sides)
-HTMLWidget hw;
-int col, endcol, x0, sides;
+TableCellBorder (HTMLWidget hw, int col, int endcol, int x0, int sides)
 {
   Boolean empty = EmptyRegion;	/* AddFElement clears it */
   Boolean at_context_start = (PrevContextEnd == Current);
@@ -2494,10 +2447,7 @@ int col, endcol, x0, sides;
 /* #define TABLE_DEBUG 1 */
 
 static void
-Table_Open (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Open (HTMLWidget hw, char *opstr, int *x, int *y)
 {
   //TBL_INFO *newtable = (TBL_INFO *) XtMalloc (sizeof (TBL_INFO));
   //valgrind FIX:
@@ -2597,10 +2547,7 @@ memset(newtable, 0, sizeof(TBL_INFO));
 
 
 static void
-Table_Close (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Close (HTMLWidget hw, char *opstr, int *x, int *y)
 {
 #ifdef TABLE_DEBUG
   printf ("%s %d\n", opstr, TableDepth);
@@ -2797,10 +2744,7 @@ int *x, *y;
 
 
 static void
-Table_Row_Open (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Row_Open (HTMLWidget hw, char *opstr, int *x, int *y)
 {
     *x =  CellMaxX =  CurrentTable->tbl_x0;
     CurrentTable->col_x0[0] = *x;
@@ -2841,10 +2785,7 @@ int *x, *y;
 
 
 static void
-Table_Row_Close (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Row_Close (HTMLWidget hw, char *opstr, int *x, int *y)
 {
   int loc;
 
@@ -2899,10 +2840,7 @@ int *x, *y;
 
 
 static void
-Table_Item_Open (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Item_Open (HTMLWidget hw, char *opstr, int *x, int *y)
 {
   int sx, loc, w, span, nextcol, rowspan;
   int mycol = CurrentTable->nextcol;  /* advance to next column */
@@ -3096,10 +3034,7 @@ int *x, *y;
 
 
 static void
-Table_Item_Close (hw, opstr, x, y)
-HTMLWidget hw;
-char *opstr;
-int *x, *y;
+Table_Item_Close (HTMLWidget hw, char *opstr, int *x, int *y)
 {
   int max_y = *y + LineBottom + Max(BaseLine, 0);
   //int w;
@@ -3149,9 +3084,7 @@ int *x, *y;
  * seems to have left one out.
  */
 static void
-EnsureTableItemOpen (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+EnsureTableItemOpen (HTMLWidget hw, int *x, int *y)
 {
   switch (CurrentTable->state)
   {
@@ -3175,10 +3108,7 @@ int *x, *y;
  * Some calls create elements that are added to the formatted element list.
  */
 void
-TriggerMarkChanges (hw, mptr, x, y)
-HTMLWidget hw;
-struct mark_up *mptr;
-int *x, *y;
+TriggerMarkChanges (HTMLWidget hw, struct mark_up *mptr, int *x, int *y)
 {
   struct mark_up *mark;
   XFontStruct *font;
@@ -4639,9 +4569,7 @@ int *x, *y;
  * before this function was called.
  */
 void
-FormatChunk (hw, x, y)
-HTMLWidget hw;
-int *x, *y;
+FormatChunk (HTMLWidget hw, int *x, int *y)
 {
   struct mark_up *mptr;
 
@@ -4692,9 +4620,7 @@ int *x, *y;
  * Title objects are ignored, and not formatted.
  */
 int
-FormatAll (hw, Fwidth)
-HTMLWidget hw;
-int *Fwidth;
+FormatAll (HTMLWidget hw, int *Fwidth)
 {
   int x, y;
   int width;
@@ -5069,9 +4995,7 @@ int *Fwidth;
  * Basically a filled rectangle at the end of a line.
  */
 void
-LinefeedRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+LinefeedRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
   int x1, y1;
   unsigned int width, height;
@@ -5192,12 +5116,13 @@ DrawLongString (HTMLWidget hw, XFontStruct *font, int image,
  * Redraw part of a formatted text element, in the passed fg and bg
  */
 void
-PartialRefresh (hw, eptr, start_pos, end_pos, fg, bg, sip)
-HTMLWidget hw;
-struct ele_rec *eptr;
-int start_pos, end_pos;
-unsigned long fg, bg;
-int sip;			/* selection-in-progress --GN 1997May05 */
+PartialRefresh (HTMLWidget hw,
+                struct ele_rec *eptr,
+                int start_pos,
+                int end_pos,
+                unsigned long fg,
+                unsigned long bg,
+                int sip)	/* selection-in-progress --GN 1997May05 */
 {
   int ascent;
   char *tdata;
@@ -5412,11 +5337,7 @@ int sip;			/* selection-in-progress --GN 1997May05 */
  * Redraw a formatted text element
  */
 void
-TextRefresh (hw, eptr, start_pos, end_pos, sip)
-HTMLWidget hw;
-struct ele_rec *eptr;
-int start_pos, end_pos;
-int sip;
+TextRefresh (HTMLWidget hw, struct ele_rec *eptr, int start_pos, int end_pos, int sip)
 {
   if (eptr->selected == False)
   {
@@ -5452,9 +5373,7 @@ int sip;
  * Redraw a formatted bullet element
  */
 void
-BulletRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+BulletRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
   int width, line_height;
   int x1, y1;
@@ -5498,9 +5417,7 @@ struct ele_rec *eptr;
  * Redraw a formatted horizontal rule element
  */
 void
-HRuleRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+HRuleRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
   int width, height;
   int x1, y1;
@@ -5543,9 +5460,7 @@ struct ele_rec *eptr;
  * Redraw the outline of a table cell (E_TBLBORDER)
  */
 static void
-TableBorderRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+TableBorderRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
   Display *dpy = XtDisplay (hw->html.view);
   Window win = XtWindow (hw->html.view);
@@ -5581,9 +5496,7 @@ static int DummyXErrorHandler(Display *dpy, XErrorEvent *err)
  * or not.
  */
 void
-ImageRefresh (hw, eptr)
-HTMLWidget hw;
-struct ele_rec *eptr;
+ImageRefresh (HTMLWidget hw, struct ele_rec *eptr)
 {
   if (eptr->img_data != NULL)	/* if img_data is non-NULL, pic_data is too */
   {
@@ -5754,11 +5667,7 @@ struct ele_rec *eptr;
  * --GN 1997May05
  */
 void
-RefreshTextRange (hw, start, end, sip)
-HTMLWidget hw;
-struct ele_rec *start;
-struct ele_rec *end;
-int sip;
+RefreshTextRange (HTMLWidget hw, struct ele_rec *start, struct ele_rec *end, int sip)
 {
   struct ele_rec *eptr;
 
@@ -5785,9 +5694,7 @@ int sip;
  * Refresh all elements on a single line into the widget's window
  */
 void
-PlaceLine (hw, line, x0, y0, xmax, ymax)
-HTMLWidget hw;
-int line, x0, y0, xmax, ymax;
+PlaceLine (HTMLWidget hw, int line, int x0, int y0, int xmax, int ymax)
 {
   struct ele_rec *eptr;
 
@@ -5861,11 +5768,7 @@ int line, x0, y0, xmax, ymax;
  *    cursor is at in *pos.
  */
 struct ele_rec *
-LocateElement (hw, x, y, pos, oep)
-HTMLWidget hw;
-int x, y;
-int *pos;
-struct ele_rec *oep;
+LocateElement (HTMLWidget hw, int x, int y, int *pos, struct ele_rec *oep)
 {
   struct ele_rec *eptr;
   struct ele_rec *rptr;
@@ -6138,9 +6041,7 @@ struct expstring {
  * ep->s if needed.  Update the associated current length and maximum length.
  */
 static void
-strcpy_or_grow (ep, s2)
-struct expstring *const ep;
-const char *const s2;
+strcpy_or_grow (struct expstring *const ep, const char *const s2)
 {
   int newlen, s2len;
 
@@ -6172,9 +6073,7 @@ const char *const s2;
  * ToCol: Add tabs and spaces to end of line to advance to specified column
  */
 static void
-ToCol (epp, atcol, newcol)
-struct expstring *epp;
-int atcol, newcol;
+ToCol (struct expstring *epp, int atcol, int newcol)
 {
   int tabcol = (newcol & ~7) - 1;
 
@@ -6195,12 +6094,12 @@ int atcol, newcol;
  * space_width and lmargin tell us how many spaces to indent lines.
  */
 char *
-ParseTextToString (hw, startp, endp, start_pos, end_pos, em)
-HTMLWidget hw;			/* doubles as "pretty" boolean */
-struct ele_rec *startp;
-struct ele_rec *endp;		/* NULL means through end */
-int start_pos, end_pos;
-int em;				/* max. width of characters in this font */
+ParseTextToString (HTMLWidget hw,	/* doubles as "pretty" boolean */
+                   struct ele_rec *startp,
+                   struct ele_rec *endp,	/* NULL means through end */
+                   int start_pos,
+                   int end_pos,
+                   int em)	/* max. width of characters in this font */
 {
   const Boolean pretty = (hw != NULL);
   const int en = (em + 1) / 2;	/* "en" is a standard printing measure */
@@ -6503,9 +6402,7 @@ int em;				/* max. width of characters in this font */
  *      (width of that text's font)
  */
 int
-DocumentWidth (hw, list)
-HTMLWidget hw;
-struct mark_up *list;
+DocumentWidth (HTMLWidget hw, struct mark_up *list)
 {
   struct mark_up *mptr;
   int plain_text;

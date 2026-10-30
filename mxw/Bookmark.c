@@ -176,10 +176,10 @@ WidgetClass bookmarkWidgetClass = (WidgetClass) &bookmarkClassRec;
  * BInitialize
  */
 static void
-BInitialize(request, new, xargs, num_args)
-Widget request, new;
-ArgList xargs;                  /* unused */
-Cardinal *num_args;             /* unused */
+BInitialize(Widget request,
+            Widget new,
+            ArgList xargs,	/* unused */
+            Cardinal *num_args)	/* unused */
 {
   BookmarkWidget bw = (BookmarkWidget)new;
   Arg args[1];
@@ -288,10 +288,7 @@ Cardinal *num_args;             /* unused */
  * BRealize
  */
 static void
-BRealize(w, valueMask, attributes)
-Widget w;
-XtValueMask *valueMask;
-XSetWindowAttributes *attributes;
+BRealize(Widget w, XtValueMask *valueMask, XSetWindowAttributes *attributes)
 {
   (*bookmarkWidgetClass->core_class.superclass->core_class.realize)
       (w, valueMask, attributes);
@@ -303,8 +300,7 @@ XSetWindowAttributes *attributes;
  * BDestroy
  */
 static void
-BDestroy(w)
-Widget w;
+BDestroy(Widget w)
 {
   BookmarkWidget bw = (BookmarkWidget)w;
   Bookmark *bm, *tm;
@@ -343,12 +339,7 @@ Widget w;
  * BSetValues
  */
 static Boolean
-BSetValues(old, request, new, args, num_args)
-Widget old;
-Widget request;
-Widget new;
-ArgList args;
-Cardinal *num_args;
+BSetValues(Widget old, Widget request, Widget new, ArgList args, Cardinal *num_args)
 {
   return(False);
 }
@@ -357,9 +348,7 @@ Cardinal *num_args;
  * BDismissFunc
  */
 static void
-BDismissFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BDismissFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   XtPopdown((Widget)cldata);
   XtDestroyWidget((Widget)cldata);
@@ -371,13 +360,7 @@ XtPointer cldata, cbdata;
  * CreateStrReq
  */
 static void
-CreateStrReq(w, name, defstr, hidden, okcallback, cldata)
-Widget w;
-char *name;
-char *defstr;
-Boolean hidden;
-XtCallbackProc okcallback;
-XtPointer cldata;
+CreateStrReq(Widget w, char *name, char *defstr, Boolean hidden, XtCallbackProc okcallback, XtPointer cldata)
 {
   Widget nw;
   Arg args[10];
@@ -412,9 +395,7 @@ XtPointer cldata;
  * SRGroupAddCallback
  */
 static void
-SRGroupAddCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SRGroupAddCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   BookmarkWidget bw = (BookmarkWidget)cldata;
 
@@ -437,9 +418,7 @@ XtPointer cldata, cbdata;
  * GroupAddFunc
  */
 static void
-GroupAddFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+GroupAddFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   CreateStrReq(w, "srgroupadd", "",
 	       False, SRGroupAddCallback, (XtPointer)cldata);
@@ -451,9 +430,7 @@ XtPointer cldata, cbdata;
  * SRMarkAddCallback
  */
 static void
-SRMarkAddCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SRMarkAddCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   BookmarkWidget bw = (BookmarkWidget)cldata;
   Bookmark *b;
@@ -480,9 +457,7 @@ XtPointer cldata, cbdata;
  * MarkAddFunc
  */
 static void
-MarkAddFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+MarkAddFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   BookmarkWidget bw = (BookmarkWidget)cldata;
 
@@ -516,9 +491,7 @@ XtPointer cldata, cbdata;
  * BGroupDelCallback
  */
 static void
-BGroupDelCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BGroupDelCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   BookmarkWidget bw = (BookmarkWidget)cldata;
   Bookmark *b, *tb;
@@ -558,9 +531,7 @@ XtPointer cldata, cbdata;
  * BGroupListCallback
  */
 static void
-BGroupListCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BGroupListCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   XawListReturnStruct *lr = (XawListReturnStruct *)cbdata;
   BookmarkWidget bw = (BookmarkWidget)cldata;
@@ -586,9 +557,7 @@ XtPointer cldata, cbdata;
  * BMarkDelCallback
  */
 static void
-BMarkDelCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BMarkDelCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   BookmarkWidget bw = (BookmarkWidget)cldata;
   XawListReturnStruct *lr;
@@ -630,11 +599,7 @@ XtPointer cldata, cbdata;
  * BMarkSelect
  */
 static void
-BMarkSelect(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+BMarkSelect(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   BookmarkWidget bw;
   char *url;
@@ -676,8 +641,7 @@ Cardinal *num_params;
  * Deallocate a bookmark
  */
 static void
-DestroyBookmark(b)
-Bookmark *b;
+DestroyBookmark(Bookmark *b)
 {
   if (b->url) XtFree(b->url);
   if (b->display) XtFree(b->display);
@@ -690,8 +654,7 @@ Bookmark *b;
  * CreateBookmark
  */
 static Bookmark *
-CreateBookmark(url, display)
-char *url, *display;
+CreateBookmark(char *url, char *display)
 {
   Bookmark *b;
 
@@ -707,8 +670,7 @@ char *url, *display;
  * CreateBookmarkGroup
  */
 static BookmarkGroup *
-CreateBookmarkGroup(name)
-char *name;
+CreateBookmarkGroup(char *name)
 {
   BookmarkGroup *bg;
 
@@ -724,8 +686,7 @@ char *name;
  * EatSpace
  */
 static char *
-EatSpace(s)
-char *s;
+EatSpace(char *s)
 {
   char *cp;
 
@@ -742,8 +703,7 @@ char *s;
  * Read bookmarks from a file.
  */
 static void
-ReadBookmarkFile(bw)
-BookmarkWidget bw;
+ReadBookmarkFile(BookmarkWidget bw)
 {
   char *mumble;
   char *filename;
@@ -856,8 +816,7 @@ BookmarkWidget bw;
  * WriteBookmarkFile
  */
 static void
-WriteBookmarkFile(bw)
-BookmarkWidget bw;
+WriteBookmarkFile(BookmarkWidget bw)
 {
   FILE *fp;
   Bookmark *b;
@@ -922,8 +881,7 @@ BookmarkWidget bw;
  * Makes an array of char pointers to the list of bookmark groups.
  */
 static void
-MakeBookmarkGroupList(bw)
-BookmarkWidget bw;
+MakeBookmarkGroupList(BookmarkWidget bw)
 {
   char **list;
   BookmarkGroup *bg;
@@ -960,8 +918,7 @@ BookmarkWidget bw;
  * Makes an array of char pointers to the list of bookmarks.
  */
 static void
-MakeBookmarkList(bw)
-BookmarkWidget bw;
+MakeBookmarkList(BookmarkWidget bw)
 {
   int i, count;
   Bookmark *b;
@@ -1014,9 +971,7 @@ BookmarkWidget bw;
  * Returns the URL for a bookmark.
  */
 static char *
-GetBookmarkURL(bw, index)
-BookmarkWidget bw;
-int index;
+GetBookmarkURL(BookmarkWidget bw, int index)
 {
   int i;
   Bookmark *b;

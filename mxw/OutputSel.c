@@ -134,11 +134,7 @@ WidgetClass outputSelWidgetClass = (WidgetClass) &outputSelClassRec;
  * OSPressReturn
  */
 static void
-OSPressReturn(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+OSPressReturn(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   OutputSelWidget osw;
   Widget xw;
@@ -164,8 +160,7 @@ Cardinal *num_params;
  * GetFieldStr
  */
 static char *
-GetFieldStr(osw)
-OutputSelWidget osw;
+GetFieldStr(OutputSelWidget osw)
 {
   if (OSREC.outputDevice == 0) return(OSREC.defaultPrinter);
   else if (OSREC.outputDevice == 1) return(OSREC.defaultFilename);
@@ -176,10 +171,10 @@ OutputSelWidget osw;
  * OSInitialize
  */
 static void
-OSInitialize(request, new, xargs, num_args)
-Widget request, new;
-ArgList xargs;                  /* unused */
-Cardinal *num_args;             /* unused */
+OSInitialize(Widget request,
+             Widget new,
+             ArgList xargs,	/* unused */
+             Cardinal *num_args)	/* unused */
 {
   OutputSelWidget osw = (OutputSelWidget)new;
   Arg args[10];
@@ -279,10 +274,7 @@ Cardinal *num_args;             /* unused */
  * OSRealize
  */
 static void
-OSRealize(w, valueMask, attributes)
-Widget w;
-XtValueMask *valueMask;
-XSetWindowAttributes *attributes;
+OSRealize(Widget w, XtValueMask *valueMask, XSetWindowAttributes *attributes)
 {
   OutputSelWidget osw = (OutputSelWidget)w;
 
@@ -298,8 +290,7 @@ XSetWindowAttributes *attributes;
  * OSDestroy
  */
 static void
-OSDestroy(w)
-Widget w;
+OSDestroy(Widget w)
 {
   return;
 }
@@ -308,12 +299,7 @@ Widget w;
  * OSSetValues
  */
 static Boolean
-OSSetValues(old, request, new, args, num_args)
-Widget old;
-Widget request;
-Widget new;
-ArgList args;
-Cardinal *num_args;
+OSSetValues(Widget old, Widget request, Widget new, ArgList args, Cardinal *num_args)
 {
   return(False);
 }
@@ -322,9 +308,7 @@ Cardinal *num_args;
  * OTCallback
  */
 static void
-OTCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+OTCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelWidget osw = (OutputSelWidget)cldata;
   int i;
@@ -357,9 +341,7 @@ XtPointer cldata, cbdata;
  * TTCallback
  */
 static void
-TTCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+TTCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelWidget osw = (OutputSelWidget)cldata;
   int i;
@@ -388,9 +370,7 @@ XtPointer cldata, cbdata;
  * ClearFunc
  */
 static void
-ClearFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+ClearFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelWidget osw = (OutputSelWidget)cldata;
 
@@ -403,9 +383,7 @@ XtPointer cldata, cbdata;
  * OKFunc
  */
 static void
-OKFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+OKFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelWidget osw = (OutputSelWidget)cldata;
   OutputSelCallbackInfo osci;
@@ -424,9 +402,7 @@ XtPointer cldata, cbdata;
  * DismissFunc
  */
 static void
-DismissFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+DismissFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelWidget osw = (OutputSelWidget)cldata;
 

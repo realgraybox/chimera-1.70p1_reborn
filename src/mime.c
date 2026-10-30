@@ -72,8 +72,7 @@ static MIMEType mhlist[] =
  * ReadMimeTypes
  */
 MIMEType *
-ReadMIMETypeFiles(filelist)
-char *filelist;
+ReadMIMETypeFiles(char *filelist)
 {
   FILE *fp;
   char *f;
@@ -125,9 +124,7 @@ char *filelist;
  * Ext2Content
  */
 char *
-Ext2Content(mlist, ext)
-MIMEType *mlist;
-char *ext;
+Ext2Content(MIMEType *mlist, char *ext)
 {
   int elen, flen;
   MIMEType *c;
@@ -183,8 +180,7 @@ static MailCap mclist[] =
  * Read a list of mailcap files.
  */
 MailCap *
-ReadMailCapFiles(filelist)
-char *filelist;
+ReadMailCapFiles(char *filelist)
 {
   FILE *fp;
   char *f;
@@ -231,10 +227,7 @@ char *filelist;
  * start_viewer
  */
 static int
-start_viewer(path, command, filename)
-char *path;
-char *command;
-char *filename;
+start_viewer(char *path, char *command, char *filename)
 {
   char *cmdline;
   int status;
@@ -261,11 +254,7 @@ char *filename;
  * FindViewer
  */
 static int
-FindViewer(c, content, path, filename)
-MailCap *c;
-char *content;
-char *path;
-char *filename;
+FindViewer(MailCap *c, char *content, char *path, char *filename)
 {
   int len, dlen;
 
@@ -302,11 +291,7 @@ char *filename;
  * mean that the viewer actually worked.
  */
 int
-DisplayExternal(filename, content, path, caplist)
-char *filename;
-char *content;
-char *path;
-MailCap *caplist;
+DisplayExternal(char *filename, char *content, char *path, MailCap *caplist)
 {
   MailCap *c;
   int rval;
@@ -334,8 +319,7 @@ printf("DBG: 01 filename %s\n",filename );
  * This functions sucks.
  */
 time_t
-ParseExpiresDate(s)
-char *s;
+ParseExpiresDate(char *s)
 {
 #ifdef HAVE_MKTIME
   int i;
@@ -373,8 +357,7 @@ char *s;
  * DestroyMIMEField
  */
 void
-DestroyMIMEField(m)
-MIMEField *m;
+DestroyMIMEField(MIMEField *m)
 {
   if (m->name != NULL) free_mem(m->name);
   if (m->value != NULL) free_mem(m->value);
@@ -389,8 +372,7 @@ MIMEField *m;
  * This is a disaster when it comes to parsing MIME stuff.
  */
 MIMEField *
-CreateMIMEField(line)
-char *line;
+CreateMIMEField(char *line)
 {
   char field[BUFSIZ];
   char junk[BUFSIZ];
@@ -415,10 +397,7 @@ char *line;
  * GetMIMEValue
  */
 char *
-GetMIMEValue(mlist, name, used)
-MIMEField *mlist;
-char *name;
-int used;
+GetMIMEValue(MIMEField *mlist, char *name, int used)
 {
   MIMEField *m;
 

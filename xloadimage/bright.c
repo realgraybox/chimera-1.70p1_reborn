@@ -16,9 +16,7 @@
 /* alter an image's brightness by a given percentage
  */
 
-void brighten(image, percent)
-     Image        *image;
-     unsigned int  percent;
+void brighten(Image *image, unsigned int percent)
 { int          a;
   unsigned int newrgb;
   float        fperc;
@@ -63,9 +61,7 @@ void brighten(image, percent)
 }
 
 static void
-make_gamma( gamma, gammamap )
-double gamma;
-int gammamap[256];
+make_gamma(double gamma, int gammamap[256])
 {
   register int i;
 
@@ -84,9 +80,7 @@ int gammamap[256];
   return;
 }
 
-void gammacorrect(image, disp_gam)
-     Image *image;
-     double disp_gam;
+void gammacorrect(Image *image, double disp_gam)
 { int          a;
   int gammamap[256];
   unsigned int size;
@@ -122,9 +116,7 @@ void gammacorrect(image, disp_gam)
 /* this initializes a lookup table for doing normalization
  */
 
-static void setupNormalizationArray(min, max, array)
-     unsigned int min, max;
-     byte *array;
+static void setupNormalizationArray(unsigned int min, unsigned int max, byte *array)
 { int a;
   unsigned int new;
   float factor;
@@ -139,8 +131,7 @@ static void setupNormalizationArray(min, max, array)
 /* normalize an image.
  */
 
-Image *normalize(image)
-     Image        *image;
+Image *normalize(Image *image)
 { unsigned int  a, x, y;
   unsigned int  min, max;
   Pixel         pixval;
@@ -240,8 +231,7 @@ Image *normalize(image)
 /* convert to grayscale
  */
 
-void gray(image)
-     Image *image;
+void gray(Image *image)
 { int a;
   unsigned int size;
   Intensity intensity, red, green, blue;

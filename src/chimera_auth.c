@@ -17,8 +17,7 @@
  * Reads authentication info from a file.
  */
 void
-GetAuthInfo(filelist)
-char *filelist;
+GetAuthInfo(char *filelist)
 {
   return;
 }
@@ -30,9 +29,7 @@ char *filelist;
  * info is correct.
  */
 int
-IsAuthentic(name, info)
-char *name;
-char *info;
+IsAuthentic(char *name, char *info)
 {
   return(0);
 }
@@ -43,8 +40,7 @@ char *info;
  * Returns a non-zero value if the ticket is valid
  */
 int
-IsKAuthentic(kdata)
-char *kdata;
+IsKAuthentic(char *kdata)
 {
   return(0);
 }

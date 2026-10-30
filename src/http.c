@@ -32,9 +32,7 @@
  * ECToDS
  */
 static void
-ECToDS(d, error_code)
-Document *d;
-int error_code;
+ECToDS(Document *d, int error_code)
 {
   if (error_code >= 200 && error_code < 300)
   {
@@ -67,8 +65,7 @@ int error_code;
  * ParseHTTPRequest
  */
 Document *
-ParseHTTPRequest(s)
-int s;
+ParseHTTPRequest(int s)
 {
   Document *d;
   char buffer[BUFSIZ];
@@ -150,8 +147,7 @@ int s;
  * in here.
  */
 Document *
-ParseHTTPResponse(s)
-int s;
+ParseHTTPResponse(int s)
 {
   Document *d;
   char buffer[BUFSIZ];
@@ -433,10 +429,7 @@ static char six2pr[64] =
  *
  */
 static int
-uuencode(bufin, nbytes, bufcoded)
-unsigned char *bufin;
-unsigned int nbytes;
-char *bufcoded;
+uuencode(unsigned char *bufin, unsigned int nbytes, char *bufcoded)
 {
   /* ENC is the basic 1 character encoding function to make a char printing */
 #define ENC(c) six2pr[c]
@@ -479,10 +472,7 @@ char *bufcoded;
  * Build the string needed for authorization.
  */
 static char *
-build_auth_info(type, username, password)
-char *type;
-char *username;
-char *password;
+build_auth_info(char *type, char *username, char *password)
 {
   char *garbage;
   char *auth_info;
@@ -501,7 +491,7 @@ char *password;
     char *t;
 
     t = alloc_mem(strlen(garbage) * 2);
-    uuencode(garbage, strlen(garbage), t);
+    uuencode((unsigned char *) garbage, strlen(garbage), t);
     free_mem(garbage);
     garbage = t;;
   }
@@ -520,8 +510,7 @@ char *password;
  * GetHTTPRequestData
  */
 static char *
-GetHTTPRequestData(up)
-URLParts *up;
+GetHTTPRequestData(URLParts *up)
 {
   char **vlist;
   char **nlist;
@@ -589,11 +578,7 @@ URLParts *up;
  * Host header added in crlf mode, GN 1997May01
  */
 static char *
-build_request(up, filename, extra_header, crlf)
-URLParts *up;
-char *filename;
-char *extra_header;
-int crlf;
+build_request(URLParts *up, char *filename, char *extra_header, int crlf)
 {
   char *data_type;
   char *query;
@@ -713,11 +698,7 @@ int crlf;
  * Sends an HTTP request
  */
 int
-http_request(fd, up, type, reload)
-int fd;
-URLParts *up;
-int type;
-int reload;
+http_request(int fd, URLParts *up, int type, int reload)
 {
   char *query;
   char *extra_header;
@@ -792,11 +773,7 @@ X-filename: %s\n\
  * Talk to an HTTP server.
  */
 static Document *
-http_main(up, rup, mtlist, reload)
-URLParts *up;
-URLParts *rup;
-MIMEType *mtlist;
-int reload;
+http_main(URLParts *up, URLParts *rup, MIMEType *mtlist, int reload)
 {
   Document *d;
   int s;
@@ -842,9 +819,7 @@ int reload;
  * Frontend for regular HTTP
  */
 Document *
-http(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+http(URLParts *up, MIMEType *mtlist)
 {
   return(http_main(up, NULL, mtlist, 0));
 }
@@ -855,11 +830,7 @@ MIMEType *mtlist;
  * Frontend for proxy HTTP
  */
 Document *
-http_proxy(up, rup, mtlist, reload)
-URLParts *up;
-URLParts *rup;
-MIMEType *mtlist;
-int reload;
+http_proxy(URLParts *up, URLParts *rup, MIMEType *mtlist, int reload)
 {
   return(http_main(up, rup, mtlist, reload));
 }

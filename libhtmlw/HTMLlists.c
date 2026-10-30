@@ -75,8 +75,7 @@
  * all memory associated with each element.
  */
 void
-FreeObjList (List)
-struct mark_up *List;
+FreeObjList (struct mark_up *List)
 {
   struct mark_up *current;
   struct mark_up *mptr;
@@ -112,11 +111,7 @@ struct mark_up *List;
  * white space.
  */
 struct mark_up *
-AddObj (listp, current, mark, keep_wsp)
-struct mark_up **listp;
-struct mark_up *current;
-struct mark_up *mark;
-int keep_wsp;
+AddObj (struct mark_up **listp, struct mark_up *current, struct mark_up *mark, int keep_wsp)
 {
   if (mark == NULL)
   {
@@ -183,8 +178,7 @@ int keep_wsp;
  * Convert type number to a printed string for debug
  */
 void
-PrintType (type)
-int type;
+PrintType (int type)
 {
   switch (type)
   {
@@ -244,8 +238,7 @@ int type;
  * Print the contents of a parsed object list, for debug
  */
 void
-PrintList (list)
-struct mark_up *list;
+PrintList (struct mark_up *list)
 {
   struct mark_up *mptr;
 
@@ -285,9 +278,7 @@ struct mark_up *list;
  * finding line widths, a newline resets the width count.
  */
 char *
-MaxTextWidth (txt, cnt)
-char *txt;
-int *cnt;
+MaxTextWidth (char *txt, int *cnt)
 {
   char *start;
   char *end;
@@ -341,8 +332,7 @@ int *cnt;
  * (FreeLineList and MakeLineList are completely unrelated functionally.)
  */
 void
-FreeLineList (list)
-struct ele_rec *list;
+FreeLineList (struct ele_rec *list)
 {
   struct ele_rec *current = list;
 
@@ -366,10 +356,7 @@ struct ele_rec *list;
  * return a pointer to the current (end) position in the list.
  */
 struct ele_rec *
-AddEle (elistp, current, eptr)
-struct ele_rec **elistp;
-struct ele_rec *current;
-struct ele_rec *eptr;
+AddEle (struct ele_rec **elistp, struct ele_rec *current, struct ele_rec *eptr)
 {
   if (eptr == NULL)
   {
@@ -406,9 +393,7 @@ struct ele_rec *eptr;
  * (FreeLineList and MakeLineList are completely unrelated functionally.)
  */
 struct ele_rec **
-MakeLineList (elist, max_line)
-struct ele_rec *elist;
-int max_line;
+MakeLineList (struct ele_rec *elist, int max_line)
 {
   int i;
   struct ele_rec *eptr;
@@ -455,10 +440,7 @@ int max_line;
  * Otherwise return 0.
  */
 int
-ElementLessThan (start, end, start_pos, end_pos)
-struct ele_rec *start;
-struct ele_rec *end;
-int start_pos, end_pos;
+ElementLessThan (struct ele_rec *start, struct ele_rec *end, int start_pos, int end_pos)
 {
   struct ele_rec *current;
 
@@ -539,10 +521,7 @@ int start_pos, end_pos;
  * Otherwise return 0.
  */
 int
-SwapElements (start, end, start_pos, end_pos)
-struct ele_rec *start;
-struct ele_rec *end;
-int start_pos, end_pos;
+SwapElements (struct ele_rec *start, struct ele_rec *end, int start_pos, int end_pos)
 {
   struct ele_rec *current;
 
@@ -620,8 +599,7 @@ int start_pos, end_pos;
  * Free up the allocated list of internal hrefs.
  */
 void
-FreeHRefs (list)
-struct ref_rec *list;
+FreeHRefs (struct ref_rec *list)
 {
   struct ref_rec *hptr;
   struct ref_rec *tptr;
@@ -649,9 +627,7 @@ struct ref_rec *list;
  * return a pointer to the element, or NULL if not found.
  */
 struct ref_rec *
-FindHRef (list, href)
-struct ref_rec *list;
-char *href;
+FindHRef (struct ref_rec *list, char *href)
 {
   struct ref_rec *hptr;
 
@@ -679,9 +655,7 @@ char *href;
  * return a pointer to the head of the new list.
  */
 struct ref_rec *
-AddHRef (list, href)
-struct ref_rec *list;
-char *href;
+AddHRef (struct ref_rec *list, char *href)
 {
   struct ref_rec *hptr;
 

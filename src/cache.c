@@ -47,8 +47,7 @@ static int ignore_expires;
  * HasExpired
  */
 static int
-HasExpired(expires, ttl, mtime)
-time_t expires, ttl, mtime;
+HasExpired(time_t expires, time_t ttl, time_t mtime)
 {
   time_t now;
 
@@ -67,9 +66,7 @@ time_t expires, ttl, mtime;
  * FindCacheEntry
  */
 static CacheEntry *
-FindCacheEntry(ci, filename)
-CacheInfo *ci;
-char *filename;
+FindCacheEntry(CacheInfo *ci, char *filename)
 {
   CacheEntry *c;
 
@@ -85,8 +82,7 @@ char *filename;
  * FindCacheInfo
  */
 static CacheInfo *
-FindCacheInfo(domain)
-char *domain;
+FindCacheInfo(char *domain)
 {
   CacheInfo *ci;
   int dlen;
@@ -116,13 +112,7 @@ char *domain;
  * InsertCacheEntry
  */
 static void
-InsertCacheEntry(ci, path, atime, mtime, size, expires)
-CacheInfo *ci;
-char *path;
-time_t atime;
-time_t mtime;
-off_t size;
-time_t expires;
+InsertCacheEntry(CacheInfo *ci, char *path, time_t atime, time_t mtime, off_t size, time_t expires)
 {
   CacheEntry *n, *c, *t;
 
@@ -163,9 +153,7 @@ time_t expires;
  * DeleteCacheEntry
  */
 static void
-DeleteCacheEntry(ci, c)
-CacheInfo *ci;
-CacheEntry *c;
+DeleteCacheEntry(CacheInfo *ci, CacheEntry *c)
 {
   unlink(c->path);
   ci->size -= c->size;
@@ -185,8 +173,7 @@ CacheEntry *c;
  * ReadCacheInfoFile
  */
 static void
-ReadCacheInfoFile(filename)
-char *filename;
+ReadCacheInfoFile(char *filename)
 {
   FILE *fp;
   char buffer[BUFSIZ];
@@ -335,11 +322,7 @@ ScanCacheDirectories()
  * InitCache
  */
 void
-InitCache(cachedir, max, ttl, cleanup, ignore, cachelist)
-char *cachedir;
-int max, ttl, cleanup;
-int ignore;
-char *cachelist;
+InitCache(char *cachedir, int max, int ttl, int cleanup, int ignore, char *cachelist)
 {
   char *f, *filename;
 
@@ -375,9 +358,7 @@ char *cachelist;
  * uses MD5 to make a name for the cache.
  */
 static char *
-urlToCacheName(ci, up)
-CacheInfo *ci;
-URLParts *up;
+urlToCacheName(CacheInfo *ci, URLParts *up)
 {
   static char name[MAXPATHLEN + 1];
   struct MD5Context context;
@@ -415,8 +396,7 @@ URLParts *up;
  * Returns 1 if the specified URL is in the cache, otherwise returns 0.
  */
 int
-IsCached(up)
-URLParts *up;
+IsCached(URLParts *up)
 {
   CacheEntry *c;
   CacheInfo *ci;
@@ -455,8 +435,7 @@ URLParts *up;
  * FlushCache
  */
 static int
-FlushCache(ci)
-CacheInfo *ci;
+FlushCache(CacheInfo *ci)
 {
   if (ci->clist != NULL)
   {
@@ -471,8 +450,7 @@ CacheInfo *ci;
  * WriteCache
  */
 void
-WriteCache(d)
-Document *d;
+WriteCache(Document *d)
 {
   FILE *fp;
   char *u;
@@ -622,8 +600,7 @@ CleanCache()
  * ReadCache
  */
 Document *
-ReadCache(up)
-URLParts *up;
+ReadCache(URLParts *up)
 {
   char *filename;
   Document *d;

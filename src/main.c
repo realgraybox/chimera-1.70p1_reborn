@@ -530,10 +530,7 @@ int main(int argc, char *argv[])
  * Handle incoming network connections
  */
 static void
-InputHandler(cldata, netfd, xid)
-XtPointer cldata;
-int *netfd;
-XtInputId *xid;
+InputHandler(XtPointer cldata, int *netfd, XtInputId *xid)
 {
   int fd;
   Document *d;
@@ -588,8 +585,7 @@ XtInputId *xid;
  * ... and while we're at it, get rid of some annoying extra spaces.--GN
  */
 static char *
-GetTitle(hw)
-Widget hw;
+GetTitle(Widget hw)
 {
   char *t;
   char *s;
@@ -616,8 +612,7 @@ Widget hw;
  * have a title, keep the last message around [GN].
  */
 /*static*/ void
-SetTitle(title)
-char *title;
+SetTitle(char *title)
 {
   char *t = NULL;
 
@@ -642,8 +637,7 @@ char *title;
  * Change the URL display
  */
 static void
-SetURL(up)
-URLParts *up;
+SetURL(URLParts *up)
 {
   if (root.showURL)
   {
@@ -674,9 +668,8 @@ URLParts *up;
  * rwmcm / GN 1997May12, May15
  */
 void
-LiveAnchorCallback(w, c)
-Widget w;			/* not used */
-char *c;
+LiveAnchorCallback(Widget w,	/* not used */
+                   char *c)
 {
   char *href, *t;
   int len;
@@ -856,9 +849,7 @@ DisplayCurrent()
  * --GN 1997May18
  */
 static URLParts *
-ResolveDocURL(up, reload)
-URLParts *up;
-int reload;
+ResolveDocURL(URLParts *up, int reload)
 {
   URLParts *nup = NULL;
 
@@ -888,10 +879,9 @@ int reload;
 }
 
 static Document *
-LoadDoc(up, reload, localonly)
-URLParts *up;
-int reload;
-int localonly;			/* boolean;  in cache or on localhost */
+LoadDoc(URLParts *up,
+        int reload,
+        int localonly)	/* boolean;  in cache or on localhost */
 {
   Document *d;
   URLParts *nup;
@@ -984,9 +974,7 @@ int localonly;			/* boolean;  in cache or on localhost */
  * AuthDismissCallback
  */
 static void
-AuthDismissCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+AuthDismissCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   /*
    * added the following - djhjr - May 13 97, modified by GN 1997May14
@@ -1014,9 +1002,7 @@ XtPointer cldata, cbdata;
  * Marginally streamlined -- GN 1997May11
  */
 static void
-AuthOKCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+AuthOKCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   AuthReqReturnStruct *ar = (AuthReqReturnStruct *)cbdata;
   Document *d = (Document *)cldata;
@@ -1065,13 +1051,7 @@ XtPointer cldata, cbdata;
  * CreateStrReq
  */
 static void
-CreateStrReq(s, defstr, hidden, ocallback, dcallback, cldata)
-char *s;
-char *defstr;
-int hidden;
-XtCallbackProc ocallback;
-XtCallbackProc dcallback;
-XtPointer cldata;
+CreateStrReq(char *s, char *defstr, int hidden, XtCallbackProc ocallback, XtCallbackProc dcallback, XtPointer cldata)
 {
   Widget nw;
   Arg args[10];
@@ -1110,8 +1090,7 @@ XtPointer cldata;
  * CheckRealm
  */
 static RealmInfo *
-CheckRealm(d)
-Document *d;
+CheckRealm(Document *d)
 {
   RealmInfo *r;
 
@@ -1141,9 +1120,7 @@ Document *d;
  * HandleDoc
  */
 static void
-HandleDoc(d, download)
-Document *d;
-int download;
+HandleDoc(Document *d, int download)
 {
   Arg args[10];
   int argcnt;
@@ -1317,8 +1294,7 @@ printf("Here 2 d='%s' dp='%s'.\n",d->content,d->pcontent);
  * AddMessage
  */
 static void
-AddMessage(text)
-char *text;
+AddMessage(char *text)
 {
   Document *d;
   char *value;
@@ -1337,10 +1313,7 @@ char *text;
  * Called when the user clicks on an anchor
  */
 void
-Anchor(w, cldata, c)
-Widget w;
-XtPointer cldata;
-WbAnchorCallbackData *c;
+Anchor(Widget w, XtPointer cldata, WbAnchorCallbackData *c)
 {
   URLParts *tup;
   Document *d;
@@ -1390,8 +1363,7 @@ WbAnchorCallbackData *c;
  * files.
  */
 void
-OpenDocument(url)
-char *url;
+OpenDocument(char *url)
 {
   URLParts *up;
   Document *d;
@@ -1450,9 +1422,7 @@ OpenURL()
  * OOCallback
  */
 static void
-OOCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+OOCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   char *t;
 
@@ -1491,9 +1461,7 @@ OpenAction()
  * visible.
  */
 void
-Home(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Home(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   DocNode *c, *t;
 
@@ -1537,10 +1505,7 @@ HomeAction()
  * Saves the current savedoc.
  */
 static void
-SaveDocument(d, filename, otype)
-Document *d;
-char *filename;
-int otype;
+SaveDocument(Document *d, char *filename, int otype)
 {
   char *text = NULL, *data;
   int len;
@@ -1584,9 +1549,7 @@ int otype;
  * SaveOCallback
  */
 static void
-SaveOCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SaveOCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   SaveDocument((Document *)cldata, (char *)cbdata, 3);
   XtDestroyWidget(w);
@@ -1598,9 +1561,7 @@ XtPointer cldata, cbdata;
  * SaveDCallback
  */
 static void
-SaveDCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SaveDCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   DestroyDocument((Document *)cldata);
   XtDestroyWidget(w);
@@ -1615,9 +1576,7 @@ XtPointer cldata, cbdata;
  * HTML frame.
  */
 void
-Back(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Back(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   DocNode *t;
 
@@ -1659,9 +1618,7 @@ BackAction()
  * HTML frame.
  */
 void
-Forward(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Forward(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   DocNode *t;
 
@@ -1700,9 +1657,7 @@ FwrdAction()
  * Reload
  */
 void
-Reload(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Reload(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   DocNode *t;
   Document *d;
@@ -1764,9 +1719,7 @@ ColorToggle()
  * thing should never get called at all. [GN]
  */
 void
-Cancel(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Cancel(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   /*
    * Stop images still loading in the background; those not yet here
@@ -1786,9 +1739,7 @@ XtPointer cldata, cbdata;
  * Shows the help file.
  */
 void
-Help(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Help(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   URLParts *up;
   Document *d;
@@ -1821,9 +1772,7 @@ HelpAction()
  * Called when the user enters a search string.
  */
 void
-SearchCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SearchCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   char *ss = (char *)cbdata;
   static ElementRef start, end;
@@ -1896,10 +1845,7 @@ SearchAction()
  * Called when the user clicks on the print button.
  */
 static void
-PrintDocument(d, printer, otype)
-Document *d;
-char *printer;
-int otype;
+PrintDocument(Document *d, char *printer, int otype)
 {
   char *data;
   char *text = NULL;
@@ -1959,10 +1905,7 @@ int otype;
  * MailDocument
  */
 static void
-MailDocument(d, email, otype)
-Document *d;
-char *email;
-int otype;
+MailDocument(Document *d, char *email, int otype)
 {
   char *text = NULL;
   char *data;
@@ -2022,9 +1965,7 @@ int otype;
  * FileCallback
  */
 static void
-FileCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+FileCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OutputSelCallbackInfo *osci = (OutputSelCallbackInfo *)cbdata;
   Document *d = (Document *)cldata;
@@ -2195,9 +2136,7 @@ QuitAction()
  * top.
  */
 void
-Source(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+Source(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   Document *d;
 
@@ -2237,10 +2176,7 @@ SourceAction()
  * The link callback
  */
 void
-LinkCB(w, cldata, cbdata)
-Widget w;
-XtPointer cldata;
-XtPointer cbdata;
+LinkCB(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   LinkInfo *li = (LinkInfo *)cbdata;
 
@@ -2267,8 +2203,7 @@ BackgroundImages()
 
 /* file: URLs and the local host are loaded right away */
 static int
-IsLocalURL(up)
-URLParts *up;
+IsLocalURL(URLParts *up)
 {
   if (up == NULL) return(1);
   if (up->protocol != NULL && strcasecmp(up->protocol, "file") == 0)
@@ -2280,8 +2215,7 @@ URLParts *up;
 
 /* Fetch without the busy cursor and button changes of LoadDoc */
 static Document *
-FetchQuiet(up)
-URLParts *up;
+FetchQuiet(URLParts *up)
 {
   Document *d = root.cacheOff ? NULL : ReadCache(up);
 
@@ -2291,8 +2225,7 @@ URLParts *up;
 
 /* Images have arrived: show them, and the progress in the title */
 static void
-BgApply(relayout, done, total)
-int relayout, done, total;
+BgApply(int relayout, int done, int total)
 {
   double t0 = ChTimeMs();
 
@@ -2327,9 +2260,7 @@ static XtIntervalId scroll_watch = 0;
 static int watched_pos = -1;
 
 static void
-WatchScroll(cldata, id)
-XtPointer cldata;
-XtIntervalId *id;
+WatchScroll(XtPointer cldata, XtIntervalId *id)
 {
   int pos = 0;
 
@@ -2412,11 +2343,10 @@ QueueImages()
  */
 
 ImageInfo *
-ImageResolve(w, url, bg, delay)
-Widget w;
-char *url;
-Pixel bg;
-int delay;	/* 0: normally (in the background if that is on),
+ImageResolve(Widget w,
+             char *url,
+             Pixel bg,
+             int delay)	/* 0: normally (in the background if that is on),
 		 * 1: DeferPix, only if in cache or on localhost,
 		 * 2: now, the user clicked the placeholder */
 {
@@ -2681,9 +2611,7 @@ HTMLWidget hw = (HTMLWidget) w;
  * DeferPix
  */
 void
-DeferPix(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+DeferPix(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   extern void SetDelayedImageLoading();	 /* in libhtmlw/HTML.c */
 
@@ -2707,7 +2635,7 @@ DeferPixAction()
     state =  (state == False) ? True : False;
     XtVaSetValues (w, XtNstate, state, NULL);
 
-    DeferPix(w, &root, state);
+    DeferPix(w, (XtPointer) &root, (XtPointer) (long) state);
   }
   else				/* user chose not to have this button */
   {
@@ -2731,8 +2659,7 @@ DeferPixAction()
  * X resource *delayImageLoads.
  */
 void
-SetDeferPixButtonState (newstate)
-int newstate;
+SetDeferPixButtonState (int newstate)
 {
   Widget w = root.deferpix;
 
@@ -2748,9 +2675,7 @@ int newstate;
  * BookmarkCallback
  */
 static void
-BookmarkCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BookmarkCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   OpenDocument((char *)cbdata);
 
@@ -2761,10 +2686,7 @@ XtPointer cldata, cbdata;
  * MyBookmarkProc
  */
 static void
-MyBookmarkProc(cldata, display, url)
-XtPointer cldata;
-char **display;
-char **url;
+MyBookmarkProc(XtPointer cldata, char **display, char **url)
 {
   *display = NULL;
   *url = NULL;
@@ -2788,9 +2710,7 @@ char **url;
  * BookmarkDestroyCallback
  */
 static void
-BookmarkDestroyCallback(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+BookmarkDestroyCallback(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   String g;
 
@@ -2856,9 +2776,7 @@ BookmarkAction()
  * visited.
  */
 int
-VisitTest(w, url)
-Widget w;
-char *url;
+VisitTest(Widget w, char *url)
 {
   URLParts *up;
   URLParts *r;
@@ -2916,9 +2834,7 @@ char *url;
  * --GN 1997Apr30
  */
 int
-DisplayConnectStatus(msg, host)
-int msg;
-char *host;
+DisplayConnectStatus(int msg, char *host)
 {
   static char *DNSquery = NULL;	/* msgs 0...3 use the host arg */
   static char *TCPconnecting = NULL;
@@ -3015,8 +2931,7 @@ char *host;
  * --GN 1997Apr30
  */
 int
-DisplayTransferStatus(n, max, showit)
-int n, max, showit;
+DisplayTransferStatus(int n, int max, int showit)
 {
   static int count = 0;
   static char *byte2 = NULL;
@@ -3090,9 +3005,7 @@ int n, max, showit;
  * Form callback for the HTML widget.
  */
 void
-SubmitForm(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+SubmitForm(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   char *url;
   Document *d;
@@ -3157,8 +3070,7 @@ XtPointer cldata, cbdata;
  * ErrorHandler
  */
 static void
-ErrorHandler(msg)
-String msg;
+ErrorHandler(String msg)
 {
   /* panicking */
   fprintf (stderr, "Xt Error: %s\n", msg);

@@ -45,10 +45,7 @@ static int soak _ArgProto((int, char *, char **));
  */
 /* #define DEBUG_FTP */
 static int
-soak(s, msg, emsg)
-int s;
-char *msg;
-char **emsg;
+soak(int s, char *msg, char **emsg)
 {
   char buffer[BUFSIZ];
   int code;
@@ -103,8 +100,7 @@ char **emsg;
  *
  */
 static Document *
-fixup_ftp_message(ftpmsg)
-char *ftpmsg;
+fixup_ftp_message(char *ftpmsg)
 {
   char *msg = GetFromStringDB("ftperror");
   char *r;
@@ -127,9 +123,7 @@ char *ftpmsg;
  * necessary error checking being done.
  */
 Document *
-ftp(up, mtlist)
-URLParts *up;
-MIMEType *mtlist;
+ftp(URLParts *up, MIMEType *mtlist)
 {
   char *emsg;
   char *query;
@@ -399,8 +393,7 @@ MIMEType *mtlist;
  * (changed upon advice by Nelson H F Beebe <beebe@math.utah.edu> 1997May09)
  */
 static int
-ftp_strcmp(a, b)
-const void *a, *b;
+ftp_strcmp(const void *a, const void *b)
 {
   return(strcmp(*(const char **) a, *(const char **) b));
 }
@@ -413,11 +406,7 @@ const void *a, *b;
  * instead if it exists... --GN)
  */
 static char *
-ftp_dir(d, hostname, portno, filename)
-int d;
-char *hostname;
-int portno;
-char *filename;
+ftp_dir(int d, char *hostname, int portno, char *filename)
 {
   int count;
   int size;

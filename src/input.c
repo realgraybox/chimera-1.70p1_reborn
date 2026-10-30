@@ -53,9 +53,7 @@ int response_bytecnt = 0;	/* used by back-to-back ReadLine calls */
  *     0 timeout, file descriptor not ready for I/O
  *     1 file descriptor ready for use
  */
-int c_select(d,rw)
-int d;
-int rw;
+int c_select(int d, int rw)
 {
   int r;
   extern int errno;
@@ -94,8 +92,7 @@ int rw;
  * WaitForConnect
  */
 int
-WaitForConnect(d)
-int d;
+WaitForConnect(int d)
 {
   int rval;
 
@@ -116,10 +113,7 @@ int d;
  * WriteBuffer
  */
 int
-WriteBuffer(d, buffer, bufferlen)
-int d;
-char *buffer;
-int bufferlen;
+WriteBuffer(int d, char *buffer, int bufferlen)
 {
   int rval;
   int writelen;
@@ -158,10 +152,7 @@ int bufferlen;
  * used.
  */
 int
-ReadLine(d, buffer, bufferlen)
-int d;
-char *buffer;
-int bufferlen;
+ReadLine(int d, char *buffer, int bufferlen)
 {
   int i = 0;
   int rval;
@@ -222,11 +213,7 @@ int bufferlen;
  * first 8 bytes of an HTTP response).
  */
 char *
-ReadBuffer(d, len, max, bmax)
-int d;
-int *len;
-int max;
-int bmax;
+ReadBuffer(int d, int *len, int max, int bmax)
 {
   int blen = 0;
   int tlen = 0;
@@ -287,13 +274,7 @@ int bmax;
  * ReadPipe
  */
 char *
-ReadPipe(command, path, in, inlen, out, outlen)
-char *command;
-char *path;
-char *in;
-int inlen;
-char **out;
-int *outlen;
+ReadPipe(char *command, char *path, char *in, int inlen, char **out, int *outlen)
 {
   char filename[L_tmpnam + 1];
   char *cmdline;
@@ -352,10 +333,7 @@ int *outlen;
  * a stdin, stdout, stderr so that we can talk to it.
  */
 int
-PipeCommand(command, fd, usesystem)
-char *command;
-int *fd;
-int usesystem;
+PipeCommand(char *command, int *fd, int usesystem)
 {
   int pout[2];
   int pin[2];

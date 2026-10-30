@@ -42,8 +42,7 @@
  * The only thing this does right now is to handle the '~' stuff.
  */
 char *
-FixFilename(filename)
-char *filename;
+FixFilename(char *filename)
 {
   struct passwd *p;
   char *cp, *cp2;
@@ -95,10 +94,7 @@ char *filename;
  * Save some memory to a file.  Returns 0 if successful, -1 otherwise.
  */
 int
-SaveData(data, datalen, filename)
-char *data;
-int datalen;
-char *filename;
+SaveData(char *data, int datalen, char *filename)
 {
   FILE *fp;
 
@@ -175,10 +171,7 @@ StartReaper()
  *
  */
 char *
-mystrtok(s, c, cdr)
-char *s;
-int c;
-char **cdr;
+mystrtok(char *s, int c, char **cdr)
 {
   char *cp, *cp2;
   static char str[BUFSIZ];
@@ -211,8 +204,7 @@ char **cdr;
  * CreateCommandLine
  */
 char *
-CreateCommandLine(command, path, filename)
-char *command, *path, *filename;
+CreateCommandLine(char *command, char *path, char *filename)
 {
   char *cmdline;
 
@@ -246,8 +238,7 @@ char *command, *path, *filename;
  * Contributed by David.Robinson@ast.cam.ac.uk
  */
 char *
-EscapeHTML(text)
-char *text;
+EscapeHTML(char *text)
 {
   int j, i;
   char *ret;

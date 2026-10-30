@@ -1439,15 +1439,7 @@ ARG2 (ImageInfo *, img, int, anchor)
 */
 
 String 
-ParseTextToPSString (hw, startp, endp, start_pos, end_pos,
-		     space_width, lmargin, fontfamily)
-HTMLWidget hw;
-struct ele_rec *startp;
-struct ele_rec *endp;
-int start_pos, end_pos;
-int space_width;
-int lmargin;
-int fontfamily;
+ParseTextToPSString (HTMLWidget hw, struct ele_rec *startp, struct ele_rec *endp, int start_pos, int end_pos, int space_width, int lmargin, int fontfamily)
 {
 
   /* the fontfamily parameter is new

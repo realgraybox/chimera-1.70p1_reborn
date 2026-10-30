@@ -110,12 +110,7 @@ static XtIntervalId internal_timer = 0;
 static void StartMore _ArgProto((void));
 
 void
-ImgLoadInit(a, plist, fetch, apply, max)
-XtAppContext a;
-Protocol *plist;
-ImgFetchProc fetch;
-ImgApplyProc apply;
-int max;
+ImgLoadInit(XtAppContext a, Protocol *plist, ImgFetchProc fetch, ImgApplyProc apply, int max)
 {
   app = a;
   protocols = plist;
@@ -125,8 +120,7 @@ int max;
 }
 
 static char *
-HelperCommand(up)
-URLParts *up;
+HelperCommand(URLParts *up)
 {
   Protocol *p;
 
@@ -139,9 +133,7 @@ URLParts *up;
 }
 
 void
-ImgLoadAdd(src, up)
-const char *src;
-URLParts *up;
+ImgLoadAdd(const char *src, URLParts *up)
 {
   ImgEntry *e;
 
@@ -165,9 +157,7 @@ URLParts *up;
 }
 
 static void
-ApplyCB(cldata, id)
-XtPointer cldata;
-XtIntervalId *id;
+ApplyCB(XtPointer cldata, XtIntervalId *id)
 {
   int relayout = fresh;
 
@@ -190,9 +180,7 @@ ScheduleApply()
  * An image has arrived (doc != NULL) or failed (doc == NULL)
  */
 static void
-Finished(e, doc)
-ImgEntry *e;
-Document *doc;
+Finished(ImgEntry *e, Document *doc)
 {
   if (doc != NULL && doc->status == DS_OK && doc->text != NULL && doc->len > 0)
   {
@@ -218,8 +206,7 @@ Document *doc;
 }
 
 static void
-StopHelper(e)
-ImgEntry *e;
+StopHelper(ImgEntry *e)
 {
   if (e->id != 0) XtRemoveInput(e->id);
   e->id = 0;
@@ -231,10 +218,7 @@ ImgEntry *e;
 }
 
 static void
-ReadCB(cldata, fd, id)
-XtPointer cldata;
-int *fd;
-XtInputId *id;
+ReadCB(XtPointer cldata, int *fd, XtInputId *id)
 {
   ImgEntry *e = (ImgEntry *)cldata;
   int n;
@@ -285,8 +269,7 @@ XtInputId *id;
  * the helpers started later.
  */
 static int
-StartHelper(e)
-ImgEntry *e;
+StartHelper(ImgEntry *e)
 {
   char *command = HelperCommand(e->up);
   int pin[2], pout[2];
@@ -349,9 +332,7 @@ ImgEntry *e;
  * One image for which Chimera has no helper, fetched in the foreground
  */
 static void
-InternalCB(cldata, id)
-XtPointer cldata;
-XtIntervalId *id;
+InternalCB(XtPointer cldata, XtIntervalId *id)
 {
   ImgEntry *e;
   Document *doc;
@@ -439,9 +420,7 @@ ImgLoadCancel()
 }
 
 int
-ImgLoadTake(src, dp)
-const char *src;
-Document **dp;
+ImgLoadTake(const char *src, Document **dp)
 {
   ImgEntry *e;
 
@@ -480,9 +459,7 @@ ImgLoadBusy()
  * fetched or finished are not affected.
  */
 void
-ImgLoadPrioritize(srcs, n)
-char **srcs;
-int n;
+ImgLoadPrioritize(char **srcs, int n)
 {
   ImgEntry *front = NULL, *front_last = NULL;
   int i;

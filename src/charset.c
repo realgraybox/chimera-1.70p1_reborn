@@ -358,8 +358,7 @@ is_utf8_name (const char *cs)
  * read back from the cache is not converted twice.
  */
 void
-DocumentToLatin1 (d)
-Document *d;
+DocumentToLatin1 (Document *d)
 {
   char cs[32];
   int is_html, utf8, newlen;
@@ -414,8 +413,7 @@ Document *d;
  * True if d was converted from UTF-8 by DocumentToLatin1.
  */
 int
-DocumentWasUTF8 (d)
-Document *d;
+DocumentWasUTF8 (Document *d)
 {
   const char *c;
 

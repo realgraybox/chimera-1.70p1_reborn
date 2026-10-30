@@ -128,11 +128,7 @@ WidgetClass strReqWidgetClass = (WidgetClass) &strReqClassRec;
  * SRPressReturn
  */
 static void
-SRPressReturn(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+SRPressReturn(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   StrReqWidget srw;
   String str;
@@ -153,10 +149,10 @@ Cardinal *num_params;
  * Initialize
  */
 static void
-SRInitialize(request, new, xargs, num_args)
-Widget request, new;
-ArgList xargs;                  /* unused */
-Cardinal *num_args;             /* unused */
+SRInitialize(Widget request,
+             Widget new,
+             ArgList xargs,	/* unused */
+             Cardinal *num_args)	/* unused */
 {
   StrReqWidget srw = (StrReqWidget)new;
   Arg args[10];
@@ -227,10 +223,7 @@ Cardinal *num_args;             /* unused */
  * SRRealize
  */
 static void
-SRRealize(w, valueMask, attributes)
-Widget w;
-XtValueMask *valueMask;
-XSetWindowAttributes *attributes;
+SRRealize(Widget w, XtValueMask *valueMask, XSetWindowAttributes *attributes)
 {
   StrReqWidget srw = (StrReqWidget)w;
 
@@ -247,8 +240,7 @@ XSetWindowAttributes *attributes;
  * SRDestroy
  */
 static void
-SRDestroy(w)
-Widget w;
+SRDestroy(Widget w)
 {
   return;
 }
@@ -257,12 +249,7 @@ Widget w;
  * SRSetValues
  */
 static Boolean
-SRSetValues(old, request, new, args, num_args)
-Widget old;
-Widget request;
-Widget new;
-ArgList args;
-Cardinal *num_args;
+SRSetValues(Widget old, Widget request, Widget new, ArgList args, Cardinal *num_args)
 {
   return(False);
 }
@@ -271,9 +258,7 @@ Cardinal *num_args;
  * ClearFunc
  */
 static void
-ClearFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+ClearFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   StrReqWidget srw = (StrReqWidget)cldata;
 
@@ -286,9 +271,7 @@ XtPointer cldata, cbdata;
  * OKFunc
  */
 static void
-OKFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+OKFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   StrReqWidget srw = (StrReqWidget)cldata;
   String str;
@@ -303,9 +286,7 @@ XtPointer cldata, cbdata;
  * DismissFunc
  */
 static void
-DismissFunc(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
+DismissFunc(Widget w, XtPointer cldata, XtPointer cbdata)
 {
   StrReqWidget srw = (StrReqWidget)cldata;
 

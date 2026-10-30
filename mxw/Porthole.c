@@ -109,8 +109,7 @@ WidgetClass portholeWidgetClass = (WidgetClass) &portholeClassRec;
  *                                                                           *
  *****************************************************************************/
 
-static Widget find_child (pw)
-    register PortholeWidget pw;
+static Widget find_child (register PortholeWidget pw)
 {
     register Widget *children;
     register int i;
@@ -127,9 +126,7 @@ static Widget find_child (pw)
     return (Widget) NULL;
 }
 
-static void SendReport (pw, changed)
-    PortholeWidget pw;
-    unsigned int changed;
+static void SendReport (PortholeWidget pw, unsigned int changed)
 {
     Widget child = find_child (pw);
 
@@ -149,12 +146,7 @@ static void SendReport (pw, changed)
 }
 
 
-static void layout_child (pw, child, geomp, xp, yp, widthp, heightp)
-    PortholeWidget pw;
-    Widget child;
-    XtWidgetGeometry *geomp;
-    Position *xp, *yp;
-    Dimension *widthp, *heightp;
+static void layout_child (PortholeWidget pw, Widget child, XtWidgetGeometry *geomp, Position *xp, Position *yp, Dimension *widthp, Dimension *heightp)
 {
     Position minx, miny;
 
@@ -199,10 +191,7 @@ static void layout_child (pw, child, geomp, xp, yp, widthp, heightp)
  *****************************************************************************/
 
 
-static void Realize (gw, valueMask, attributes)
-    register Widget gw;
-    Mask *valueMask;
-    XSetWindowAttributes *attributes;
+static void Realize (register Widget gw, Mask *valueMask, XSetWindowAttributes *attributes)
 {
     attributes->bit_gravity = NorthWestGravity;
     *valueMask |= CWBitGravity;
@@ -214,8 +203,7 @@ static void Realize (gw, valueMask, attributes)
 }
 
 
-static void Resize (gw)
-    Widget gw;
+static void Resize (Widget gw)
 {
     PortholeWidget pw = (PortholeWidget) gw;
     Widget child = find_child (pw);
@@ -236,9 +224,7 @@ static void Resize (gw)
 }
 
 
-static XtGeometryResult QueryGeometry (gw, intended, preferred)
-    Widget gw;
-    XtWidgetGeometry *intended, *preferred;
+static XtGeometryResult QueryGeometry (Widget gw, XtWidgetGeometry *intended, XtWidgetGeometry *preferred)
 {
     register PortholeWidget pw = (PortholeWidget) gw;
     Widget child = find_child (pw);
@@ -264,9 +250,7 @@ static XtGeometryResult QueryGeometry (gw, intended, preferred)
 }
 
 
-static XtGeometryResult GeometryManager (w, req, reply)
-    Widget w;
-    XtWidgetGeometry *req, *reply;
+static XtGeometryResult GeometryManager (Widget w, XtWidgetGeometry *req, XtWidgetGeometry *reply)
 {
     PortholeWidget pw = (PortholeWidget) w->core.parent;
     Widget child = find_child (pw);
@@ -328,8 +312,7 @@ static XtGeometryResult GeometryManager (w, req, reply)
 }
 
 
-static void ChangeManaged (gw)
-    Widget gw;
+static void ChangeManaged (Widget gw)
 {
     PortholeWidget pw = (PortholeWidget) gw;
     Widget child = find_child (pw);	/* ignore extra children */
