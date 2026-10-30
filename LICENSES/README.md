@@ -29,7 +29,7 @@ every copy, including binaries.
 | `xloadimage.txt` | `xloadimage/` |
 | `zlib-nanosvg.txt` | `src/nanosvg.h`, `src/nanosvgrast.h` |
 | `MIT-graybox.txt` | `XawPlus-2.0.2/XmuStrToPixmap.c` |
-| `zlib-graybox.txt` | `helpers/xvl/xvl.c`, `helpers/fits2gif/`, `helpers/curl/https-helper.sh`, `util/chimera-open.script` and other files marked with it |
+| `zlib-graybox.txt` | `helpers/xvl/xvl.c`, `helpers/fits2gif/`, `helpers/curl/https-helper.sh`, `util/chimera-open.script`, `libhtmlw/HTMLfilter.*` and other files marked with it |
 | `menu.txt`, `GPL-2.0.txt` | `helpers/menu/` |
 | `text2pdf.txt` | `helpers/text2pdf/` (kept unmodified, as its licence requires) |
 | `libtiff.txt` | `helpers/xvl/tiff-3.7.0/` |

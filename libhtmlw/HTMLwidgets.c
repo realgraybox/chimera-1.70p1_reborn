@@ -2535,6 +2535,7 @@ int id;
 FormInfo *fptr;
 {
   char *value;
+  char *label;
   Cardinal argcnt;
   Arg arg[30];
   Widget w;
@@ -2549,13 +2550,24 @@ FormInfo *fptr;
   argcnt = 0;
   XtSetArg (arg[argcnt], XtNx, x); argcnt++;
   XtSetArg (arg[argcnt], XtNy, y); argcnt++;
-  if (value != NULL)
+  /*
+   * <button>Text</button> arrives as an <input> with the text in
+   * X-CHIMERA-LABEL (see HTMLfilter.c): shown on the button, while
+   * VALUE is what the form sends.
+   */
+  label = ParseMarkTag (text, MT_INPUT, "X-CHIMERA-LABEL");
+  if (label != NULL)
+  {
+    XtSetArg (arg[argcnt], XtNlabel, label); argcnt++;
+  }
+  else if (value != NULL)
   {
     XtSetArg (arg[argcnt], XtNlabel, value); argcnt++;
   }
   w = XtCreateWidget (name != NULL ? name:"submit",
 		      commandWidgetClass, hw->html.view,
 		      arg, argcnt);
+  if (label != NULL) XtFree (label);
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
   PrepareFormEnd (hw, w, fptr);
@@ -2958,6 +2970,7 @@ int id;
 FormInfo *fptr;
 {
   char *value;
+  char *label;
   Cardinal argcnt;
   Arg arg[30];
   Widget w;
@@ -2972,13 +2985,24 @@ FormInfo *fptr;
   argcnt = 0;
   XtSetArg (arg[argcnt], XtNx, x); argcnt++;
   XtSetArg (arg[argcnt], XtNy, y); argcnt++;
-  if (value != NULL)
+  /*
+   * <button>Text</button> arrives as an <input> with the text in
+   * X-CHIMERA-LABEL (see HTMLfilter.c): shown on the button, while
+   * VALUE is what the form sends.
+   */
+  label = ParseMarkTag (text, MT_INPUT, "X-CHIMERA-LABEL");
+  if (label != NULL)
+  {
+    XtSetArg (arg[argcnt], XtNlabel, label); argcnt++;
+  }
+  else if (value != NULL)
   {
     XtSetArg (arg[argcnt], XtNlabel, value); argcnt++;
   }
   w = XtCreateWidget (name,
 		      commandWidgetClass, hw->html.view,
 		      arg, argcnt);
+  if (label != NULL) XtFree (label);
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
   PrepareFormReset (hw, w, fptr);
@@ -3001,6 +3025,7 @@ int id;
 FormInfo *fptr;			/* not used */
 {
   char *value;
+  char *label;
   Cardinal argcnt;
   Arg arg[30];
   Widget w;
@@ -3010,13 +3035,24 @@ FormInfo *fptr;			/* not used */
   argcnt = 0;
   XtSetArg (arg[argcnt], XtNx, x); argcnt++;
   XtSetArg (arg[argcnt], XtNy, y); argcnt++;
-  if (value != NULL)
+  /*
+   * <button>Text</button> arrives as an <input> with the text in
+   * X-CHIMERA-LABEL (see HTMLfilter.c): shown on the button, while
+   * VALUE is what the form sends.
+   */
+  label = ParseMarkTag (text, MT_INPUT, "X-CHIMERA-LABEL");
+  if (label != NULL)
+  {
+    XtSetArg (arg[argcnt], XtNlabel, label); argcnt++;
+  }
+  else if (value != NULL)
   {
     XtSetArg (arg[argcnt], XtNlabel, value); argcnt++;
   }
   w = XtCreateWidget (name,
 		      commandWidgetClass, hw->html.view,
 		      arg, argcnt);
+  if (label != NULL) XtFree (label);
   XtSetMappedWhenManaged (w, False);
   XtManageChild (w);
   if (value != NULL)

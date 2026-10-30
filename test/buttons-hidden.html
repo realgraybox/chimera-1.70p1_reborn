@@ -1,0 +1,48 @@
+<html><head><title>button and hidden elements test</title></head>
+<body>
+<h2>&lt;button&gt; and hidden elements</h2>
+
+<h3>1. Buttons</h3>
+<form action="https://httpbin.org/get">
+Item: <input type="text" name="item" value="book">
+<button name="action" value="buy">Buy <b>now</b></button>
+<button name="action" value="sell">Sell</button>
+<button type="reset">Clear</button>
+<button type="button">Does nothing</button>
+</form>
+<p>Expected: four buttons, labelled "Buy now", "Sell", "Clear" and "Does
+nothing". Buy sends "action": "buy" (the value, not the label), Sell
+sends "sell". Clear resets the field. "Does nothing" is a JavaScript
+button on real pages and does nothing here.</p>
+
+<h3>2. Hidden elements</h3>
+<p>Before
+<span style="display:none">HIDDEN BY STYLE</span>
+<span style="color: red; display: none">HIDDEN BY STYLE, SECOND</span>
+<span hidden>HIDDEN BY ATTRIBUTE</span>
+<span aria-hidden="true">shown (aria-hidden)</span>
+after.</p>
+<div style="display:none">
+  <p>HIDDEN DIV</p>
+  <div><p>HIDDEN NESTED DIV</p></div>
+  <form><input type="text" value="HIDDEN FIELD"></form>
+</div>
+<p>Expected: "Before shown (aria-hidden) after." and nothing in capitals
+saying HIDDEN, also no field.</p>
+
+<h3>3. A form like cnn.com's ad feedback</h3>
+<form action="https://httpbin.org/get">
+<p>1. How relevant is this ad to you?
+<input type="radio" name="ad" value="1"> <input type="radio" name="ad" value="2">
+<input type="radio" name="ad" value="3"></p>
+<div style="display:none">
+<label>Video player was slow <input type="checkbox" name="issues" value="slow"></label>
+<textarea rows="5" name="comment"></textarea>
+</div>
+<button type="button">Cancel</button>
+<button type="submit" disabled>Submit</button>
+</form>
+<p>Expected: three radio buttons and the buttons Cancel and Submit; no
+checkbox and no text area. Submit sends "ad" only when a radio button is
+on. (On a real page, JavaScript would enable Submit first.)</p>
+</body></html>

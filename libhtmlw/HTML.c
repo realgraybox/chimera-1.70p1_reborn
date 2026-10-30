@@ -112,6 +112,24 @@ extern char *ParseMarkTag ();
 extern char *ParseTextToString ();
 extern char *ParseTextToPSString ();
 extern struct mark_up *HTMLParse ();
+
+#include "HTMLfilter.h"
+
+/*
+ * Parse page text: first through HTMLFilterText() (hidden elements,
+ * <button>), whose copy can go right away, as the parser copies what it
+ * keeps. raw_text itself stays the page text as it was given.
+ */
+static struct mark_up *
+ParseHTMLText (struct mark_up *old_list, char *text)
+{
+  char *filtered = HTMLFilterText (text);
+  struct mark_up *list;
+
+  list = HTMLParse (old_list, filtered != NULL ? filtered : text);
+  if (filtered != NULL) free (filtered);
+  return list;
+}
 extern struct ele_rec *LocateElement ();
 extern struct ele_rec **MakeLineList ();
 extern void FreeHRefs ();
@@ -1830,10 +1848,10 @@ HTMLWidget new;
    *  leak as well as bad policy.  -WBE 97May04) [Not true, the parser only
    *  sets new->html.html_objects -- GN 1997May19]
    */
-  new->html.html_objects = HTMLParse (NULL, request->html.raw_text);
+  new->html.html_objects = ParseHTMLText (NULL, request->html.raw_text);
   CallLinkCallbacks (new);
-  new->html.html_header_objects = HTMLParse (NULL, request->html.header_text);
-  new->html.html_footer_objects = HTMLParse (NULL, request->html.footer_text);
+  new->html.html_header_objects = ParseHTMLText (NULL, request->html.header_text);
+  new->html.html_footer_objects = ParseHTMLText (NULL, request->html.footer_text);
 
   /*
    * Find the max width of a preformatted
@@ -4062,15 +4080,15 @@ HTMLWidget new;
      * Parse the raw text with the HTML parser
      */
     new->html.html_objects =
-	HTMLParse (current->html.html_objects, request->html.raw_text);
+	ParseHTMLText (current->html.html_objects, request->html.raw_text);
     CallLinkCallbacks (new);
 
     new->html.html_header_objects =
-	HTMLParse (current->html.html_header_objects,
+	ParseHTMLText (current->html.html_header_objects,
 		   request->html.header_text);
 
     new->html.html_footer_objects =
-	HTMLParse (current->html.html_footer_objects,
+	ParseHTMLText (current->html.html_footer_objects,
 		   request->html.footer_text);
 
     /*
@@ -5400,7 +5418,7 @@ char *footer_text;
     /*
      * Parse the raw text with the HTML parser
      */
-    hw->html.html_objects = HTMLParse (hw->html.html_objects,
+    hw->html.html_objects = ParseHTMLText (hw->html.html_objects,
 				       hw->html.raw_text);
     CallLinkCallbacks (hw);
   }
@@ -5412,7 +5430,7 @@ char *footer_text;
     /*
      * Parse the header text with the HTML parser
      */
-    hw->html.html_header_objects = HTMLParse (hw->html.html_header_objects,
+    hw->html.html_header_objects = ParseHTMLText (hw->html.html_header_objects,
 					      hw->html.header_text);
   }
   if (footer_text != NULL)
@@ -5422,7 +5440,7 @@ char *footer_text;
     /*
      * Parse the footer text with the HTML parser
      */
-    hw->html.html_footer_objects = HTMLParse (hw->html.html_footer_objects,
+    hw->html.html_footer_objects = ParseHTMLText (hw->html.html_footer_objects,
 					      hw->html.footer_text);
   }
 
