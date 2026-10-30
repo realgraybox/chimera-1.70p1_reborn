@@ -108,6 +108,7 @@ void Siaghelp(char *p);
 int DisplayTransferStatus _ArgProto((int, int, int));
 int DisplayConnectStatus _ArgProto((int, char *));
 static void QueueImages _ArgProto((void));
+static void WatchScroll _ArgProto((XtPointer, XtIntervalId *));
 
 static void           HomeAction();
 static void           BackAction();
@@ -2314,6 +2315,43 @@ int relayout, done, total;
 }
 
 /*
+ * While images load in the background, look at the scroll position every
+ * SCROLL_WATCH ms. When the page has been scrolled, the images now in
+ * view are moved to the front of the queue (HTMLGetDelayedImages gives
+ * them in view first, then below, then above). Stops when all images are
+ * in; QueueImages starts it again for the next page.
+ */
+#define SCROLL_WATCH 300
+
+static XtIntervalId scroll_watch = 0;
+static int watched_pos = -1;
+
+static void
+WatchScroll(cldata, id)
+XtPointer cldata;
+XtIntervalId *id;
+{
+  int pos = 0;
+
+  scroll_watch = 0;
+  if (!ImgLoadBusy()) return;
+
+  XtVaGetValues(root.w, WbNverticalScrollBarPos, &pos, NULL);
+  if (pos != watched_pos)
+  {
+    char **srcs;
+    int n = 0, i;
+
+    watched_pos = pos;
+    srcs = HTMLGetDelayedImages(root.w, &n);
+    ImgLoadPrioritize(srcs, n);
+    for (i = 0; i < n; i++) XtFree(srcs[i]);
+    if (srcs != NULL) XtFree((char *)srcs);
+  }
+  scroll_watch = XtAppAddTimeOut(root.appcon, SCROLL_WATCH, WatchScroll, NULL);
+}
+
+/*
  * Queue the images of the page just displayed that are still shown as
  * placeholders. Called from DisplayCurrent once the page is laid out.
  */
@@ -2357,6 +2395,11 @@ QueueImages()
     sprintf(msg, "Loading images: 0 of %d", queued);
     SetTitle(msg);
     ImgLoadRun();
+
+    XtVaGetValues(root.w, WbNverticalScrollBarPos, &watched_pos, NULL);
+    if (scroll_watch == 0)
+      scroll_watch = XtAppAddTimeOut(root.appcon, SCROLL_WATCH, WatchScroll,
+				     NULL);
   }
 }
 
