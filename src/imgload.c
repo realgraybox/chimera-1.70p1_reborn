@@ -472,3 +472,49 @@ ImgLoadBusy()
 {
   return(finished < total);
 }
+
+/*
+ * Move the queued images among srcs (as written in the page) to the
+ * front of the queue, in the order given: main.c passes the images in
+ * view first when the page has been scrolled. Images already being
+ * fetched or finished are not affected.
+ */
+void
+ImgLoadPrioritize(srcs, n)
+char **srcs;
+int n;
+{
+  ImgEntry *front = NULL, *front_last = NULL;
+  int i;
+
+  for (i = 0; i < n; i++)
+  {
+    ImgEntry **pp, *e;
+
+    for (pp = &entries; (e = *pp) != NULL; pp = &e->next)
+    {
+      if (e->state == E_QUEUED && strcmp(e->src, srcs[i]) == 0) break;
+    }
+    if (e == NULL) continue;
+
+    *pp = e->next;			/* unlink */
+    if (last_entry == e)
+    {
+      ImgEntry *t;
+
+      last_entry = NULL;
+      for (t = entries; t != NULL; t = t->next) last_entry = t;
+    }
+    e->next = NULL;
+    if (front_last != NULL) front_last->next = e;
+    else front = e;
+    front_last = e;
+  }
+
+  if (front != NULL)
+  {
+    front_last->next = entries;
+    entries = front;
+    if (last_entry == NULL) last_entry = front_last;
+  }
+}

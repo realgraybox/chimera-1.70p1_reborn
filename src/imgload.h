@@ -31,5 +31,6 @@ void ImgLoadRun _ArgProto((void));
 void ImgLoadCancel _ArgProto((void));
 int  ImgLoadTake _ArgProto((const char *, Document **));
 int  ImgLoadBusy _ArgProto((void));
+void ImgLoadPrioritize _ArgProto((char **, int));
 
 #endif
