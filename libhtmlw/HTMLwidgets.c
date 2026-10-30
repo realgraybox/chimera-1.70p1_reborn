@@ -3063,30 +3063,35 @@ FormInfo *fptr;			/* not used */
 }
 
 /*
- * Move the widget to a new x,y location and update the WidgetInfo x,y.
+ * Give the widget a new x,y location in the document (wp->x, wp->y) and
+ * put it there on the screen, which is that position minus the scroll
+ * offset, as ScrollWidgets() does.
+ *
+ * This used to set XtNx/XtNy to the document position, between
+ * XtUnmanageChild() and XtManageChild(). Every layout while scrolled
+ * down (each batch of background images) then unmapped and remapped
+ * the form widgets, and showed them for a moment where they would be
+ * with no scrolling: borders blinking over other parts of the page.
+ * XtMoveWidget() moves the window, without a geometry request to the
+ * parent and without unmapping it, and only when the place changes.
  */
 void
-MoveWidget (wp, x, y)
+MoveWidget (hw, wp, x, y)
+HTMLWidget hw;
 WidgetInfo *wp;
 int x,y;
 {
     wp->x = x;
     wp->y = y;
 
-    /*
-     * Don't want to SetValues if type HIDDEN which has no widget.
-     */
+    /* type HIDDEN has no widget */
     if (wp->w != NULL)
     {
-      Arg arg[10];
-      Cardinal argcnt;
+      Position sx = (Position) (x - hw->html.scroll_x);
+      Position sy = (Position) (y - hw->html.scroll_y);
 
-      XtUnmanageChild (wp->w);
-      argcnt = 0;
-      XtSetArg (arg[argcnt], XtNx, x); argcnt++;
-      XtSetArg (arg[argcnt], XtNy, y); argcnt++;
-      XtSetValues (wp->w, arg, argcnt);
-      XtManageChild (wp->w);
+      if (wp->w->core.x != sx || wp->w->core.y != sy)
+	XtMoveWidget (wp->w, sx, sy);
     }
 }
 
@@ -3174,7 +3179,7 @@ FormInfo *fptr;
      * Move it to its new location.
      */
   {
-    MoveWidget (wlist, x, y);
+    MoveWidget (hw, wlist, x, y);
     wptr = wlist;
   }
 
