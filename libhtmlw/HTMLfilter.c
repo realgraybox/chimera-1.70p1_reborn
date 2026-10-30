@@ -33,6 +33,16 @@
  *     (some sites hide the page until their scripts have loaded), and
  *     aria-hidden does not count: it hides only from screen readers.
  *
+ *   - Inline SVG. An <svg> element is left out (Chimera cannot draw it
+ *     in the page; its text would show), and so is an XML processing
+ *     instruction such as <?xml version="1.0"?>, which pages get when
+ *     an SVG file is pasted into them.
+ *
+ *   - Links left without text. A link with no visible text and no
+ *     image (an icon link whose icon was SVG or a CSS background)
+ *     gets its aria-label, or else its title, as text, so that it can
+ *     be seen and clicked.
+ *
  *   - <button>...</button>. It becomes an <input> of the same type
  *     (submit when not given), so the widget code makes a button of it.
  *     Its text, with tags removed, goes in X-CHIMERA-LABEL for the
@@ -406,14 +416,113 @@ Button(Buf *b, const char *p, const char *e)
   return end;
 }
 
-char *
-HTMLFilterText(const char *text)
+/*
+ * Does [p, e) show anything: text outside tags, an image or a form
+ * field?
+ */
+static int
+ShowsSomething(const char *p, const char *e)
+{
+  while (p < e)
+  {
+    if (*p == '<')
+    {
+      char name[16];
+      const char *te = TagEnd(p);
+
+      if (TagName(p, name, sizeof(name)) && p[1] != '/' &&
+	  (strcmp(name, "img") == 0 || strcmp(name, "input") == 0))
+	return 1;
+      if (te == NULL || te > e) return 0;
+      p = te;
+      continue;
+    }
+    if (!isspace((unsigned char) *p)) return 1;
+    p++;
+  }
+  return 0;
+}
+
+/*
+ * Second pass: links that show nothing get their aria-label or title as
+ * text. Returns a new string, or NULL if no link needed it.
+ */
+static char *
+FillEmptyLinks(const char *text)
 {
   Buf b = { NULL, 0, 0 };
   const char *p, *done;
   int changed = 0;
 
+  for (p = done = text; (p = strchr(p, '<')) != NULL; )
+  {
+    char name[8];
+    const char *e, *end, *close, *v, *r;
+    size_t n;
+
+    if ((r = SkipRaw(p)) != NULL)
+    {
+      p = r;
+      continue;
+    }
+    if (p[1] == '/' || !TagName(p, name, sizeof(name)) ||
+	strcmp(name, "a") != 0 || (e = TagEnd(p)) == NULL)
+    {
+      p++;
+      continue;
+    }
+    end = ElementEnd(e, "a");
+    if (end == NULL)
+    {
+      p = e;
+      continue;
+    }
+    close = end - 1;			/* the '>' of </a> */
+    while (close > e && *close != '<') close--;
+
+    if (!ShowsSomething(e, close) &&
+	((GetAttr(p, e, "aria-label", &v, &n) && n > 0) ||
+	 (GetAttr(p, e, "title", &v, &n) && n > 0)))
+    {
+      put(&b, done, close - done);
+      put(&b, v, n);
+      done = close;
+      changed = 1;
+    }
+    p = e;
+  }
+
+  if (!changed)
+  {
+    free(b.s);
+    return NULL;
+  }
+  puts_(&b, done);
+  return b.s;
+}
+
+static char *FilterPass(const char *text);
+
+char *
+HTMLFilterText(const char *text)
+{
+  char *first, *second;
+
   if (text == NULL) return NULL;
+  first = FilterPass(text);
+  second = FillEmptyLinks(first != NULL ? first : text);
+  if (second == NULL) return first;
+  free(first);
+  return second;
+}
+
+/* First pass: hidden elements, SVG, processing instructions, buttons */
+static char *
+FilterPass(const char *text)
+{
+  Buf b = { NULL, 0, 0 };
+  const char *p, *done;
+  int changed = 0;
 
   for (p = done = text; (p = strchr(p, '<')) != NULL; )
   {
@@ -425,10 +534,29 @@ HTMLFilterText(const char *text)
       p = r;
       continue;
     }
+    if (p[1] == '?')			/* <?xml ... ?> */
+    {
+      const char *q = strstr(p + 2, "?>");
+
+      put(&b, done, p - done);
+      p = done = q ? q + 2 : p + strlen(p);
+      changed = 1;
+      continue;
+    }
     if (p[1] == '/' || !TagName(p, name, sizeof(name)) ||
 	(e = TagEnd(p)) == NULL)
     {
       p++;
+      continue;
+    }
+
+    if (strcmp(name, "svg") == 0)
+    {
+      const char *end = (e[-2] == '/') ? e : ElementEnd(e, name);
+
+      put(&b, done, p - done);
+      p = done = end ? end : e;
+      changed = 1;
       continue;
     }
 

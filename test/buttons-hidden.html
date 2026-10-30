@@ -45,4 +45,16 @@ saying HIDDEN, also no field.</p>
 <p>Expected: three radio buttons and the buttons Cancel and Submit; no
 checkbox and no text area. Submit sends "ad" only when a radio button is
 on. (On a real page, JavaScript would enable Submit first.)</p>
+
+<h3>4. Inline SVG and icon links</h3>
+<p>Download the app:
+<a href="https://example.com/app" aria-label="Get it on Google Play"><span><?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><defs><style>.st0 { fill: #4285f4; }</style></defs>
+<g><path class="st0" d="M1 1 L19 19"/></g></svg></span></a>
+and follow us on
+<a href="https://example.com/fb" title="Visit us on Facebook"><span class="icon"></span></a>.
+Text links stay as they are: <a href="https://example.com/t" aria-label="not used">Text link</a>.</p>
+<p>Expected: "Download the app: Get it on Google Play and follow us on
+Visit us on Facebook. Text links stay as they are: Text link." with the
+three links underlined, and no &lt;?xml or style text.</p>
 </body></html>
