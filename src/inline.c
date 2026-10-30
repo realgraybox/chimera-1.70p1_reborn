@@ -47,6 +47,13 @@ int global_html_height = -1;
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvgrast.h"
 
+/*
+ * stb_image keeps its error message in a thread-local variable (__thread)
+ * since 2.2x. Static uClibc builds made with old gcc have no working
+ * thread-local storage, and the first write to it crashes. Chimera and
+ * xvl are single-threaded, so an ordinary variable does as well.
+ */
+#define STBI_NO_THREAD_LOCALS
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
