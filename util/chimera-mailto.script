@@ -122,7 +122,13 @@ if ! kill -0 "$pid" 2>/dev/null; then
     wait "$pid"
     status=$?
     if [ "$status" -ne 0 ]; then
-        page "The mail program <b>$(html_escape "$1")</b> could not be started (exit status $status). Try <b>$(html_escape "$*")</b> in a terminal to see why."
+        msg="The mail program <b>$(html_escape "$1")</b> could not be started (exit status $status). Try <b>$(html_escape "$*")</b> in a terminal to see why."
+        # Desktop mail programs (Thunderbird and others) refuse to start
+        # as root in a normal user's session, and xdg-open then fails.
+        if [ "$(id -u 2>/dev/null)" = "0" ]; then
+            msg="$msg</p><p>Chimera is running as <b>root</b>. Desktop mail programs usually refuse to start for root in a user's session: run Chimera as your normal user."
+        fi
+        page "$msg"
         exit 0
     fi
 fi
