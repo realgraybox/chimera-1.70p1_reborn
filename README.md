@@ -31,8 +31,11 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **HTTPS:** added through the `protocol` mechanism and the script in `helpers/curl`.
 - **Widget set:** XawPlus 2.0.2 is bundled and used by default. Plain Xaw or Xaw3d can be selected in `mk.config`.
 - **Resizing:** window resize events are debounced so the page is not reformatted on every intermediate size (compile flag `REBOUNCH`).
-- **Parser:** faster tag matching in the HTML parser, found by profiling (compile flag `GPROFOPT`).
-- **Locale:** the browser calls `setlocale()` at startup so the system character set is used.
+- **Parser:** faster tag matching in the HTML parser, found by profiling.
+- **Character sets:** UTF-8 pages are converted to Latin-1 for the X core fonts, and form data is sent back in the page's character set.
+- **Images in the background:** pages show at once, and their images are fetched several at a time while the window stays usable.
+- **Forms:** checkboxes and radio buttons show a mark, select lists are sized to their entries, password fields show `*`, `maxlength` is honoured, and Enter submits.
+- **Themes:** a dark (default) and a light colour theme as X resource files.
 - **Helpers:** new small programs `xvl` (image viewer, and converter for inline images with `-c`) and `fits2gif`, plus bundled `text2pdf` and Terry Loveall's `menu`, installed as `chimera-menu`.
 
 ## Building
@@ -88,7 +91,8 @@ make CC=i386-linux-uclibc-gcc
 | `mk.config` | Compiler, flags, install prefix, widget set (`XAW_LIB_TYPE`: `XAWPLUS`, `XAW3D` or plain Xaw); detects the target and uClibc |
 | `options.h` | User-Agent string, print command, mail command, network timeouts. `options.h.dist` is the original |
 | `src/fallback.c` | Built-in X resources (colours, labels, fonts) |
-| `lib/Chimera` | X resources installed as `~/Chimera`: colours, fonts, sizes, labels, scroll wheel |
+| `lib/Chimera` | X resources installed as `~/Chimera`: the dark theme (default), with colours, fonts, sizes, labels, scroll wheel |
+| `lib/Chimera-light` | The same with the light theme, installed as `~/Chimera-light` |
 | `src/Chimera.ad` | The original, annotated list of all resources and their defaults, for reference; not installed |
 
 ### Install
@@ -97,7 +101,7 @@ make CC=i386-linux-uclibc-gcc
 make install
 ```
 
-Programs go to `$(PREFIX)/bin` (default `/usr/bin`). The data files go to `$HOME/chimera`, and the X resources (`lib/Chimera`) to `$HOME/Chimera`, where Xt finds them without further setup. `make install` overwrites these files, so keep a copy of any you have changed.
+Programs go to `$(PREFIX)/bin` (default `/usr/bin`). The data files go to `$HOME/chimera`, and the X resources to `$HOME/Chimera` (dark theme) and `$HOME/Chimera-light` (light theme), where Xt finds them without further setup. `make install` overwrites the data files, so keep a copy of any you have changed. A resource file that differs from the new one is kept as `~/Chimera.old` or `~/Chimera-light.old`.
 
 **The data directory is fixed at build time.** `mk.config` expands `$HOME` while compiling, so the paths to `home.html`, `help.html`, `mime.types`, `mailcap`, `convert`, `protocol` and `cacheinfo` are compiled in for the user who ran `make`. Build as the user who will run the browser. If you install with `sudo`, check that the data files ended up in that user's `~/chimera` and not in root's home directory.
 
@@ -108,6 +112,17 @@ chimera [URL]
 ```
 
 Without a URL, Chimera opens the address in the `WWW_HOME` environment variable if it is set, and otherwise `~/chimera/home.html`. The Help button opens `~/chimera/help.html`, the original Chimera manual, which describes the buttons, keyboard shortcuts, environment variables and X resources.
+
+### Themes
+
+The dark theme in `~/Chimera` is the default. For the light theme:
+
+```sh
+chimera -xrm '*customization: -light'     # one session: X reads ~/Chimera-light instead
+cp ~/Chimera-light ~/Chimera               # make it the default
+```
+
+Both files are plain X resources and can be edited; the colours are near the top. `#rrggbb` colours also work in static builds whose Xlib has no Xcms (see `NO_XCMS` in `mk.config`).
 
 ### Files in `~/chimera`
 

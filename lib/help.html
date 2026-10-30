@@ -259,6 +259,27 @@ no_proxy               This is a comma separated list of domains that
 all_proxy              This is the default proxy host for all protocols.
 </pre>
 
+<h3>Themes</h3>
+
+<p>
+Chimera comes with two colour themes. <kbd>make install</kbd> puts the
+dark theme, the default, in <kbd>~/Chimera</kbd>, and the light theme in
+<kbd>~/Chimera-light</kbd>. These are X resource files: colours, fonts,
+sizes and labels, which you can edit; restart Chimera to see a change.
+A file you had changed is kept as <kbd>~/Chimera.old</kbd> when a new
+one is installed.
+
+<p>
+To use the light theme for one session:
+<pre>
+chimera -xrm '*customization: -light'
+</pre>
+X then reads <kbd>~/Chimera-light</kbd> instead of <kbd>~/Chimera</kbd>.
+To make it the default, copy it over the dark one:
+<pre>
+cp ~/Chimera-light ~/Chimera
+</pre>
+
 <h3>X Resources</h3>
 
 <p>
@@ -310,8 +331,9 @@ openButtonShortcut     Boolean variable used to specify whether user input
 localIndexFiles        A colon separated list of files which Chimera should
                        try to display in this order when pointed at a directory
                        via a file:... URL.  When empty or when nothing matches,
-                       a directory listing will be generated.  Defaults to
-                       index.html .
+                       a directory listing will be generated.  The default
+                       is index.html, but the installed themes set it empty,
+                       so a directory always shows its file list.
 
 printerName            Used to specify the name of the default printer.
 
@@ -385,6 +407,14 @@ html.useBodyColors     If True (the default), color attributes of HTML BODY
 
 html.delayImageLoads   This determines the initial state of the DeferPix
                        button.  Defaults to False  (images not delayed).
+
+html.backgroundImages  True (the default): a page is shown at once, and
+                       its images are fetched in the background and appear
+                       as they arrive.  False: every image is fetched
+                       before the page is shown.
+
+maxImageLoads          How many images are fetched at the same time in
+                       the background.  Defaults to 6.
 
 inPort                 The port number that chimera listens on for
                        incoming information from other programs.

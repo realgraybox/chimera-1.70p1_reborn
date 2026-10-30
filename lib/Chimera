@@ -1,8 +1,25 @@
+! Chimera X resources: dark theme (the default)
+!
+! "make install" installs this file as ~/Chimera, where Xt finds it, and
+! the light theme as ~/Chimera-light. To use the light theme:
+!
+!   chimera -xrm '*customization: -light'     for one session
+!   cp ~/Chimera-light ~/Chimera               to make it the default
+!
+! Xt reads ~/Chimera-light instead of ~/Chimera when the customization
+! is set, so each theme file is complete. Colours are near the top; edit
+! them and restart Chimera, no rebuild needed.
+
 Chimera.convertFiles: ~/chimera/convert
 Chimera.protocolFiles: ~/chimera/protocol
 Chimera.mailCapFiles: ~/chimera/mailcap
 Chimera.mimeTypeFiles: ~/chimera/mime.types
 Chimera.bookmarkFile: ~/chimera/bookmarks
+
+! A directory shows its file list, even when it has an index.html. Give
+! file names here, separated by colons (index.html:index.htm), to open
+! the first one found instead.
+Chimera.localIndexFiles:
 
 Chimera.maxColors:	1024
 
@@ -15,11 +32,39 @@ Chimera.cacheIgnoreExpires:       False
 
 ! Fallbacks for the resources below are in src/fallback.c:
 Chimera*showGrip:                  False
-Chimera*background:		LightGrey
-Chimera*Text*background:	white
-Chimera*html*background:	white
-Chimera*html*Vbar.background:	LightGrey
-Chimera*html*Hbar.background:	LightGrey
+! ---- Colours (dark theme) ----------------------------------
+! Window, buttons and menus
+Chimera*background:		#2e2e2e
+Chimera*foreground:		#dcdcdc
+Chimera*borderColor:		#5a5a5a
+
+! 3D edges. XawPlus: highlightColor/shadowColor, buttonBorderWidth.
+! Xaw3d: topShadowPixel/bottomShadowPixel. Plain Xaw has no 3D edges.
+Chimera*highlightColor:		#4a4a4a
+Chimera*shadowColor:		#161616
+Chimera*buttonBorderWidth:	1
+Chimera*beNiceToColormap:	False
+Chimera*topShadowPixel:		#4a4a4a
+Chimera*bottomShadowPixel:	#161616
+
+! Scrollbars
+Chimera*Scrollbar.background:	#262626
+Chimera*Scrollbar.foreground:	#5a5a5a
+Chimera*html*Vbar.background:	#262626
+Chimera*html*Hbar.background:	#262626
+
+! Text fields: URL, title, dialogs
+Chimera*Text*background:	#141414
+Chimera*Text*foreground:	#eeeeee
+
+! Page area. Pages that set their own colours (<body bgcolor=...>)
+! still use them; set useBodyColors to False below to ignore them.
+Chimera*html*background:	#1e1e1e
+Chimera*html*foreground:	#dcdcdc
+Chimera*html.anchorColor:		#8ab4f8
+Chimera*html.visitedAnchorColor:	#c58af9
+Chimera*html.activeAnchorFG:		#ffffff
+Chimera*html.activeAnchorBG:		#34465f
 
 
 
@@ -75,10 +120,21 @@ Chimera*html.verticalScrollOnRight: True
 ! background of html
 !Chimera*html.background:               steelblue
 
-! gives all forms/widgets in html a border
+! Form fields in pages keep a clear border, so they stand out on a
+! flat page
 Chimera*html*borderWidth: 1
+Chimera*html*borderColor: #8a8a8a
+Chimera*html*Text*background: #141414
+Chimera*html*Text*foreground: #eeeeee
+! Checkboxes and radio buttons: a field with a mark (X or *) when on
+Chimera*html*Toggle.background: #141414
+Chimera*html*Toggle.foreground: #8ab4f8
+! Select lists (size=n): like the text fields; the selected entry is
+! shown in reverse
+Chimera*html*List.background: #141414
+Chimera*html*List.foreground: #eeeeee
+Chimera*html*Viewport.background: #141414
 
-Chimera*html.activeAnchorBG:       moccasin
 Chimera*html.anchorUnderlines:     1
 Chimera*html.visitedAnchorUnderlines: 1
 

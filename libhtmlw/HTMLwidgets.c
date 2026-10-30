@@ -123,7 +123,7 @@ static void CBToggleMark _ArgProto((Widget, XtPointer, XtPointer));
 #define LIST_SCROLLBAR_SPACE	18
 
 #define CHECK_MARK	"X"
-#define RADIO_MARK	"*"
+#define RADIO_MARK	"O"
 
 #define FONTHEIGHT(font) (font->max_bounds.ascent + font->max_bounds.descent)
 
