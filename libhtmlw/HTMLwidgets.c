@@ -1277,6 +1277,7 @@ Boolean checked;
   wptr->height = height;
   wptr->name = name;
   wptr->value = value;
+  wptr->submit = False;
   wptr->password = NULL;
   wptr->maxlength = -1;
   wptr->mapping = mapping;
@@ -1785,7 +1786,23 @@ Cardinal *num_params;
   {
     if (wptr->id > fptr->start  &&  (fptr->end == -1  ||  wptr->id <= fptr->end))
     {
-      CBSubmitForm (wptr->w, (XtPointer) fptr, NULL);
+      WidgetInfo *bptr;
+
+      /*
+       * As in other browsers, Enter submits the form as if its first
+       * submit button had been pressed, so that button's name and
+       * value are sent along. Without a submit button the form is
+       * sent from the field.
+       */
+      for (bptr = hw->html.widget_list;  bptr != NULL;  bptr = bptr->next)
+      {
+	if (bptr->type == W_PUSHBUTTON  &&  bptr->submit  &&
+	    bptr->w != NULL  &&  bptr->id > fptr->start  &&
+	    (fptr->end == -1  ||  bptr->id <= fptr->end))
+	  break;
+      }
+      CBSubmitForm ((bptr != NULL) ? bptr->w : wptr->w, (XtPointer) fptr,
+		    NULL);
       return;
     }
   }
@@ -2581,8 +2598,13 @@ FormInfo *fptr;
    */
   XtAddCallback (w, XtNdestroyCallback, CBTextDestroy, (XtPointer) value);
 
-  return (AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
-			name, value, NULL, False));
+  {
+    WidgetInfo *winfo = AddNewWidget (hw, w, W_PUSHBUTTON, id, x, y,
+				      name, value, NULL, False);
+
+    if (winfo != NULL) winfo->submit = True;	/* Enter presses it */
+    return (winfo);
+  }
 }
 
 /*

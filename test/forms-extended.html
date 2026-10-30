@@ -58,7 +58,8 @@ Item: <input type="text" name="item" value="book">
 <input type="submit" name="action" value="Sell">
 </form>
 <p>Expected: clicking Buy sends "action": "Buy", Sell sends "Sell".
-Pressing Enter in the field sends the form without an "action".</p>
+Pressing Enter in the field sends "action": "Buy", as if the first
+button had been clicked, as other browsers do.</p>
 
 <h3>6. Form without action</h3>
 <form>
