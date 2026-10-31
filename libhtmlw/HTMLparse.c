@@ -480,10 +480,13 @@ struct mark_up *get_mark(const char *start, const char **endp) {
     if ((*ptr == 's' || *ptr == 'S') && caseless_equal(ptr, "script")) {
         int is_comment = 1;
         is_script_or_style = 1;
-        ptr += 7;
+        ptr += 6;		/* the name, then the character after it */
+        if (*ptr != '\0') ptr++;
         while ((is_comment || (*ptr != '>')) && (*ptr != '\0')) {
-            if ((*ptr == '<') && (*++ptr == '/') && (caseless_equal(++ptr, "script"))) {
-                ptr += 6;
+            /* look ahead without moving: a '<' just before the end
+             * of the text must not step ptr past the NUL */
+            if (ptr[0] == '<' && ptr[1] == '/' && caseless_equal(ptr + 2, "script")) {
+                ptr += 2 + 6;
                 if (*ptr == '>') break;
                 else if (isspace((unsigned char)*ptr)) {
                     is_comment = 0;
@@ -495,10 +498,13 @@ struct mark_up *get_mark(const char *start, const char **endp) {
     else if ((*ptr == 's' || *ptr == 'S') && caseless_equal(ptr, "style")) {
         int is_comment = 1;
         is_script_or_style = 1;
-        ptr += 6;
+        ptr += 5;		/* the name, then the character after it */
+        if (*ptr != '\0') ptr++;
         while ((is_comment || (*ptr != '>')) && (*ptr != '\0')) {
-            if ((*ptr == '<') && (*++ptr == '/') && (caseless_equal(++ptr, "style"))) {
-                ptr += 5;
+            /* look ahead without moving: a '<' just before the end
+             * of the text must not step ptr past the NUL */
+            if (ptr[0] == '<' && ptr[1] == '/' && caseless_equal(ptr + 2, "style")) {
+                ptr += 2 + 5;
                 if (*ptr == '>') break;
                 else if (isspace((unsigned char)*ptr)) {
                     is_comment = 0;
@@ -732,9 +738,10 @@ struct mark_up *HTMLParse(struct mark_up *old_list, const char *str) {
 #endif
                 return list;
             }
-            start = end + 1;
+            /* an unclosed comment or tag ends at the NUL: stay on it */
+            start = (*end != '\0') ? end + 1 : end;
         } else {
-            start = end + 1;
+            start = (*end != '\0') ? end + 1 : end;
             mark->next = NULL;
             current = AddObj(&list, current, mark, preformat);
 

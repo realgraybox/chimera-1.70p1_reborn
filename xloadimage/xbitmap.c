@@ -39,15 +39,6 @@ static unsigned char *bitmap_data;
 static int bitmap_pos;
 static int bitmap_datalen;
 
-static void free_image(Image *image) {
-    if (image) {
-        if (image->data) {
-            free(image->data); // Free the image data
-        }
-        free(image); // Free the image structure itself
-    }
-}
-
 
 /* Bitmap read function */
 static int bitmap_read(unsigned char *b, int blen) {
@@ -141,8 +132,12 @@ static int next_int() {
             fprintf(stderr, "Error: Invalid hex character encountered.\n");
             return -1;
         default:
-            value += (c << shift);
-            shift += 4;
+            /* only the first 4 digits count: more would shift past
+             * the int (found by fuzzing) */
+            if (shift < 16) {
+                value += (c << shift);
+                shift += 4;
+            }
         }
     }
 }
@@ -185,6 +180,12 @@ Image *xbitmapLoad(unsigned char *data, int datalen, RGBColor *bg) {
         fprintf(stderr, "Error: Width or height not defined in bitmap data.\n");
         return NULL;
     }
+    /* w and h come from the file: a huge size would make the buffer
+     * size wrap around (found by fuzzing) */
+    if (!imageSizeOK((long) w, (long) h)) {
+        fprintf(stderr, "Error: Bitmap size %ux%u not supported.\n", w, h);
+        return NULL;
+    }
 
     image = newBitImage(w, h);
     if (!image) {
@@ -200,7 +201,7 @@ Image *xbitmapLoad(unsigned char *data, int datalen, RGBColor *bg) {
             value = next_int();
             if (value < 0) {
                 fprintf(stderr, "Error: Invalid data in bitmap at line %u.\n", y);
-                free_image(image);
+                freeImage(image);	/* also the colour map */
                 return NULL;
             }
             *(dataptr++) = (unsigned char)value;

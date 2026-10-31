@@ -170,11 +170,11 @@ MakeURL(URLParts *up, int addanchor)
    * not being taken into account -- GN 1997Apr30
    */
   len = strlen(protocol) + strlen(delim) + strlen(hostname) + strlen(delim2) +
-        strlen(filename) + strlen(delim3) + strlen(anchor) + 13;
+        strlen(filename) + strlen(delim3) + strlen(anchor) + 16;
   u = alloc_mem(len);
   if (up->port == 0)
   {
-    sprintf (u, "%s:%s%s%s%s%s%s", protocol, delim, hostname, delim2,
+    snprintf (u, len, "%s:%s%s%s%s%s%s", protocol, delim, hostname, delim2,
 	     filename, delim3, anchor);
   }
   else
@@ -183,7 +183,7 @@ MakeURL(URLParts *up, int addanchor)
      * max 10 digits for the port #...
      * sprintf doesn't let us specify a maximum field width  (GN 97Apr30)
      */
-    sprintf (u, "%s:%s%s:%d%s%s%s%s", protocol, delim, hostname, up->port,
+    snprintf (u, len, "%s:%s%s:%d%s%s%s%s", protocol, delim, hostname, up->port,
 	     delim2, filename, delim3, anchor);
   }
 
@@ -652,7 +652,10 @@ ParseURL(char *url)
     if (colon != NULL)		/* a port is specified */
     {
       *colon = '\0';
-      up->port = atoi(colon + 1);
+      /* atoi of a huge number overflows to anything, also negative:
+       * keep only real ports (found by fuzzing) */
+      long port = strtol(colon + 1, NULL, 10);
+      up->port = (port > 0 && port <= 65535) ? (int) port : 0;
     }
 
     up->hostname = alloc_string(s);

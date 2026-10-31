@@ -10,4 +10,6 @@ typedef struct {
   unsigned char height[2];
 } PBMCompact;
 
-#define PM_SCALE(a, b, c) (long)((a) * (c))/(b)
+/* scale sample a of 0..b to 0..c; samples beyond b (bad files) give c,
+ * and the product is done in long so it can't overflow (found by fuzzing) */
+#define PM_SCALE(a, b, c) ((a) >= (b) ? (long)(c) : (long)(a) * (c) / (b))
