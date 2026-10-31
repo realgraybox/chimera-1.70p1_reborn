@@ -34,6 +34,9 @@
 #             (the static build from helpers/curl), otherwise curl.
 #   COOKIES   true: keep cookies in $HOME/chimera/cookies/cookies.txt
 #             false: no cookies are stored or sent
+#             Images get the cookies only when they come from the same
+#             site as the page (Chimera says which), and never store
+#             any: no third-party cookies.
 #   CA_BUNDLE file with trusted root certificates, passed to curl with
 #             --cacert. Default: $HOME/chimera/cacert.pem if it exists,
 #             otherwise curl's own default store. Useful when the system
@@ -41,8 +44,12 @@
 #             downloads a current one.
 #   INSECURE  true: do not check server certificates (curl -k). Last
 #             resort when no usable CA_BUNDLE is available.
-#   DEBUG     true: log each request, including form data, to $LOGFILE.
-#             Leave false in normal use.
+#   DEBUG     true: log each request, including form data, to $LOGFILE
+#             (default $HOME/chimera/helper.log). Leave false in normal use.
+#
+# Redirects are followed only to https addresses: when an https page
+# redirects to plain http, a short page with the link is shown instead,
+# so that nothing is fetched unencrypted without the user seeing it.
 #
 
 if [ -z "$CURL" ]; then
@@ -54,11 +61,12 @@ if [ -z "$CA_BUNDLE" ] && [ -f "$HOME/chimera/cacert.pem" ]; then
 fi
 INSECURE=${INSECURE:-false}
 DEBUG=${DEBUG:-false}
-LOGFILE=${LOGFILE:-/tmp/chimera.log}
+LOGFILE=${LOGFILE:-$HOME/chimera/helper.log}
 
 URI=""
 HOST=""
 INLINE=false
+PAGE_HOST=""
 REQUEST_LINE=""
 METHOD="GET"
 CONTENT_TYPE="application/x-www-form-urlencoded"
@@ -94,8 +102,12 @@ do
             HOST=$(printf "%s" "$line" | sed 's/^X-hostname: //')
             ;;
         X-chimera-inline:*)
-            # an image loaded in the background, alongside others
+            # an image, possibly loaded alongside others
             INLINE=true
+            ;;
+        X-chimera-page:*)
+            # the host of the page the image is on
+            PAGE_HOST=$(printf "%s" "$line" | sed 's/^X-chimera-page: //')
             ;;
         Content-type:*)
             CONTENT_TYPE=$(printf "%s" "$line" | sed 's/^Content-type: //')
@@ -154,17 +166,39 @@ HEADER_DUMP=$(mktemp "${TMPDIR:-/tmp}/chimera_headers.XXXXXX") || exit 1
 BODY_DUMP=$(mktemp "${TMPDIR:-/tmp}/chimera_body.XXXXXX") || { rm -f "$HEADER_DUMP"; exit 1; }
 trap 'rm -f "$HEADER_DUMP" "$BODY_DUMP"' EXIT
 
-set -- -L -s -A "Chimera/1.70" --connect-timeout 3 --max-time 10 \
+# -L with --proto-redir: redirects to https only (see the top)
+set -- -L --proto-redir =https --max-redirs 10 \
+       -s -A "Chimera/1.70" --connect-timeout 3 --max-time 10 \
        -D "$HEADER_DUMP" -o "$BODY_DUMP"
+
+# The site of a host name, roughly its registrable domain: the last two
+# labels (dr.dk, cnn.com), or three when the second last is one of the
+# usual second-level names under a country code (bbc.co.uk). An IP
+# address is its own site.
+site() {
+    printf "%s\n" "$1" | tr 'A-Z' 'a-z' | sed 's/:[0-9]*$//' | awk -F. '
+        /^[0-9.]+$/ { print; next }
+        NF >= 3 && length($NF) == 2 &&
+        $(NF-1) ~ /^(co|com|net|org|gov|edu|ac|or|ne|go|gob|mil|nom|ltd|plc|sch|gv|lg)$/ {
+            print $(NF-2) "." $(NF-1) "." $NF; next }
+        NF >= 2 { print $(NF-1) "." $NF; next }
+        { print }'
+}
 
 if [ "$COOKIES" = true ]; then
     COOKIEJAR="$HOME/chimera/cookies/cookies.txt"
     mkdir -p "$HOME/chimera/cookies"
     if [ "$INLINE" = true ]; then
-        # Chimera loads several images at once; if each curl rewrote the
-        # cookie file at exit they would overwrite each other's changes.
-        # Images send the cookies but leave the file alone.
-        set -- "$@" -b "$COOKIEJAR"
+        # Images never write the cookie file: Chimera loads several at
+        # once, and they would overwrite each other's changes; and an
+        # image from another site must not set cookies (tracking). They
+        # send cookies only to the page's own site.
+        if [ -n "$PAGE_HOST" ] && [ "$(site "$HOST")" = "$(site "$PAGE_HOST")" ]; then
+            set -- "$@" -b "$COOKIEJAR"
+            log "COOKIES: image from the page's site $HOST, sent"
+        else
+            log "COOKIES: image from $HOST on a page from [$PAGE_HOST], not sent"
+        fi
     else
         set -- "$@" -b "$COOKIEJAR" -c "$COOKIEJAR"
     fi
@@ -195,8 +229,39 @@ CTYPE=$(tr -d '\r' < "$HEADER_DUMP" 2>/dev/null \
 
 log "CURL_EXIT=[$CURL_EXIT] HTTP_STATUS=[$HTTP_STATUS] CTYPE=[$CTYPE]"
 
+# --- A redirect from https to plain http was not followed ---
+# curl stops with "unsupported protocol" (exit 1); the last response is
+# the redirect itself.
+if [ "$CURL_EXIT" -eq 1 ] && [ "$HTTP_STATUS" -ge 300 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+    LOCATION=$(tr -d '\r' < "$HEADER_DUMP" \
+        | awk 'tolower($1) == "location:" {print $2}' | tail -1)
+    log "REDIRECT NOT FOLLOWED: $URI -> $LOCATION"
+    if [ "$INLINE" = true ]; then
+        send_transparent_gif
+        exit 0
+    fi
+    ESC_URI=$(printf "%s" "$URI" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g')
+    ESC_LOC=$(printf "%s" "$LOCATION" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g')
+    printf "HTTP/1.0 200 OK\r\n"
+    printf "Content-Type: text/html\r\n"
+    printf "\r\n"
+    printf "<html><head><title>Redirect to an unencrypted address</title></head><body>\n"
+    printf "<h2>Redirect to an unencrypted address</h2>\n"
+    printf "<p>The secure page<br><b>%s</b><br>redirects to an address without encryption:</p>\n" "$ESC_URI"
+    printf "<p><a href=\"%s\">%s</a></p>\n" "$ESC_LOC" "$ESC_LOC"
+    printf "<p>Follow the link only if you are content to continue without encryption:\n"
+    printf "what you send and receive there can be read and changed on the way.</p>\n"
+    printf "</body></html>\n"
+    exit 0
+fi
+
 # --- A failed image request gets a transparent GIF instead of an error page ---
 if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_STATUS" -ge 400 ]; then
+    if [ "$INLINE" = true ]; then
+        log "RESCUE: image request failed, sending 1x1 GIF"
+        send_transparent_gif
+        exit 0
+    fi
     case "$URI" in
         *.png*|*.gif*|*.jpg*|*.jpeg*|*.ico*)
             log "RESCUE: image request failed, sending 1x1 GIF"

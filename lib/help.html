@@ -341,8 +341,10 @@ cacheOff               If True then chimera will not cache documents.
                        Performance falls way off if you set this to true.
 
 cacheDir               This is used to specify the directory of the default
-                       cache.  Chimera will not create the directory if it
-                       does not exist and caching will then not occur.
+                       cache, by default ~/chimera/cache.  Chimera creates
+                       it if needed, closed to other users.  A directory
+                       others can write to, like /tmp, gets a private
+                       subdirectory chimera-<user id> instead.
 
 cacheTTL               This specifies the time-to-live for the default cache.
                        If a document is accessed and the cache entry for that
@@ -419,7 +421,12 @@ maxImageLoads          How many images are fetched at the same time in
 inPort                 The port number that chimera listens on for
                        incoming information from other programs.
                        By default, this is set to zero which disables
-                       the feature.
+                       the feature.  Only programs on the same machine
+                       can connect.
+
+confirmExternal        True (the default): ask before a downloaded file
+                       is handed to a program from the mailcap file.
+                       False opens it straight away.
 
 languageDB             Specifies the language database file.  The language
                        database is a file with a name/value pair per line.

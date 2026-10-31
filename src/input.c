@@ -276,14 +276,14 @@ ReadBuffer(int d, int *len, int max, int bmax)
 char *
 ReadPipe(char *command, char *path, char *in, int inlen, char **out, int *outlen)
 {
-  char filename[L_tmpnam + 1];
+  char filename[MAXPATHLEN + 1];
   char *cmdline;
   char *data;
   int datalen;
   int fd[2];
   char *emsg = NULL;
 
-  if (SaveData(in, inlen, tmpnam(filename)) == -1)
+  if (SaveTempData(in, inlen, filename, sizeof(filename)) == -1)
   {
     return(alloc_string(GetFromStringDB("nosave")));
   }

@@ -254,7 +254,8 @@ ScanCacheDirectories()
 	  /*
 	   * Get the full path of the cache file.
 	   */
-	  sprintf (path, "%s/%s", ci->dir, de->d_name);
+	  if (snprintf (path, sizeof(path), "%s/%s", ci->dir, de->d_name)
+	      >= (int)sizeof(path)) continue;
 	  if (stat(path, &s) != 0) continue;
 	  
 	  /*
@@ -321,10 +322,24 @@ ScanCacheDirectories()
 /*
  * InitCache
  */
-void
+int
 InitCache(char *cachedir, int max, int ttl, int cleanup, int ignore, char *cachelist)
 {
-  char *f, *filename;
+  char *f, *filename, *dir;
+
+  /*
+   * The cache files must be our own: in a directory others can write to
+   * (the old default /tmp) they could plant pages for any address, or
+   * links that make Chimera overwrite files. PrivateDir() makes sure.
+   */
+  filename = FixFilename(cachedir);
+  dir = (filename != NULL) ? PrivateDir(filename) : NULL;
+  if (dir == NULL)
+  {
+    fprintf(stderr, "Chimera: no private cache directory in %s, cache off\n",
+	    cachedir);
+    return(-1);
+  }
 
   ignore_expires = ignore;
 
@@ -335,7 +350,7 @@ InitCache(char *cachedir, int max, int ttl, int cleanup, int ignore, char *cache
     if (filename != NULL) ReadCacheInfoFile(filename);
   }
 
-  default_cache.dir = alloc_string(FixFilename(cachedir));
+  default_cache.dir = alloc_string(dir);
   default_cache.domain = alloc_string("*");
   default_cache.max_size = (off_t)max;
   default_cache.ttl = (time_t)ttl;
@@ -349,7 +364,7 @@ InitCache(char *cachedir, int max, int ttl, int cleanup, int ignore, char *cache
   }
   ScanCacheDirectories();
 
-  return;
+  return(0);
 }
 
 /*
@@ -385,7 +400,7 @@ urlToCacheName(CacheInfo *ci, URLParts *up)
   /* chop it off to have reasonable length file names */
   hex[11] = '\0';
 
-  sprintf(name, "%s/ccf%s", ci->dir, hex);
+  snprintf(name, sizeof(name), "%s/ccf%s", ci->dir, hex);
 
   return(name);
 }

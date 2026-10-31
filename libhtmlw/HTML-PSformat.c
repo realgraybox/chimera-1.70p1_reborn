@@ -193,29 +193,38 @@ static int PSprintf(format, va_alist)
     return(len);
 }
 #else
-static int PSprintf(char *format, ...)       
+static int PSprintf(char *format, ...)
 {
     va_list args;
-    int     len;        
-    char    *s;                 
+    int     len;
+    char    *s;
+
+    /*
+     * Measure first: page text can be longer than the 1024 bytes that
+     * used to be all that was made room for (heap overflow when printing
+     * a page with a long line of text; found in review).
+     */
     va_start(args, format);
-  
-    if (PS_size - PS_len < 1024) {
-        PS_size += 1024;
-        if ((s = (char *) realloc(PS_string, PS_size)) == NULL) {
+    len = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    if (len < 0) return(EOF);
+
+    if (PS_size - PS_len < len + 1) {
+        int size = PS_len + len + 1024;
+
+        if ((s = (char *) realloc(PS_string, size)) == NULL) {
 #ifdef VERBOSE
 		fprintf(stderr, "PSprintf malloc failed\n");
 #endif
                 return(EOF);
         }
         PS_string = s;
-    }           
-    len = (int) vsprintf(PS_string+PS_len, format, args);
-    /* this is a hack to make it work on systems were vsprintf(s,.)
-     * returns s, instead of the len. */
-    if (len != EOF && len != (intptr_t) NULL)
-        PS_len += strlen(PS_string+PS_len);
+        PS_size = size;
+    }
+    va_start(args, format);
+    vsnprintf(PS_string + PS_len, PS_size - PS_len, format, args);
     va_end(args);
+    PS_len += len;
     return(len);
 }
 #endif

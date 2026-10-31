@@ -12,7 +12,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - **HTML:** the NCSA Mosaic HTML widget, covering headings, lists, text styles, forms, tables and inline images.
 - **Inline images decoded in the browser:** JPEG, PNG, BMP, GIF, TGA and PSD (stb_image, recognised from the image data whatever type name the server sends), SVG (NanoSVG), and XBM, XPM and PBM/PGM/PPM (xloadimage). True-colour images are reduced to a 256-colour palette with xloadimage's median-cut reducer; images with 256 colours or fewer keep their exact colours.
 - **Inline images through converters:** TIFF, WebP and SGI (converted to PNG by `xvl -c`), FITS, PostScript and PDF, using the rules in the `convert` file.
-- **External viewers:** anything else is passed to the program named in `mailcap`. The default `mailcap` hands images, audio, video, PDF and other documents to `chimera-open`, which opens a copy of the file with the desktop's default program (`xdg-open`), or with `xvl`, the small image viewer included here, when there is none.
+- **External viewers:** anything else is passed to the program named in `mailcap`, after a dialog that shows the file's type and address (resource `confirmExternal`). The default `mailcap` hands images, audio, video, PDF and other documents to `chimera-open`, which opens a copy of the file with the desktop's default program (`xdg-open`), or with `xvl`, the small image viewer included here, when there is none. `chimera-open` refuses programs, scripts and `.desktop` files.
 - **Right-click menu:** a right-click on a link runs `sendto`, which pops up the menu defined in `~/chimera/sendto` with the link available as `"$F"` (a local path for `file:` links). Edit that file to change the entries; label and command are separated by a single tab.
 - **Printing:** the print dialog pipes the page to `chimera_print.sh`, which turns plain text into a PDF with the bundled `text2pdf`.
 
@@ -47,7 +47,7 @@ Chimera uses only Xlib, Xt and an Athena-style widget set. Statically linked aga
 - `giflib` for `fits2gif`.
 - `zlib` for `xvl`.
 - At run time, `curl` for HTTPS, and a terminal program for telnet links and "Terminal Here" (see `chimera-term` below).
-- Only for `make -C helpers/curl static-curl`: `git`, `sha256sum` and network access.
+- Only for `make -C helpers/curl static-curl`: `sha256sum`, `bzip2` and network access (and `git` for `LEGACY=1`).
 
 On Debian or Ubuntu:
 
@@ -137,6 +137,8 @@ Both files are plain X resources and can be edited; the colours are near the top
 | `sendto` | Entries of the right-click menu for links |
 | `cookies/cookies.txt` | Cookie jar written by the HTTPS helper |
 | `cacert.pem` | Optional root certificates for the HTTPS helper |
+| `cache/` | The page cache, when it is turned on (`cacheOff: False`); closed to other users |
+| `helper.log` | Request log of the HTTPS helper, only with `DEBUG=true` |
 
 ## HTTPS
 
@@ -150,18 +152,24 @@ The script uses the system's `curl`, which checks server certificates against th
 | `COOKIES` | `true` | Keep cookies in `~/chimera/cookies/cookies.txt` |
 | `CA_BUNDLE` | `~/chimera/cacert.pem` if it exists | File of trusted root certificates, passed to curl with `--cacert` |
 | `INSECURE` | `false` | `true` skips the certificate check (`curl -k`); last resort when no usable CA file is available |
-| `DEBUG` | `false` | `true` logs every request, including form data such as passwords, to `/tmp/chimera.log` |
+| `DEBUG` | `false` | `true` logs every request, including form data such as passwords, to `~/chimera/helper.log` |
+
+Redirects are followed only to `https` addresses. When an https page redirects to plain `http`, the script shows a short page with the link instead, so nothing is fetched unencrypted under an https address without you seeing it.
+
+Cookies are sent and stored for pages. An image gets the cookies only when it comes from the same site as the page it is on (Chimera tells the script which page that is), and an image never stores cookies: there are no third-party cookies.
 
 ### Static curl
 
-For a fully static system, such as one built with the 32-bit uClibc toolchain, `helpers/curl` can build a small static curl (7.47.0 with mbedTLS 2.16.0, HTTP and HTTPS only):
+For a fully static system, such as one built with the 32-bit uClibc toolchain, `helpers/curl` can build a small static curl (curl 8.23.0 with Mbed TLS 3.6.7, HTTP and HTTPS only, TLS 1.3):
 
 ```sh
 make -C helpers/curl static-curl
 make -C helpers/curl install-static-curl
 ```
 
-The sources are not kept in this repository. `static-curl` downloads the curl release tarball and checks its SHA-256, and checks out the mbedTLS release tag with git and checks its commit, so it needs network access, `git` and `sha256sum` once. It installs the binary as `chimera-curl`, which the script then uses automatically.
+The sources are not kept in this repository. `static-curl` downloads the curl and Mbed TLS release tarballs and checks their SHA-256, so it needs network access, `sha256sum` and `bzip2` once. It installs the binary as `chimera-curl`, which the script then uses automatically.
+
+`make -C helpers/curl static-curl LEGACY=1` builds the versions used before, curl 7.47.0 with mbed TLS 2.16.0, for a compiler that cannot build the current ones. They no longer get security fixes and have no TLS 1.3, so use them only if you must.
 
 chimera-curl checks certificates against the CA file found when it was built. On an older system that file lacks today's root certificates, and pages fail with `Cert verify failed: BADCERT_NOT_TRUSTED`. Fetch a current file with
 
@@ -175,9 +183,30 @@ which downloads curl's [cacert.pem](https://curl.se/ca/cacert.pem) to `~/chimera
 
 - **Some URLs are blocked.** The script answers any URL containing `flattr`, `badge`, `counter` or `analytics` with a 1x1 transparent GIF, and does the same for images that fail to load.
 - **Timeouts are short.** 3 seconds to connect, 10 seconds in total.
-- **The static curl is old.** curl 7.47.0 and mbedTLS 2.16.0 no longer receive security fixes and do not support TLS 1.3. The system curl does not have this problem.
+- **Keep curl up to date.** The script is only as safe as the curl it runs: the system curl gets updates with the system, a `chimera-curl` only when you rebuild it. The `LEGACY=1` build is out of support.
 
-Treat HTTPS here as a way to read public pages, not as a secure channel.
+## Security
+
+Chimera is a 1990s browser and was not written with today's web in mind. Use it to read public pages, not for banking, shopping or anything else where a mistake would cost you.
+
+**What helps.** Chimera runs no JavaScript, no CSS, no plug-ins and no web fonts, so the largest attack surface of a modern browser is simply not there: no script can run code, read what you type, fingerprint the machine or open pop-ups, and tracking that depends on scripts does not work. What a page can make Chimera do is fetch a document and its images, and show them.
+
+**What has been done here.**
+
+- The HTML parser, the HTTP and character-set handling, URL parsing and the XBM/PBM image loaders were fuzzed with AFL++ and AddressSanitizer, and the overflows found were fixed. The rest of the C code was reviewed for unbounded string handling (`sprintf`, `strcpy`, `strcat`), and the overflows found there (Gopher menus, printing, status lines) were fixed too.
+- HTTPS redirects are followed only to https, and there are no third-party cookies (see [HTTPS](#https)).
+- A downloaded file is handed to an external program only after you confirm it, and `chimera-open` refuses programs, scripts and `.desktop` files.
+- Temporary files are made with `mkstemp`, and the cache lives in a directory of its own, closed to other users.
+- FTP data connections go to the server's own address, not to one the server names, which could be another machine on your network.
+- Helper programs no longer inherit text waiting in Chimera's output buffers.
+
+**What remains.**
+
+- The C code is old and large; fuzzing and review find many problems but not all. Chimera has no sandbox: a flaw in it runs with your rights.
+- HTTPS is only as good as curl and its certificate store. Plain HTTP, FTP and Gopher are unencrypted, and Chimera shows no padlock or other sign of which you are on: look at the address.
+- The image decoders in stb_image and the converters for TIFF, WebP and others (libtiff 3.7.0 and libwebp 0.4.4 in `xvl`) read data from the web. libtiff and libwebp in particular are old versions.
+- Programs started from `mailcap`, `convert` and `protocol` see data from the web; keep those files to programs you trust.
+- Do not run Chimera as root.
 
 ## Repository layout
 
@@ -201,7 +230,7 @@ Treat HTTPS here as a way to read public pages, not as a secure channel.
 
 - `make install` writes the helper paths in `~/chimera/protocol` for the chosen `PREFIX`, but the commands in `mailcap` and `convert` are found through `PATH`.
 - Some of the original scripts in `util/` expect Perl or programs that are rare today.
-- A `mailcap` command ends at the next `;` and can contain `%s` only once; Chimera deletes the downloaded file as soon as the command returns. `chimera-open` exists for that reason.
+- A `mailcap` command ends at the next `;`; each `%s` becomes the file name. Chimera deletes the downloaded file as soon as the command returns. `chimera-open` exists for that reason.
 - `chimera-mailto` hands `mailto:` links to the desktop's mail program with `xdg-open`, or to the program in `MAIL_CLIENT` (for example `MAIL_CLIENT='chimera-term mutt'`). Chimera stays on the page.
 - `chimera-term` opens a terminal window for telnet links and the sendto menu's "Terminal Here", so xterm is not required. It uses `$TERMINAL` if set, otherwise the first of `x-terminal-emulator`, `defaultterminal`, `xterm`, `urxvt`, `rxvt`, `lxterminal`, `xfce4-terminal`, `mate-terminal`, `konsole` and `gnome-terminal` it finds.
 
@@ -220,8 +249,8 @@ This repository combines code under several licences. **Chimera itself is not op
 | `src/md5.c` | Public domain |
 | stb_image, stb_image_resize2, stb_image_write | Public domain |
 | NanoSVG | zlib licence |
-| curl 7.47.0 (only if `static-curl` is built) | curl licence (MIT style) |
-| mbedTLS 2.16.0 (only if `static-curl` is built) | Apache 2.0 |
+| curl 8.23.0 (7.47.0 with `LEGACY=1`; only if `static-curl` is built) | curl licence (MIT style) |
+| Mbed TLS 3.6.7 (2.16.0 with `LEGACY=1`; only if `static-curl` is built) | Apache 2.0 (3.6 is also available under GPL 2.0 or later) |
 | libtiff 3.7.0 | libtiff licence (BSD style) |
 | libwebp 0.4.4 | BSD 3-clause |
 | text2pdf 1.1 | Free redistribution; modification only with the author's permission |

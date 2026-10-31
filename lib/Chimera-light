@@ -24,10 +24,15 @@ Chimera.localIndexFiles:
 Chimera.maxColors:	1024
 
 Chimera.cacheOff:                 True
-Chimera.cacheDir:                 /tmp
+Chimera.cacheDir:                 ~/chimera/cache
 Chimera.cacheTTL:                 14400
 Chimera.cacheSize:                4000000
 Chimera.cacheClean:               True
+
+! Ask before a downloaded file (a PDF, a video, ...) is handed to a
+! program from the mailcap file. False opens it straight away, as
+! Chimera used to: then any page can start those programs.
+Chimera.confirmExternal:          True
 Chimera.cacheIgnoreExpires:       False
 
 ! Fallbacks for the resources below are in src/fallback.c:
@@ -203,6 +208,8 @@ Chimera*StrReq*dismiss.label:      Dismiss
 Chimera*StrReq*ScrollingText.width: 300
 Chimera*filename*title:            Save file as
 Chimera*filename.strreqMessage:    Save file as
+Chimera*openext*title:             Open with another program?
+Chimera*openext.strreqMessage:     Open with another program? (Dismiss: save it)
 Chimera*url*title:                 Enter URL or website
 Chimera*url.strreqMessage:         Enter URL
 Chimera*search.title:              Enter search

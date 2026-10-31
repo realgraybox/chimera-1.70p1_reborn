@@ -17,22 +17,44 @@ include ../../mk.config
 #
 # https-helper.sh uses chimera-curl automatically when it is installed.
 # The sources are downloaded on demand instead of being kept in the
-# repository: curl as the release tarball (checked against its SHA-256),
-# mbedTLS as a git checkout of the release tag (checked against its commit).
+# repository, as release tarballs checked against their SHA-256. (The
+# tarballs were checked against the projects' git tags: the same files,
+# plus the generated build files.)
+#
+# curl 8.23.0 and Mbed TLS 3.6.7 (long-term support, TLS 1.3). The
+# versions used before, curl 7.47.0 and mbed TLS 2.16.0 from 2016 and
+# 2018, are still there with LEGACY=1, for an old compiler that cannot
+# build the new ones:
+#
+#   make static-curl LEGACY=1
 #
 
-CURL_VERSION   = 7.47.0
-CURL_TARBALL   = curl-$(CURL_VERSION).tar.gz
-CURL_URL       = https://github.com/curl/curl/releases/download/curl-7_47_0/$(CURL_TARBALL)
-CURL_SHA256    = df01bd42af361978d9de7de8529718bcafe01897a544a7650139a1954c55bdfe
+ifeq ($(LEGACY),1)
+CURL_VERSION    = 7.47.0
+CURL_SHA256     = df01bd42af361978d9de7de8529718bcafe01897a544a7650139a1954c55bdfe
+# mbed TLS 2.16 as a git checkout of the release tag, checked against
+# its commit, as before
+MBEDTLS_TAG     = mbedtls-2.16.0
+MBEDTLS_REPO    = https://github.com/Mbed-TLS/mbedtls.git
+MBEDTLS_COMMIT  = fb1972db23da39bd11d4f9c9ea6266eee665605b
+MBEDTLS_DIR     = mbedtls-mbedtls-2.16.0
+# curl 7.47 would also pick up OpenSSL if it found it
+CURL_EXTRA_FLAGS = --without-ssl
+else
+CURL_VERSION    = 8.23.0
+CURL_SHA256     = e3de77cfa6367083c776a26647fc9f633b538c06c3baa73d931a252ac8f72b49
+MBEDTLS_VERSION = 3.6.7
+MBEDTLS_TARBALL = mbedtls-$(MBEDTLS_VERSION).tar.bz2
+MBEDTLS_URL     = https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-$(MBEDTLS_VERSION)/$(MBEDTLS_TARBALL)
+MBEDTLS_SHA256  = a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6
+MBEDTLS_DIR     = mbedtls-$(MBEDTLS_VERSION)
+endif
 
-MBEDTLS_TAG    = mbedtls-2.16.0
-MBEDTLS_REPO   = https://github.com/Mbed-TLS/mbedtls.git
-MBEDTLS_COMMIT = fb1972db23da39bd11d4f9c9ea6266eee665605b
+CURL_TARBALL   = curl-$(CURL_VERSION).tar.gz
+CURL_URL       = https://github.com/curl/curl/releases/download/curl-$(subst .,_,$(CURL_VERSION))/$(CURL_TARBALL)
 
 # Relative paths, since make cannot handle spaces in target names.
 CURL_DIR    = curl-$(CURL_VERSION)
-MBEDTLS_DIR = mbedtls-mbedtls-2.16.0
 PREFIX_DIR  = build_target
 
 TARGET = chimera-curl
@@ -95,10 +117,18 @@ $(CURL_DIR)/configure:
 	grep -c -- '-all-static|-static)' $(CURL_DIR)/ltmain.sh | grep -qx 2
 	touch $@
 
-# 0b. mbedTLS: check out the release tag and make sure it is the expected commit
+# 0b. mbedTLS: download the release tarball, check it, unpack it
+#     (LEGACY: check out the release tag and check its commit)
 $(MBEDTLS_DIR)/Makefile:
+ifeq ($(LEGACY),1)
 	[ -d $(MBEDTLS_DIR) ] || git clone --depth 1 --branch $(MBEDTLS_TAG) $(MBEDTLS_REPO) $(MBEDTLS_DIR)
 	test "`git -C $(MBEDTLS_DIR) rev-parse HEAD`" = "$(MBEDTLS_COMMIT)"
+else
+	[ -f $(MBEDTLS_TARBALL) ] || curl -fL -o $(MBEDTLS_TARBALL) $(MBEDTLS_URL) \
+		|| wget -O $(MBEDTLS_TARBALL) $(MBEDTLS_URL)
+	echo "$(MBEDTLS_SHA256)  $(MBEDTLS_TARBALL)" | sha256sum -c -
+	bzip2 -dc $(MBEDTLS_TARBALL) | tar xf -
+endif
 	touch $@
 
 # 1. build mbedTLS static and install it locally in build_target
@@ -106,6 +136,7 @@ $(MBEDTLS_LIBS): $(MBEDTLS_DIR)/Makefile
 	$(MAKE) lib -C $(MBEDTLS_DIR) CC="$(CC)" CFLAGS="$(TARGET_CFLAGS)"
 	mkdir -p $(PREFIX_DIR)/lib $(PREFIX_DIR)/include
 	cp -r $(MBEDTLS_DIR)/include/mbedtls $(PREFIX_DIR)/include/
+	if [ -d $(MBEDTLS_DIR)/include/psa ]; then cp -r $(MBEDTLS_DIR)/include/psa $(PREFIX_DIR)/include/; fi
 	cp $(MBEDTLS_DIR)/library/libmbedcrypto.a $(PREFIX_DIR)/lib/
 	cp $(MBEDTLS_DIR)/library/libmbedx509.a $(PREFIX_DIR)/lib/
 	cp $(MBEDTLS_DIR)/library/libmbedtls.a $(PREFIX_DIR)/lib/
@@ -142,7 +173,16 @@ $(CURL_SRC_BIN): $(CURL_DIR)/configure $(MBEDTLS_LIBS)
 		--disable-ftps \
 		--disable-libcurl-option \
 		--disable-mqtt \
-		--without-ssl \
+		--disable-docs \
+		--without-libpsl \
+		--without-libidn2 \
+		--without-nghttp2 \
+		--without-nghttp3 \
+		--without-ngtcp2 \
+		--without-brotli \
+		--without-zstd \
+		--without-libssh2 \
+		$(CURL_EXTRA_FLAGS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
 		CPPFLAGS="$(MBEDTLS_CPPFLAGS)" \
 		LDFLAGS="$(CURL_LDFLAGS)" \
@@ -166,4 +206,4 @@ clean:
 
 # also remove the downloaded sources
 distclean: clean
-	rm -rf $(CURL_DIR) $(MBEDTLS_DIR) $(CURL_TARBALL)
+	rm -rf $(CURL_DIR) $(MBEDTLS_DIR) $(CURL_TARBALL) $(MBEDTLS_TARBALL)

@@ -22,6 +22,7 @@
 
 #include "common.h"
 #include "url.h"
+#include "util.h"
 #include "mime.h"
 #include "document.h"
 #include "ftp.h"
@@ -106,8 +107,11 @@ fixup_ftp_message(char *ftpmsg)
   char *r;
   Document *d;
 
-  r = alloc_mem(strlen(msg) + strlen(ftpmsg) + 1);
-  sprintf (r, msg, ftpmsg);
+  char *e = EscapeHTML(ftpmsg);	/* the server's text, into a page */
+
+  r = alloc_mem(strlen(msg) + strlen(e) + 1);
+  sprintf (r, msg, e);
+  free_mem(e);
   free_mem(ftpmsg);
   d = BuildDocument(r, strlen(r), "text/html", 0, 0);
   d->status = DS_ERROR;
@@ -127,7 +131,6 @@ ftp(URLParts *up, MIMEType *mtlist)
 {
   char *emsg;
   char *query;
-  char data_hostname[48];
   char *t;
   char *domain;
   char *uname;
@@ -261,7 +264,8 @@ ftp(URLParts *up, MIMEType *mtlist)
   } /* noticed by Hallvard B Furuseth, fix by GN 1997May13 */
   if (n != 7 || reply != 227)
   {
-    char *msg = GetFromStringDB("ftpweirdness");
+    /* a copy: fixup_ftp_message() frees its argument */
+    char *msg = alloc_string(GetFromStringDB("ftpweirdness"));
 
     net_close(s);
     free_mem(emsg);
@@ -269,13 +273,20 @@ ftp(URLParts *up, MIMEType *mtlist)
   }
   free_mem(emsg);
 
-  sprintf (data_hostname, "%d.%d.%d.%d", h0, h1, h2, h3);
-
   /*
-   * Open a data connection
+   * Open a data connection: to the host we are talking to, not to the
+   * address in the PASV reply. A server could name any machine there,
+   * on the user's own network too, and have Chimera connect to it; other
+   * clients (curl) ignore that address as well. It also helps with
+   * servers behind NAT that give their private address.
    */
   data_port = (p0 << 8) + p1;
-  d = net_open(data_hostname, data_port);
+  if (p0 < 0 || p0 > 255 || p1 < 0 || p1 > 255 || data_port == 0)
+  {
+    net_close(s);
+    return(fixup_ftp_message(alloc_string(GetFromStringDB("ftpweirdness"))));
+  }
+  d = net_open(hostname, data_port);
   if (d < 0)
   {
     net_close(s);

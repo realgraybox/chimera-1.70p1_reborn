@@ -1297,8 +1297,8 @@ NextComma (char *string)
   {
     if (*tptr == '\\')
     {
-      *tptr = '\0';
-      strcat (string, (char *) (tptr + 1));
+      /* drop the backslash; the strings overlap, so memmove */
+      memmove (tptr, tptr + 1, strlen (tptr + 1) + 1);
       tptr++;
     }
     else if (*tptr == '\'')
@@ -1426,7 +1426,7 @@ ComposeCommaList (char **list, int cnt)
     {
       olen = strlen (option);
     }
-    if ((len + (olen * 2)) >= max_len)
+    if ((len + (olen * 2) + 2) >= max_len)	/* + comma and NUL */
     {
       tbuf = XtMalloc(max_len + olen + 1024);
       strcpy(tbuf, buf);
@@ -1502,8 +1502,8 @@ UnMuckTextAreaValue (char *value)
   {
     if (*tptr == '\\')
     {
-      *tptr = '\0';
-      strcat (value, (char *) (tptr + 1));
+      /* drop the backslash; the strings overlap, so memmove */
+      memmove (tptr, tptr + 1, strlen (tptr + 1) + 1);
       tptr++;
     }
     else if (*tptr == '\'')

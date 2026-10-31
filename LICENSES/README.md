@@ -14,7 +14,7 @@ every copy, including binaries.
 | `text2pdf` | `text2pdf.txt` |
 | `xvl` | `zlib-graybox.txt`, `public-domain.txt` (stb), `libtiff.txt`, `libwebp.txt`, `libwebp-PATENTS.txt`, plus the system libraries below |
 | `fits2gif` | `zlib-graybox.txt`, `system-giflib.txt` |
-| `chimera-curl` (optional) | `curl.txt`, `Apache-2.0.txt` (mbedTLS 2.16.0) |
+| `chimera-curl` (optional) | `curl.txt`, `Apache-2.0.txt` (Mbed TLS 3.6.7, under Apache 2.0 or GPL 2.0 or later; 2.16.0 with `LEGACY=1`, Apache 2.0) |
 | Scripts (`https-helper.sh`, `chimera-open`, ...) | `zlib-graybox.txt` |
 
 ## Source files by licence
@@ -34,7 +34,7 @@ every copy, including binaries.
 | `text2pdf.txt` | `helpers/text2pdf/` (kept unmodified, as its licence requires) |
 | `libtiff.txt` | `helpers/xvl/tiff-3.7.0/` |
 | `libwebp.txt`, `libwebp-PATENTS.txt` | `helpers/xvl/libwebp-0.4.4/` |
-| `curl.txt`, `Apache-2.0.txt` | curl 7.47.0 and mbedTLS 2.16.0, downloaded by `make -C helpers/curl static-curl` |
+| `curl.txt`, `Apache-2.0.txt` | curl 8.23.0 and Mbed TLS 3.6.7 (curl 7.47.0 and mbed TLS 2.16.0 with `LEGACY=1`), downloaded by `make -C helpers/curl static-curl` |
 
 ## NCSA Mosaic code
 
