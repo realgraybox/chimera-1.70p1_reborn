@@ -238,13 +238,26 @@ Latin1Text (const char *text, int len, int utf8, int is_html, int *outlen)
   const unsigned char *p = (const unsigned char *) text;
   char *o;
   int i = 0, n = 0, k;
+  int size = len * 2 + 64;
   unsigned long cp;
 
-  /* a substitute is at most 4 characters, or 5 in HTML ("&amp;") */
-  o = alloc_mem (len * 3 + 1);
+  /*
+   * The output grows as needed: one input byte or character reference
+   * can become up to 9 characters ("<->" as "&lt;-&gt;" in HTML), and
+   * "&#xff" becomes "&#255;". Each step below writes at most
+   * LATIN1_STEP bytes, so that much room is made before it. (A fixed
+   * len * 3 was too small; found by fuzzing.)
+   */
+#define LATIN1_STEP 32
+  o = alloc_mem (size);
 
   while (i < len)
   {
+    if (n + LATIN1_STEP >= size)
+    {
+      size = (n + LATIN1_STEP) * 2;
+      o = realloc_mem (o, size);
+    }
     if (!utf8  &&  p[i] >= 0x80  &&  p[i] <= 0x9F)
     {
       cp = cp1252[p[i] - 0x80];
