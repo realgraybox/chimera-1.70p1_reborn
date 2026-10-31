@@ -234,6 +234,7 @@ start_viewer(char *path, char *command, char *filename)
 
   cmdline = CreateCommandLine(command, path, filename);
 
+  fflush(NULL);		/* the child must not inherit unwritten output */
   if (fork() == 0)
   {
     signal(SIGPIPE, SIG_DFL);
@@ -243,7 +244,7 @@ start_viewer(char *path, char *command, char *filename)
 		fprintf(stderr, "Chimera: Could not start extern program.\n");
 	}
     unlink(filename);
-    exit(0);
+    _exit(0);		/* not exit(): leave Chimera's stdio buffers alone */
   }
   free_mem(cmdline);
 
@@ -296,7 +297,6 @@ DisplayExternal(char *filename, char *content, char *path, MailCap *caplist)
   MailCap *c;
   int rval;
   int i;
-printf("DBG: 01 filename %s\n",filename );
   for (c = caplist; c; c = c->next)
   {
     if ((rval = FindViewer(c, content, path, filename)) != -1) return(rval);
