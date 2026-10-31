@@ -138,16 +138,26 @@ else
 		|| wget -O $(MBEDTLS_TARBALL) $(MBEDTLS_URL)
 	echo "$(MBEDTLS_SHA256)  $(MBEDTLS_TARBALL)" | sha256sum -c -
 	bzip2 -dc $(MBEDTLS_TARBALL) | tar xf -
-ifneq ($(findstring 1,$(NO_AESNI)),)
-	sed -i 's|^#define MBEDTLS_AESNI_C$$|/* #define MBEDTLS_AESNI_C: off, see helpers/curl/Makefile */|' \
-		$(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
-	! grep -q '^#define MBEDTLS_AESNI_C$$' $(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
-endif
 endif
 	touch $@
 
 # 1. build mbedTLS static and install it locally in build_target
+#    The AES-NI setting is made here, on every build, not when unpacking:
+#    the same sources may be unpacked on one machine (with network) and
+#    built on another (the uClibc one).
+MBEDTLS_CONFIG = $(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
+AESNI_OFF = /* \#define MBEDTLS_AESNI_C: off, see helpers/curl/Makefile */
+
 $(MBEDTLS_LIBS): $(MBEDTLS_DIR)/Makefile
+	@if [ -f $(MBEDTLS_CONFIG) ]; then \
+	  if [ -n "$(findstring 1,$(NO_AESNI))" ]; then \
+	    echo "helpers/curl: building Mbed TLS without AES-NI"; \
+	    sed -i 's|^#define MBEDTLS_AESNI_C$$|$(AESNI_OFF)|' $(MBEDTLS_CONFIG); \
+	    ! grep -q '^#define MBEDTLS_AESNI_C$$' $(MBEDTLS_CONFIG); \
+	  else \
+	    sed -i 's|^/\* #define MBEDTLS_AESNI_C: off.*$$|#define MBEDTLS_AESNI_C|' $(MBEDTLS_CONFIG); \
+	  fi; \
+	fi
 	$(MAKE) lib -C $(MBEDTLS_DIR) CC="$(CC)" CFLAGS="$(TARGET_CFLAGS)"
 	mkdir -p $(PREFIX_DIR)/lib $(PREFIX_DIR)/include
 	cp -r $(MBEDTLS_DIR)/include/mbedtls $(PREFIX_DIR)/include/
