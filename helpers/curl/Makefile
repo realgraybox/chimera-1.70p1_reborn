@@ -11,6 +11,7 @@ include ../../mk.config
 # small curl can be built from pinned sources:
 #
 #   make static-curl          download, check, build ./chimera-curl
+#   make sources              only download, check and unpack them
 #   make install-static-curl  install it as $(BINDIR)/chimera-curl
 #   make cacert               download curl's current CA bundle to
 #                             ~/chimera/cacert.pem, used by https-helper.sh
@@ -23,11 +24,14 @@ include ../../mk.config
 #
 # curl 8.23.0 and Mbed TLS 3.6.7 (long-term support, TLS 1.3). The
 # versions used before, curl 7.47.0 and mbed TLS 2.16.0 from 2016 and
-# 2018, are still there with LEGACY=1, for an old compiler that cannot
-# build the new ones:
+# 2018, are built with LEGACY=1. Mbed TLS 3.6 needs a newer compiler
+# than gcc 3.4 (the uClibc toolchain), so with a gcc older than 5 the
+# old versions are chosen by default; LEGACY=0 or LEGACY=1 overrides:
 #
 #   make static-curl LEGACY=1
 #
+CC_MAJOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f1)
+LEGACY ?= $(shell [ -n "$(CC_MAJOR)" ] && [ "$(CC_MAJOR)" -lt 5 ] 2>/dev/null && echo 1 || echo 0)
 
 ifeq ($(LEGACY),1)
 CURL_VERSION    = 7.47.0
@@ -61,16 +65,6 @@ TARGET = chimera-curl
 
 TARGET_CFLAGS = $(CFLAGS) -std=gnu99
 
-# Mbed TLS 3 builds AES-NI on 32-bit x86 only with compiler intrinsics
-# (cpuid.h, immintrin.h), which old compilers like gcc 3.4 do not have.
-# There, and with any gcc before 4.4, AES-NI is left out: AES then runs
-# in plain C. (mbed TLS 2.16 with LEGACY=1 is not affected.)
-CC_MAJOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f1)
-CC_MINOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f2)
-NO_AESNI := $(shell case "$(TARGET_CPU)" in (i?86) echo 1;; esac; \
-	if [ -n "$(CC_MAJOR)" ] && { [ "$(CC_MAJOR)" -lt 4 ] || \
-	   { [ "$(CC_MAJOR)" -eq 4 ] && [ "$(CC_MINOR)" -lt 4 ]; }; }; then echo 1; fi)
-
 # -fPIC only when not building statically against uClibc (IS_UCLIBC is set in mk.config)
 ifneq ($(IS_UCLIBC), 1)
     TARGET_CFLAGS += -fPIC
@@ -91,7 +85,7 @@ CURL_LDFLAGS = $(HELPER_LDFLAGS) -L../$(PREFIX_DIR)/lib
 MBEDTLS_LIBS = $(PREFIX_DIR)/lib/libmbedcrypto.a $(PREFIX_DIR)/lib/libmbedx509.a $(PREFIX_DIR)/lib/libmbedtls.a
 CURL_SRC_BIN = $(CURL_DIR)/src/curl
 
-.PHONY: all install static-curl install-static-curl cacert clean distclean
+.PHONY: all install static-curl install-static-curl sources cacert clean distclean
 
 all:
 	@echo "helpers/curl: using the system curl; see 'make static-curl' for a static one"
@@ -100,7 +94,12 @@ install:
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 755 https-helper.sh $(DESTDIR)$(BINDIR)/
 
+# Only download and unpack, for building later on a machine without
+# network access. For the uClibc toolchain: make sources LEGACY=1
+sources: $(CURL_DIR)/configure $(MBEDTLS_DIR)/Makefile
+
 static-curl: $(TARGET)
+	@echo "helpers/curl: built curl $(CURL_VERSION) with Mbed TLS $(if $(MBEDTLS_VERSION),$(MBEDTLS_VERSION),2.16.0)$(if $(filter 1,$(LEGACY)), (LEGACY: out of support, no TLS 1.3))"
 
 install-static-curl: $(TARGET) install
 	install -m 755 $(TARGET) $(DESTDIR)$(BINDIR)/
@@ -142,22 +141,7 @@ endif
 	touch $@
 
 # 1. build mbedTLS static and install it locally in build_target
-#    The AES-NI setting is made here, on every build, not when unpacking:
-#    the same sources may be unpacked on one machine (with network) and
-#    built on another (the uClibc one).
-MBEDTLS_CONFIG = $(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
-AESNI_OFF = /* \#define MBEDTLS_AESNI_C: off, see helpers/curl/Makefile */
-
 $(MBEDTLS_LIBS): $(MBEDTLS_DIR)/Makefile
-	@if [ -f $(MBEDTLS_CONFIG) ]; then \
-	  if [ -n "$(findstring 1,$(NO_AESNI))" ]; then \
-	    echo "helpers/curl: building Mbed TLS without AES-NI"; \
-	    sed -i 's|^#define MBEDTLS_AESNI_C$$|$(AESNI_OFF)|' $(MBEDTLS_CONFIG); \
-	    ! grep -q '^#define MBEDTLS_AESNI_C$$' $(MBEDTLS_CONFIG); \
-	  else \
-	    sed -i 's|^/\* #define MBEDTLS_AESNI_C: off.*$$|#define MBEDTLS_AESNI_C|' $(MBEDTLS_CONFIG); \
-	  fi; \
-	fi
 	$(MAKE) lib -C $(MBEDTLS_DIR) CC="$(CC)" CFLAGS="$(TARGET_CFLAGS)"
 	mkdir -p $(PREFIX_DIR)/lib $(PREFIX_DIR)/include
 	cp -r $(MBEDTLS_DIR)/include/mbedtls $(PREFIX_DIR)/include/
