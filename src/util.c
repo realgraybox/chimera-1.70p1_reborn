@@ -186,11 +186,14 @@ PrivateDir(char *dir)
 		 (long)getuid()) >= (int)(sizeof(path) - len))
       return(NULL);
     mkdir(path, 0700);
+
+    /* in a shared directory: ours and not a link someone put there */
+    if (lstat(path, &s) != 0 || !S_ISDIR(s.st_mode)) return(NULL);
   }
 
-  /* the directory itself: ours, not a link, and closed to others */
-  if (lstat(path, &s) != 0 || !S_ISDIR(s.st_mode) || s.st_uid != getuid())
-    return(NULL);
+  /* the directory itself: ours and closed to others (a link of our own
+   * to a directory of our own is fine) */
+  if (s.st_uid != getuid()) return(NULL);
   if ((s.st_mode & 077) != 0 && chmod(path, 0700) != 0) return(NULL);
 
   return(path);
