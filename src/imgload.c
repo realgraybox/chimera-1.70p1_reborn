@@ -284,6 +284,7 @@ StartHelper(ImgEntry *e)
     return(-1);
   }
 
+  fflush(NULL);			/* see PipeCommand() */
   pid = fork();
   if (pid == -1)
   {

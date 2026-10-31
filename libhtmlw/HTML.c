@@ -3804,6 +3804,7 @@ static void HtmlPopMenu(Widget w, char *u)
 		b[sizeof(b) - 1] = '\0';
 	}
 
+	fflush(NULL);		/* the child must not inherit unwritten output */
 	switch (fork())
 	{
 		case 0:

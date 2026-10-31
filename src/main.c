@@ -1234,7 +1234,6 @@ HandleDoc(Document *d, int download)
       }
       if (! filename) filename="";
 
-printf("Here 1.\n");
       CreateStrReq("filename", filename, False, SaveOCallback,
 		   SaveDCallback, (XtPointer)d);
   }
@@ -1260,7 +1259,6 @@ printf("Here 1.\n");
     {
       if (DisplayExternal(filename, d->content, root.path, root.mclist))
       {
-printf("Here 2 d='%s' dp='%s'.\n",d->content,d->pcontent);
 	CreateStrReq("filename", root.savestr, False, SaveOCallback,
 		     SaveDCallback, (XtPointer)d);
       }

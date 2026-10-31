@@ -27,7 +27,6 @@ int net_open(char *hostname, int port) {
     int s;
     struct sockaddr_in addr;
     struct hostent *hp = NULL;
-    char *dotted_quad = NULL;
    // time_t now;
 
    // now = time(NULL);
@@ -41,10 +40,8 @@ int net_open(char *hostname, int port) {
 			return -1;
 		}
 		memcpy(&addr.sin_addr, hp->h_addr, hp->h_length);
-		dotted_quad = inet_ntoa(addr.sin_addr);
 	} else {
 		addr.sin_addr.s_addr = inet_addr(hostname);
-		dotted_quad = hostname;
 	}
 
 
@@ -63,7 +60,8 @@ int net_open(char *hostname, int port) {
         return -1;
     }
 
-    printf("Connected to %s\n", dotted_quad);
+    /* no printf here: the status line shows the connection, and text
+     * left in Chimera's stdout buffer could end up in a page (input.c) */
     return s;
 }
 

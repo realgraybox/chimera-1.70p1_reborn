@@ -220,7 +220,7 @@ Image *imgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     
 	orig_rgba = stbi_load_from_memory((unsigned char*)data, datalen, &width, &height, &n, 4);
 	if(orig_rgba == NULL) {
-		printf("ERROR: Couldn't load image: %s!\n", stbi_failure_reason());
+		fprintf(stderr, "Chimera: couldn't load image: %s\n", stbi_failure_reason());
 		return(NULL);
 	}
   
@@ -351,7 +351,7 @@ Image *svgLoad(char *data, int datalen, RGBColor *bg, int target_width, int targ
     free_mem(svg_copy);
 
     if (svg_img == NULL) {
-        printf("ERROR: Could not parse SVG data!\n");
+        fprintf(stderr, "Chimera: could not parse SVG data\n");
         return(NULL);
     }
 

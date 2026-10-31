@@ -349,6 +349,12 @@ PipeCommand(char *command, int *fd, int usesystem)
     return(-1);
   }
 
+  /*
+   * Write out what is waiting in Chimera's stdio buffers first: the
+   * child gets a copy, and if it flushed that copy with its stdout on
+   * the pipe, the text would end up in the document read from it.
+   */
+  fflush(NULL);
   pid = (int)fork();
   if (pid == -1)
   {
@@ -392,12 +398,12 @@ PipeCommand(char *command, int *fd, int usesystem)
 	  if (status == -1) {
 			fprintf(stderr, "Chimera: Could not start extern program.\n");
 	  }
-      exit(0);
+      _exit(0);		/* not exit(): that would flush stdio into the pipe */
     }
     else
     {
       execl(command, command, (char *)0);
-      exit(1);
+      _exit(1);
     }
   }
   else
