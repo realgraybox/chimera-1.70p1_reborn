@@ -15,6 +15,8 @@
 
 char *FixFilename _ArgProto((char *));
 int SaveData _ArgProto((char *, int, char *));
+int SaveTempData _ArgProto((char *, int, char *, int));
+char *PrivateDir _ArgProto((char *));
 void StartReaper();
 char *mystrtok _ArgProto((char *, int, char **));
 char *CreateCommandLine _ArgProto((char *, char *, char *));

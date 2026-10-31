@@ -693,9 +693,33 @@ build_request(URLParts *up, char *filename, char *extra_header, int crlf)
 }
 
 /*
+ * Images and the page they are on. Requests to a helper program for an
+ * image say so (X-chimera-inline), and name the host of the page
+ * (X-chimera-page): https-helper.sh then sends cookies only when the
+ * image comes from the page's own site, and never lets an image set
+ * cookies.
+ */
+static char *image_page = NULL;	/* host of the page whose images load */
+static int inline_now = 0;	/* the next type 2 requests are images */
+
+void
+HTTPImagePage(const char *host)
+{
+  if (image_page != NULL) free_mem(image_page);
+  image_page = (host != NULL) ? alloc_string((char *)host) : NULL;
+}
+
+void
+HTTPInline(int on)
+{
+  inline_now = on;
+}
+
+/*
  * http_request
  *
- * Sends an HTTP request
+ * Sends an HTTP request. Type 2 and 3 go to a helper program; 3 is an
+ * image loaded in the background.
  */
 int
 http_request(int fd, URLParts *up, int type, int reload)
@@ -724,29 +748,29 @@ http_request(int fd, URLParts *up, int type, int reload)
   else
   {
     char *url;
-    /*
-     * type 3 is an image fetched in the background: several of these run
-     * at the same time, so the helper is told not to rewrite its cookie
-     * file for them (see https-helper.sh)
-     */
+    char *protocol = up->protocol != NULL ? up->protocol:"";
+    char *hostname = up->hostname != NULL ? up->hostname:"";
+    char *filename = up->filename != NULL ? up->filename:"/";
+    int is_image = (type == 3 || inline_now);
+    char *page = (is_image && image_page != NULL) ? image_page : "";
+    int len;
     static char *format = "\
 URI: %s\n\
 X-protocol: %s\n\
 X-hostname: %s\n\
 X-port: %d\n\
 X-filename: %s\n\
-%s";
+%s%s%s%s";
 
     url = MakeURL(up, 0);
-    extra_header = alloc_mem(strlen(url) * 5 + strlen(format) + 64);
-    sprintf (extra_header,
+    len = strlen(format) + strlen(url) + strlen(protocol) + strlen(hostname)
+      + strlen(filename) + strlen(page) + 64;
+    extra_header = alloc_mem(len);
+    snprintf (extra_header, len,
 	     format,
-	     url,
-	     up->protocol != NULL ? up->protocol:"",
-	     up->hostname != NULL ? up->hostname:"",
-	     up->port,
-	     up->filename != NULL ? up->filename:"/",
-	     type == 3 ? "X-chimera-inline: 1\n" : "");
+	     url, protocol, hostname, up->port, filename,
+	     is_image ? "X-chimera-inline: 1\n" : "",
+	     *page ? "X-chimera-page: " : "", page, *page ? "\n" : "");
 
     query = build_request(up, NULL, extra_header, 0);
     free_mem(extra_header);

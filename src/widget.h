@@ -42,6 +42,7 @@ typedef struct _htmlroot
   int cacheTTL;
   int cacheSize;
   Boolean cacheOff;
+  Boolean confirmExternal; /* ask before running a viewer program */
   char *cacheDir;
   Boolean cacheClean;
   char *helpURL; /* location of the help page */

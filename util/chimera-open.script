@@ -58,6 +58,32 @@ if command -v file >/dev/null 2>&1; then
     MIME=$(file -b --mime-type "$IN" 2>/dev/null)
 fi
 
+# Never hand on something that runs as a program when opened: a page
+# could send a script or a .desktop file under any content type, and
+# the desktop opener might start it.
+case "$MIME" in
+    application/x-executable|application/x-pie-executable|\
+    application/x-sharedlib|application/x-object|\
+    application/x-dosexec|application/x-msdownload|\
+    application/vnd.microsoft.portable-executable|\
+    application/x-desktop|application/x-shellscript|text/x-shellscript|\
+    text/x-perl|text/x-python|text/x-script.python|text/x-ruby|\
+    application/x-perl|application/x-python-code|\
+    application/java-archive|application/x-java-archive|\
+    application/x-java-jnlp-file|application/x-ms-shortcut|\
+    application/x-msi|application/x-ms-installer|\
+    application/vnd.appimage|application/x-iso9660-appimage)
+        echo "chimera-open: not opening $MIME, a program or script; save it instead" >&2
+        exit 1
+        ;;
+esac
+case "$(head -c 15 "$IN" 2>/dev/null)" in
+    '#!'*|'[Desktop Entry]')
+        echo "chimera-open: not opening a script or .desktop file; save it instead" >&2
+        exit 1
+        ;;
+esac
+
 case "$MIME" in
     image/jpeg)                 EXT=jpg ;;
     image/png)                  EXT=png ;;

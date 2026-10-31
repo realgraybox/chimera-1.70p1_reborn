@@ -95,6 +95,8 @@ static void SaveDocument _ArgProto((Document *, char *, int));
 static void MailDocument _ArgProto((Document *, char *, int));
 static void PrintDocument _ArgProto((Document *, char *, int));
 static void SaveOCallback _ArgProto((Widget, XtPointer, XtPointer));
+static void AskExternal _ArgProto((Document *, char *));
+static char *SaveName _ArgProto((Document *));
 static void SaveDCallback _ArgProto((Widget, XtPointer, XtPointer));
 static void AuthOKCallback _ArgProto((Widget, XtPointer, XtPointer));
 static void AuthDismissCallback _ArgProto((Widget, XtPointer, XtPointer));
@@ -169,8 +171,10 @@ static XtResource       resource_list[] =
         offset(keyTrans), XtRString, (XtPointer)defaultTranslations },
   { "cacheOff", XtCBoolean, XtRBoolean, sizeof(Boolean),
 	offset(cacheOff), XtRImmediate, (XtPointer)False },
+  { "confirmExternal", XtCBoolean, XtRBoolean, sizeof(Boolean),
+	offset(confirmExternal), XtRImmediate, (XtPointer)True },
   { "cacheDir", "CacheDir", XtRString, sizeof(char *),
-	offset(cacheDir), XtRString, (XtPointer)"/tmp" },
+	offset(cacheDir), XtRString, (XtPointer)"~/chimera/cache" },
   { "cacheTTL", "CacheTTL", XtRInt, sizeof(int),
 	offset(cacheTTL), XtRImmediate, (XtPointer)14400 },
   { "cacheSize", "CacheSize", XtRInt, sizeof(int),
@@ -443,9 +447,10 @@ int main(int argc, char *argv[])
 
   if (!root.cacheOff)
   {
-    InitCache(root.cacheDir, root.cacheSize, root.cacheTTL,
-	      root.cacheClean ? 1:0, root.cacheIgnoreExpires ? 1:0,
-	      root.cacheInfoFiles);
+    if (InitCache(root.cacheDir, root.cacheSize, root.cacheTTL,
+		  root.cacheClean ? 1:0, root.cacheIgnoreExpires ? 1:0,
+		  root.cacheInfoFiles) != 0)
+      root.cacheOff = True;
   }
 
   /*
@@ -1253,13 +1258,22 @@ HandleDoc(Document *d, int download)
   }
   else
   {
-    char filename[L_tmpnam + 1];
+    char filename[MAXPATHLEN + 1];
 
-    if (SaveData(d->text, d->len, tmpnam(filename)) != -1)
+    if (SaveTempData(d->text, d->len, filename, sizeof(filename)) != -1)
     {
+      if (root.confirmExternal)
+      {
+	/* a page must not start programs on its own: ask first */
+	AskExternal(d, filename);
+	SetTitle(NULL);
+	SetURL(root.dlist ? root.dlist->up : NULL);
+	return;
+      }
       if (DisplayExternal(filename, d->content, root.path, root.mclist))
       {
-	CreateStrReq("filename", root.savestr, False, SaveOCallback,
+	unlink(filename);	/* no viewer for it */
+	CreateStrReq("filename", SaveName(d), False, SaveOCallback,
 		     SaveDCallback, (XtPointer)d);
       }
       else
@@ -1553,6 +1567,86 @@ SaveOCallback(Widget w, XtPointer cldata, XtPointer cbdata)
   XtDestroyWidget(w);
 
   return;
+}
+
+/*
+ * Asking before a downloaded file is handed to a viewer program (from
+ * the mailcap files): OK opens it, Dismiss offers to save it instead.
+ */
+typedef struct
+{
+  Document *d;
+  char *filename;		/* the data, in a temporary file */
+} ExternalAsk;
+
+/* the last part of the document's path, offered as the name to save as */
+static char *
+SaveName(Document *d)
+{
+  static char name[256];
+  char *f, *e;
+
+  name[0] = '\0';
+  if (d->up == NULL || d->up->filename == NULL) return(name);
+  f = d->up->filename;
+  e = f + strlen(f);
+  while (e > f && e[-1] == '/') e--;		/* "dir/" -> "dir" */
+  for (f = e; f > d->up->filename && f[-1] != '/'; f--)
+    ;
+  snprintf(name, sizeof(name), "%.*s", (int)(e - f), f);
+  return(name);
+}
+
+static void
+ExternalOCallback(Widget w, XtPointer cldata, XtPointer cbdata)
+{
+  ExternalAsk *ea = (ExternalAsk *)cldata;
+
+  XtDestroyWidget(w);
+  if (DisplayExternal(ea->filename, ea->d->content, root.path, root.mclist))
+  {
+    unlink(ea->filename);	/* no viewer for it after all */
+    CreateStrReq("filename", SaveName(ea->d), False, SaveOCallback,
+		 SaveDCallback, (XtPointer)ea->d);
+  }
+  else DestroyDocument(ea->d);	/* the viewer removes the file */
+  free_mem(ea->filename);
+  free_mem((char *)ea);
+}
+
+static void
+ExternalDCallback(Widget w, XtPointer cldata, XtPointer cbdata)
+{
+  ExternalAsk *ea = (ExternalAsk *)cldata;
+
+  XtDestroyWidget(w);
+  unlink(ea->filename);
+  CreateStrReq("filename", SaveName(ea->d), False, SaveOCallback,
+	       SaveDCallback, (XtPointer)ea->d);
+  free_mem(ea->filename);
+  free_mem((char *)ea);
+}
+
+static void
+AskExternal(Document *d, char *filename)
+{
+  ExternalAsk *ea = (ExternalAsk *)alloc_mem(sizeof(ExternalAsk));
+  char *url = (d->up != NULL) ? MakeURL(d->up, 0) : alloc_string("");
+  char *ctype = (d->content != NULL) ? d->content : "unknown type";
+  char *what;
+  int len;
+
+  ea->d = d;
+  ea->filename = alloc_string(filename);
+
+  /* shown in the dialog's text field: what it is and where from */
+  len = strlen(ctype) + strlen(url) + 8;
+  what = alloc_mem(len);
+  snprintf(what, len, "%s  %s", ctype, url);
+  CreateStrReq("openext", what, False, ExternalOCallback,
+	       ExternalDCallback, (XtPointer)ea);
+  free_mem(what);
+  free_mem(url);
 }
 
 /*
@@ -2217,7 +2311,12 @@ FetchQuiet(URLParts *up)
 {
   Document *d = root.cacheOff ? NULL : ReadCache(up);
 
-  if (d == NULL) d = LoadDocument(up, root.plist, root.mtlist, 0);
+  if (d == NULL)
+  {
+    HTTPInline(1);		/* only used for images */
+    d = LoadDocument(up, root.plist, root.mtlist, 0);
+    HTTPInline(0);
+  }
   return(d);
 }
 
@@ -2295,6 +2394,8 @@ QueueImages()
 
   ImgLoadInit(root.appcon, root.plist, FetchQuiet, BgApply,
 	      root.maxImageLoads);
+  HTTPImagePage(root.dlist != NULL && root.dlist->up != NULL ?
+		root.dlist->up->hostname : NULL);
 
   srcs = HTMLGetDelayedImages(root.w, &n);
   for (i = 0; i < n; i++)
@@ -2340,6 +2441,23 @@ QueueImages()
  * Background arg added - djhjr - May 12 97
  */
 
+/*
+ * LoadDoc for an image of the page shown: a helper program is told so,
+ * and which site the page is on (cookies, see http.c)
+ */
+static Document *
+LoadImageDoc(URLParts *up, int localonly)
+{
+  Document *d;
+
+  HTTPImagePage(root.dlist != NULL && root.dlist->up != NULL ?
+		root.dlist->up->hostname : NULL);
+  HTTPInline(1);
+  d = LoadDoc(up, 0, localonly);
+  HTTPInline(0);
+  return(d);
+}
+
 ImageInfo *
 ImageResolve(Widget w,
              char *url,
@@ -2379,7 +2497,7 @@ ImageResolve(Widget w,
     int st = ImgLoadTake(url, &bd);
 
     if (st == IMG_READY) d = bd;
-    else if (delay == 2) d = LoadDoc(tup, 0, 0);  /* clicked: fetch it now */
+    else if (delay == 2) d = LoadImageDoc(tup, 0);  /* clicked: fetch it now */
     else if (st != IMG_UNKNOWN) d = NULL;	  /* on its way, or failed */
     else
     {
@@ -2390,7 +2508,7 @@ ImageResolve(Widget w,
        */
       URLParts *nup = ResolveDocURL(tup, 0);
 
-      d = LoadDoc(tup, 0, IsLocalURL(nup) ? 0 : 1);
+      d = LoadImageDoc(tup, IsLocalURL(nup) ? 0 : 1);
       if (nup != NULL) DestroyURLParts(nup);
     }
 
@@ -2400,7 +2518,7 @@ ImageResolve(Widget w,
       return(NULL);
     }
   }
-  else d = LoadDoc (tup, 0, delay == 1);
+  else d = LoadImageDoc(tup, delay == 1);
   t_fetch = ChTimeMs() - t0;
   t0 = ChTimeMs();
     

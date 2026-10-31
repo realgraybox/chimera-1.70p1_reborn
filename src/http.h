@@ -12,4 +12,6 @@ Document *ParseHTTPRequest _ArgProto((int));
 Document *http _ArgProto((URLParts *, MIMEType *));
 Document *http_proxy _ArgProto((URLParts *, URLParts *, MIMEType *, int));
 int http_request _ArgProto((int, URLParts *, int, int));
+void HTTPImagePage _ArgProto((const char *));
+void HTTPInline _ArgProto((int));
 

@@ -29,7 +29,7 @@ typedef struct _cache_info
 } CacheInfo;
 
 int IsCached _ArgProto((URLParts *up));
-void InitCache _ArgProto((char *, int, int, int, int, char *));
+int InitCache _ArgProto((char *, int, int, int, int, char *));
 Document *ReadCache _ArgProto((URLParts *));
 void WriteCache _ArgProto((Document *));
 void CleanCache _ArgProto((void));

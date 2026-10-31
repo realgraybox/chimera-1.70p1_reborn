@@ -110,12 +110,90 @@ SaveData(char *data, int datalen, char *filename)
       fclose(fp);
       unlink(filename);
     }
+    return(-1);
   }
 
   if (filename[0] == '|') pclose(fp);
   else fclose(fp);
 
   return(0);
+}
+
+/*
+ * SaveTempData
+ *
+ * Write data to a new temporary file, made with mkstemp() so that no
+ * other user can put a file or a link there first (tmpnam() could not
+ * promise that). The name goes to filename, of size size.
+ */
+int
+SaveTempData(char *data, int datalen, char *filename, int size)
+{
+  char *dir = getenv("TMPDIR");
+  int fd;
+
+  if (dir == NULL || *dir == '\0') dir = "/tmp";
+  if (snprintf(filename, size, "%s/chimeraXXXXXX", dir) >= size) return(-1);
+  if ((fd = mkstemp(filename)) == -1) return(-1);
+  close(fd);
+
+  if (SaveData(data, datalen, filename) == -1)
+  {
+    unlink(filename);
+    return(-1);
+  }
+  return(0);
+}
+
+/*
+ * PrivateDir
+ *
+ * Make sure dir can hold private files (the cache), creating it if
+ * needed with mode 0700. A directory others can write to, like /tmp,
+ * gets a subdirectory chimera-<uid> of its own instead: otherwise
+ * another user could put files there that Chimera would take for its
+ * own, or links that make it overwrite files. Returns the directory to
+ * use (static), or NULL when no safe one can be had.
+ */
+char *
+PrivateDir(char *dir)
+{
+  static char path[MAXPATHLEN + 1];
+  struct stat s;
+  char *p;
+
+  if (dir == NULL || *dir == '\0') return(NULL);
+  if (snprintf(path, sizeof(path), "%s", dir) >= (int)sizeof(path))
+    return(NULL);
+
+  /* create missing directories on the way, like mkdir -p */
+  for (p = path + 1; *p; p++)
+  {
+    if (*p != '/') continue;
+    *p = '\0';
+    mkdir(path, 0700);
+    *p = '/';
+  }
+  mkdir(path, 0700);
+
+  if (stat(path, &s) != 0 || !S_ISDIR(s.st_mode)) return(NULL);
+
+  if ((s.st_mode & (S_IWGRP | S_IWOTH)) || s.st_uid != getuid())
+  {
+    size_t len = strlen(path);
+
+    if (snprintf(path + len, sizeof(path) - len, "/chimera-%ld",
+		 (long)getuid()) >= (int)(sizeof(path) - len))
+      return(NULL);
+    mkdir(path, 0700);
+  }
+
+  /* the directory itself: ours, not a link, and closed to others */
+  if (lstat(path, &s) != 0 || !S_ISDIR(s.st_mode) || s.st_uid != getuid())
+    return(NULL);
+  if ((s.st_mode & 077) != 0 && chmod(path, 0700) != 0) return(NULL);
+
+  return(path);
 }
 
 #include <sys/types.h>
