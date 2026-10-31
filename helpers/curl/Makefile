@@ -61,6 +61,16 @@ TARGET = chimera-curl
 
 TARGET_CFLAGS = $(CFLAGS) -std=gnu99
 
+# Mbed TLS 3 builds AES-NI on 32-bit x86 only with compiler intrinsics
+# (cpuid.h, immintrin.h), which old compilers like gcc 3.4 do not have.
+# There, and with any gcc before 4.4, AES-NI is left out: AES then runs
+# in plain C. (mbed TLS 2.16 with LEGACY=1 is not affected.)
+CC_MAJOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f1)
+CC_MINOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f2)
+NO_AESNI := $(shell case "$(TARGET_CPU)" in (i?86) echo 1;; esac; \
+	if [ -n "$(CC_MAJOR)" ] && { [ "$(CC_MAJOR)" -lt 4 ] || \
+	   { [ "$(CC_MAJOR)" -eq 4 ] && [ "$(CC_MINOR)" -lt 4 ]; }; }; then echo 1; fi)
+
 # -fPIC only when not building statically against uClibc (IS_UCLIBC is set in mk.config)
 ifneq ($(IS_UCLIBC), 1)
     TARGET_CFLAGS += -fPIC
@@ -128,6 +138,11 @@ else
 		|| wget -O $(MBEDTLS_TARBALL) $(MBEDTLS_URL)
 	echo "$(MBEDTLS_SHA256)  $(MBEDTLS_TARBALL)" | sha256sum -c -
 	bzip2 -dc $(MBEDTLS_TARBALL) | tar xf -
+ifneq ($(findstring 1,$(NO_AESNI)),)
+	sed -i 's|^#define MBEDTLS_AESNI_C$$|/* #define MBEDTLS_AESNI_C: off, see helpers/curl/Makefile */|' \
+		$(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
+	! grep -q '^#define MBEDTLS_AESNI_C$$' $(MBEDTLS_DIR)/include/mbedtls/mbedtls_config.h
+endif
 endif
 	touch $@
 

@@ -169,6 +169,8 @@ make -C helpers/curl install-static-curl
 
 The sources are not kept in this repository. `static-curl` downloads the curl and Mbed TLS release tarballs and checks their SHA-256, so it needs network access, `sha256sum` and `bzip2` once. It installs the binary as `chimera-curl`, which the script then uses automatically.
 
+On 32-bit x86 and with gcc older than 4.4, Mbed TLS is built without AES-NI, which needs compiler intrinsics those lack; AES then runs in plain C.
+
 `make -C helpers/curl static-curl LEGACY=1` builds the versions used before, curl 7.47.0 with mbed TLS 2.16.0, for a compiler that cannot build the current ones. They no longer get security fixes and have no TLS 1.3, so use them only if you must.
 
 chimera-curl checks certificates against the CA file found when it was built. On an older system that file lacks today's root certificates, and pages fail with `Cert verify failed: BADCERT_NOT_TRUSTED`. Fetch a current file with
