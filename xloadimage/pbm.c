@@ -119,6 +119,7 @@ pbmReadInt()
     c = pbmReadChar();
     if (c < 0) return(-1);
     if (IntTable[c] < 0) return(value);
+    if (value > 100000000) return(-1);	/* would overflow; no sane size */
     value = (value * 10) + IntTable[c];
   }
 }
@@ -197,6 +198,12 @@ pbmLoad(char *data, int datalen, RGBColor *bg)
 
   pbm_type= isPBM(&width, &height, &maxval);
   if (pbm_type == NOTPBM) return(NULL);
+
+  /* everything here comes from the file: a size whose buffer size
+   * wraps around, or a maxval of 0 (divided by below), is refused
+   * (found by fuzzing) */
+  if (!imageSizeOK(width, height) || maxval < 1 || maxval > 65535)
+    return(NULL);
 
   switch (pbm_type) {
   case PBMNORMAL:
@@ -287,7 +294,7 @@ pbmLoad(char *data, int datalen, RGBColor *bg)
     }
     break;
   case PGMRAWBITS:
-    depth= colorsToDepth(maxval);
+    depth= colorsToDepth(maxval + 1);	/* levels 0..maxval */
     if (depth > 8)
       image = newTrueImage(width, height);
     else {
@@ -312,6 +319,10 @@ pbmLoad(char *data, int datalen, RGBColor *bg)
 	freeImage(image);
 	return(NULL);
       }
+      /* the bytes are colour indices: keep them inside the map */
+      for (y = 0; y < size; y++)
+	if (image->data[y] > maxval)
+	  image->data[y] = maxval;
       break;
 
     case ITRUE:
@@ -330,7 +341,7 @@ pbmLoad(char *data, int datalen, RGBColor *bg)
     }
     break;
   case PGMNORMAL:
-    depth= colorsToDepth(maxval);
+    depth= colorsToDepth(maxval + 1);	/* levels 0..maxval */
     if (depth > 8)
       image= newTrueImage(width, height);
     else {
@@ -355,7 +366,7 @@ pbmLoad(char *data, int datalen, RGBColor *bg)
 	  *(destptr++) = src; /* blue */
 	}
 	else
-	  *(destptr++) = src;
+	  *(destptr++) = (src > maxval) ? maxval : src;	/* colour index */
       }
     }
     break;

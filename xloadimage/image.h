@@ -202,6 +202,7 @@ char *findstr _ArgProto((char *, char *));
 /* new.c */
 extern unsigned long DepthToColorsTable[];
 unsigned long colorsToDepth();
+int imageSizeOK _ArgProto((long width, long height));
 char  *dupString _ArgProto((char *s));
 Image *newBitImage _ArgProto((unsigned int width, unsigned int height));
 Image *newRGBImage _ArgProto((unsigned int width, unsigned int height,

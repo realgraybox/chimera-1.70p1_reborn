@@ -64,6 +64,21 @@ unsigned long colorsToDepth(unsigned long ncolors)
 }
 
 
+/*
+ * Is width x height a sensible image to allocate? The loaders take the
+ * size from the file, and the buffer sizes are computed in (unsigned)
+ * int, so a huge size wraps around to a small buffer.
+ */
+#define IMAGE_MAX_DIM    32767
+#define IMAGE_MAX_PIXELS (64L * 1024 * 1024)
+
+int imageSizeOK(long width, long height)
+{
+  return width > 0 && height > 0 &&
+         width <= IMAGE_MAX_DIM && height <= IMAGE_MAX_DIM &&
+         width * height <= IMAGE_MAX_PIXELS;
+}
+
 void goodImage(Image *image, char *func)
 {
   if (!image) {
