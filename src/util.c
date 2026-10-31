@@ -284,10 +284,34 @@ mystrtok(char *s, int c, char **cdr)
 char *
 CreateCommandLine(char *command, char *path, char *filename)
 {
-  char *cmdline;
+  char *cmdline, *o;
+  const char *c;
+  int n = 0;
 
-  cmdline = alloc_mem(strlen(command) + strlen(filename) + 1);
-  sprintf (cmdline, command, filename);
+  /*
+   * Put filename in for each %s, and % for %%. The command comes from a
+   * mailcap or convert file and was used as a printf format, which went
+   * wrong for a second %s or a mailcap code like %t.
+   */
+  for (c = command; *c; c++)
+    if (c[0] == '%' && c[1] == 's') n++;
+  o = cmdline = alloc_mem(strlen(command) + n * strlen(filename) + 1);
+  for (c = command; *c; c++)
+  {
+    if (c[0] == '%' && c[1] == 's')
+    {
+      strcpy(o, filename);
+      o += strlen(filename);
+      c++;
+    }
+    else if (c[0] == '%' && c[1] == '%')
+    {
+      *o++ = '%';
+      c++;
+    }
+    else *o++ = *c;
+  }
+  *o = '\0';
 
   if (path != NULL && path[0] != '\0')
   {

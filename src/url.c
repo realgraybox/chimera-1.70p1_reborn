@@ -575,7 +575,7 @@ ParseURL(char *url)
   /* RFC1738 says spaces in URLs are to be ignored -- GN 1997May02 */
   t = start = (char *)alloc_mem(strlen(url) + 1);
   for (s = url; *s; s++)
-    if (!isspace(*s))
+    if (!isspace((unsigned char)*s))
       *t++ = *s;
   *t = '\0';
 

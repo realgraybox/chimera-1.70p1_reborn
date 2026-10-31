@@ -563,10 +563,12 @@ ParseMIMEField(Document *d, MIMEField *m)
    */
   if (strncasecmp("content-type", field, 12) == 0)
   {
+    if (d->content != NULL) free_mem(d->content);	/* header given twice */
     d->content = alloc_string(data);
   }
   else if (strncasecmp("x-pcontent-type", field, 15) == 0)
   {
+    if (d->pcontent != NULL) free_mem(d->pcontent);	/* header given twice */
     d->pcontent = alloc_string(data);
   }
   else if (strncasecmp("content-length", field, 14) == 0)
@@ -605,12 +607,17 @@ ParseMIMEField(Document *d, MIMEField *m)
     list = data;
     if ((t = mystrtok(list, ' ', &list)) != NULL)
     {
+      if (d->auth_type != NULL) free_mem(d->auth_type);	/* given twice */
       d->auth_type = alloc_string(t);
     }
     
     if ((t = mystrtok(list, '=', &list)) != NULL)
     {
-      if (list != NULL) d->auth_realm = alloc_string(list);
+      if (list != NULL)
+      {
+	if (d->auth_realm != NULL) free_mem(d->auth_realm);
+	d->auth_realm = alloc_string(list);
+      }
     }
   }
 

@@ -254,7 +254,8 @@ ScanCacheDirectories()
 	  /*
 	   * Get the full path of the cache file.
 	   */
-	  sprintf (path, "%s/%s", ci->dir, de->d_name);
+	  if (snprintf (path, sizeof(path), "%s/%s", ci->dir, de->d_name)
+	      >= (int)sizeof(path)) continue;
 	  if (stat(path, &s) != 0) continue;
 	  
 	  /*
@@ -399,7 +400,7 @@ urlToCacheName(CacheInfo *ci, URLParts *up)
   /* chop it off to have reasonable length file names */
   hex[11] = '\0';
 
-  sprintf(name, "%s/ccf%s", ci->dir, hex);
+  snprintf(name, sizeof(name), "%s/ccf%s", ci->dir, hex);
 
   return(name);
 }

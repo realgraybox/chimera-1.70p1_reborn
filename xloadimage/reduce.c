@@ -495,7 +495,8 @@ Image *reduce(Image *image, unsigned int n, unsigned int verbose)
 
   depth= colorsToDepth(n);
   new_image= newRGBImage(image->width, image->height, depth);
-  sprintf(buf, "%s (%d colors)", image->title, n);
+  snprintf(buf, sizeof(buf), "%s (%d colors)",
+	   image->title ? image->title : "", n);
   new_image->title= alloc_string(buf);
 
   /* calculate RGB table from each color area.  this should really calculate

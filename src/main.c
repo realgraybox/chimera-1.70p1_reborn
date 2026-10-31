@@ -2979,29 +2979,29 @@ DisplayConnectStatus(int msg, char *host)
     {
     case 0:
       if (DNSquery == NULL) DNSquery = GetFromStringDB("DNSquery");
-      sprintf(buffer, DNSquery, ourhost);
+      snprintf(buffer, sizeof(buffer), DNSquery, ourhost);
       break;
     case 1:
       if (TCPconnecting == NULL)
 	TCPconnecting = GetFromStringDB("TCPconnecting");
-      sprintf(buffer, TCPconnecting, ourhost);
+      snprintf(buffer, sizeof(buffer), TCPconnecting, ourhost);
       break;
     case 2:
       if (TCPconnected == NULL)
 	TCPconnected = GetFromStringDB("TCPconnected");
-      sprintf(buffer, TCPconnected, ourhost);
+      snprintf(buffer, sizeof(buffer), TCPconnected, ourhost);
       break;
     case 3:
       if (TCPsendreq == NULL) TCPsendreq = GetFromStringDB("TCPsendreq");
-      sprintf(buffer, TCPsendreq, ourhost);
+      snprintf(buffer, sizeof(buffer), TCPsendreq, ourhost);
       break;
     case 4:
       if (TCPsentawait == NULL) TCPsentawait = GetFromStringDB("TCPsentawait");
-      strcpy(buffer, TCPsentawait);
+      snprintf(buffer, sizeof(buffer), "%s", TCPsentawait);
       break;
     default:
       if (download == NULL) download = GetFromStringDB("download");
-      strcpy(buffer, download);
+      snprintf(buffer, sizeof(buffer), "%s", download);
       break;
     }
 
@@ -3072,22 +3072,22 @@ DisplayTransferStatus(int n, int max, int showit)
       }
       if (byte0 == NULL) byte0 = GetFromStringDB("byte0");
       if (byte01 == NULL) byte01 = GetFromStringDB("byte01");
-      if (n == 1) strcpy (buffer, byte01);
-      else sprintf (buffer, byte0, n);
+      if (n == 1) snprintf(buffer, sizeof(buffer), "%s", byte01);
+      else snprintf(buffer, sizeof(buffer), byte0, n);
     }
     else if (max > 0)
     {
       if (byte2 == NULL) byte2 = GetFromStringDB("byte2");
       if (byte21 == NULL) byte21 = GetFromStringDB("byte21");
-      if (n == 1) sprintf (buffer, byte21, max);
-      else sprintf (buffer, byte2, n, max);
+      if (n == 1) snprintf(buffer, sizeof(buffer), byte21, max);
+      else snprintf(buffer, sizeof(buffer), byte2, n, max);
     }
     else
     {
       if (byte1 == NULL) byte1 = GetFromStringDB("byte1");
-      if (byte11 == NULL) byte1 = GetFromStringDB("byte11");
-      if (n == 1) strcpy (buffer, byte11);
-      else sprintf (buffer, byte1, n);
+      if (byte11 == NULL) byte11 = GetFromStringDB("byte11");
+      if (n == 1) snprintf(buffer, sizeof(buffer), "%s", byte11);
+      else snprintf(buffer, sizeof(buffer), byte1, n);
     }
 
     SetTitle(buffer);

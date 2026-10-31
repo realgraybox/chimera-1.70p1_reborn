@@ -116,17 +116,20 @@ gopher_to_html(int s, char *hostname, int portno, char *filename, char *ext)
 	i = 0;
 	gfno++;
       }
-      else
+      else if (i < BUFSIZ - 1)
       {
 	gf[gfno][i++] = *cp;
       }
     }
-    gf[gfno][i] = '\0';
+    /* a line with more fields than we know: the loop stopped one past
+     * the last field, which is already terminated (found in review) */
+    if (gfno < GOPHER_FIELD_COUNT) gf[gfno][i] = '\0';
 
     /*
      * Check for empty fields.
      */
-    if (gf[GOPHER_HOST][0] == '\0') strcpy(gf[GOPHER_HOST], hostname);
+    if (gf[GOPHER_HOST][0] == '\0')
+      snprintf(gf[GOPHER_HOST], sizeof(gf[GOPHER_HOST]), "%s", hostname);
 
     /*
      * Select the proper form.

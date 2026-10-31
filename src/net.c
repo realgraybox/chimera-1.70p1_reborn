@@ -80,7 +80,9 @@ int net_bind(int port) {
     }
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
+    /* this machine only: anyone who can connect can make Chimera load
+     * any address (inPort resource, off by default) */
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = htons((unsigned short)port);
 
     if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
